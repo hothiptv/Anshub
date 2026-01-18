@@ -1,0 +1,16 @@
+:root { --p: #bdacff; --bg: #0a0a0c; }
+body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; }
+.glass-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(189, 172, 255, 0.3);
+    border-radius: 20px;
+    padding: 30px;
+}
+.ans-btn {
+    background: linear-gradient(135deg, #bdacff, #7a5cf5);
+    color: black; border: none; padding: 10px 20px;
+    border-radius: 8px; font-weight: bold; cursor: pointer;
+    transition: 0.3s; margin: 5px;
+}
+.ans-btn:hover { box-shadow: 0 0 15px var(--p); transform: scale(1.05); }
