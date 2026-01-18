@@ -1,64 +1,69 @@
-const express = require("express");
-const http = require("http");
-const WebSocket = require("ws");
-const app = express();
+const express = require("express")
+const app = express()
+const path = require("path")
 
-app.use(express.json());
-app.use(express.static("public"));
+app.use(express.json())
+app.use(express.static("public"))
 
-const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
-
-let waitingPlayers = {}; // username -> ws
-let sessions = {};       // id -> { user, robloxWs, webWs }
+let sessions = {} 
+/*
+sessions = {
+  playerName: {
+    status: "WAITING" | "PENDING" | "CONNECTED",
+    id: "ans-xxxxx",
+    serverId: "",
+    lastPing: Date
+  }
+}
+*/
 
 function genId() {
-  return "ans-" + Math.random().toString(36).slice(2, 8);
+  return "ans-" + Math.random().toString(36).substring(2,7).toUpperCase()
 }
 
-wss.on("connection", ws => {
-  ws.on("message", msg => {
-    let data = JSON.parse(msg);
+// Roblox báo đang bật script
+app.post("/api/register", (req,res)=>{
+  const { player, serverId } = req.body
+  sessions[player] = {
+    status: "WAITING",
+    serverId,
+    id: null,
+    lastPing: Date.now()
+  }
+  res.json({ ok:true })
+})
 
-    // Roblox báo đang chờ
-    if (data.type === "roblox_wait") {
-      waitingPlayers[data.username] = ws;
-      ws.username = data.username;
-    }
+// Web nhập tên
+app.post("/api/request", (req,res)=>{
+  const { player } = req.body
+  const s = sessions[player]
+  if (!s) return res.json({ ok:false, msg:"PLAYER_OFFLINE" })
 
-    // Web yêu cầu kết nối
-    if (data.type === "web_request") {
-      let robloxWs = waitingPlayers[data.username];
-      if (!robloxWs) {
-        ws.send(JSON.stringify({ type: "error", msg: "Người chơi chưa bật script" }));
-        return;
-      }
+  s.id = genId()
+  s.status = "PENDING"
+  res.json({ ok:true, id:s.id })
+})
 
-      let id = genId();
-      sessions[id] = { user: data.username, robloxWs, webWs: ws };
+// Roblox polling
+app.get("/api/check/:player",(req,res)=>{
+  const s = sessions[req.params.player]
+  if (!s) return res.json({ status:"NONE" })
+  res.json(s)
+})
 
-      ws.send(JSON.stringify({ type: "pending", id }));
-      robloxWs.send(JSON.stringify({ type: "confirm", id }));
-    }
+// Roblox chấp nhận
+app.post("/api/accept",(req,res)=>{
+  const { player } = req.body
+  if (sessions[player]) sessions[player].status="CONNECTED"
+  res.json({ ok:true })
+})
 
-    // Roblox xác nhận
-    if (data.type === "roblox_accept") {
-      let s = sessions[data.id];
-      if (!s) return;
-      s.webWs.send(JSON.stringify({ type: "connected", id: data.id }));
-    }
+// Hủy
+app.post("/api/cancel",(req,res)=>{
+  const { player } = req.body
+  delete sessions[player]
+  res.json({ ok:true })
+})
 
-    if (data.type === "roblox_reject") {
-      let s = sessions[data.id];
-      if (!s) return;
-      s.webWs.send(JSON.stringify({ type: "rejected" }));
-      delete sessions[data.id];
-    }
-  });
-
-  ws.on("close", () => {
-    if (ws.username) delete waitingPlayers[ws.username];
-  });
-});
-
-server.listen(process.env.PORT || 3000);
+const PORT = process.env.PORT || 3000
+app.listen(PORT, ()=>console.log("ANS HUB ONLINE"))
