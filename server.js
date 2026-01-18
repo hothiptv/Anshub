@@ -1,50 +1,34 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
-const { v4: uuidv4 } = require('uuid');
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 const DB_PATH = path.join(__dirname, 'database.json');
 
+// Tạo database ảo nếu chưa có
+if (!fs.existsSync(DB_PATH)) {
+    fs.writeFileSync(DB_PATH, JSON.stringify({ users: [], projects: {} }));
+}
+
 app.use(express.json());
+
+// QUAN TRỌNG: Chỉ định thư mục chứa file giao diện
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Đảm bảo có file database
-if (!fs.existsSync(DB_PATH)) fs.writeFileSync(DB_PATH, JSON.stringify({ users: [], projects: {} }));
-
-const getData = () => JSON.parse(fs.readFileSync(DB_PATH));
-const saveData = (data) => fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
-
-// Trang chủ
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
-
-// API Đăng ký & Đăng nhập (Gộp chung để gọn)
-app.post('/api/auth', (req, res) => {
-    const { user, pass, type } = req.body;
-    let data = getData();
-    if (type === 'register') {
-        if (data.users.find(u => u.user === user)) return res.status(400).send("User tồn tại");
-        data.users.push({ user, pass });
-        saveData(data);
-        return res.send({ success: true });
-    }
-    const found = data.users.find(u => u.user === user && u.pass === pass);
-    res.send({ success: !!found });
+// Trả về file index.html khi vào trang chủ
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// API Lấy/Cập nhật Project
-app.get('/api/project/:key', (req, res) => {
-    const project = getData().projects[req.params.key];
-    project ? res.json(project) : res.status(404).send("Not Found");
+// API lấy dữ liệu Script
+app.get('/api/v1/fetch/:key', (req, res) => {
+    const data = JSON.parse(fs.readFileSync(DB_PATH));
+    const project = data.projects[req.params.key];
+    if (project) res.json(project);
+    else res.status(404).json({error: "Not Found"});
 });
 
-app.post('/api/project/save', (req, res) => {
-    const { key, config } = req.body;
-    let data = getData();
-    data.projects[key] = config;
-    saveData(data);
-    res.send("Saved");
+app.listen(PORT, () => {
+    console.log(`Server live at port ${PORT}`);
 });
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Anshub Live: ${PORT}`));
