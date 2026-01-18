@@ -1,228 +1,93 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anscript Hub v0.5 | Infinity Remote</title>
+    <title>Anscript Hub v0.5 | Infinity Edition</title>
     <style>
-        :root {
-            --p: #bdacff; /* Tím Neon */
-            --g: #00ffcc; /* Xanh Cyan */
-            --r: #ff4d4d; /* Đỏ lỗi */
-            --bg: #050505;
-        }
-
-        body {
-            margin: 0; padding: 0;
-            background: var(--bg);
-            color: white;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            overflow: hidden;
-            background-image: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #050505 100%);
-        }
-
-        /* Hiệu ứng Kính mờ (Glassmorphism) */
-        .glass {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(189, 172, 255, 0.2);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
-        }
-
-        /* Màn hình Đăng nhập (Login) */
-        #login-screen {
-            position: fixed; inset: 0;
-            display: flex; align-items: center; justify-content: center;
-            z-index: 1000;
-        }
-
-        .login-box {
-            padding: 40px; text-align: center; width: 350px;
-            animation: fadeIn 0.8s ease-out;
-        }
-
-        h1 { font-size: 28px; margin-bottom: 20px; letter-spacing: 5px; color: var(--p); text-shadow: 0 0 10px var(--p); }
-
-        input {
-            width: 100%; padding: 15px; margin-bottom: 20px;
-            background: rgba(0,0,0,0.5); border: 1px solid #333;
-            border-radius: 10px; color: white; text-align: center;
-            font-size: 18px; font-weight: bold; outline: none; transition: 0.3s;
-            box-sizing: border-box;
-        }
-
-        input:focus { border-color: var(--p); box-shadow: 0 0 15px rgba(189, 172, 255, 0.4); }
-
-        .btn-connect {
-            width: 100%; padding: 15px; border: none; border-radius: 10px;
-            background: linear-gradient(90deg, var(--p), #7a5cf5);
-            color: white; font-weight: bold; cursor: pointer;
-            font-size: 16px; transition: 0.3s;
-        }
-
-        .btn-connect:hover { transform: scale(1.02); box-shadow: 0 0 20px var(--p); }
-
-        /* Dashboard chính */
-        #main-ui {
-            display: none; height: 100vh;
-            grid-template-columns: 250px 1fr;
-        }
-
-        .sidebar {
-            padding: 30px 20px; border-right: 1px solid rgba(255,255,255,0.05);
-            display: flex; flex-direction: column; gap: 10px;
-        }
-
-        .nav-item {
-            padding: 15px; cursor: pointer; border-radius: 12px;
-            transition: 0.3s; font-weight: 500; display: flex; align-items: center; gap: 10px;
-            color: rgba(255,255,255,0.6);
-        }
-
-        .nav-item:hover { background: rgba(189, 172, 255, 0.1); color: var(--p); }
-        .nav-item.active { background: rgba(189, 172, 255, 0.2); color: var(--p); border: 1px solid var(--p); }
-
-        .content { padding: 40px; overflow-y: auto; }
-
-        .card {
-            background: rgba(255,255,255,0.02); border-radius: 15px;
-            padding: 20px; border: 1px solid rgba(255,255,255,0.05);
-            margin-bottom: 20px;
-        }
-
-        /* Chỉ số Nhân vật */
-        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
-        .stat-item { padding: 15px; border-radius: 10px; background: rgba(0,0,0,0.3); border-left: 4px solid var(--p); }
-        .stat-item span { display: block; font-size: 12px; opacity: 0.6; margin-bottom: 5px; }
-        .stat-item b { font-size: 20px; color: var(--p); }
-
-        /* Nút Script */
-        .script-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
-        .script-btn {
-            background: rgba(255,255,255,0.05); border: 1px solid #333;
-            color: white; padding: 15px; border-radius: 10px; cursor: pointer;
-            transition: 0.2s; text-align: center; font-weight: bold;
-        }
-
-        .script-btn:hover { background: var(--p); color: black; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(189, 172, 255, 0.3); }
-
-        /* Loading & Notification */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        :root { --p: #bdacff; --bg: #050505; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; margin:0; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); border: 1px solid rgba(189,172,255,0.2); border-radius: 20px; }
         
-        .status-msg { margin-top: 15px; font-size: 13px; font-weight: 500; color: var(--p); }
+        /* Màn hình chờ */
+        #login-screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
+        .user-card { 
+            padding: 15px 30px; margin: 10px; cursor: pointer; transition: 0.3s; 
+            border-left: 5px solid var(--p); width: 250px; text-align: center;
+        }
+        .user-card:hover { background: var(--p); color: black; transform: scale(1.1); }
+
+        #main-ui { display: none; height: 100vh; grid-template-columns: 250px 1fr; }
+        .sidebar { padding: 20px; border-right: 1px solid #222; }
+        .content { padding: 40px; }
+        .stat-box { padding: 20px; background: #111; border-radius: 10px; border-bottom: 2px solid var(--p); }
     </style>
 </head>
 <body>
 
     <div id="login-screen">
-        <div class="glass login-box">
-            <h1>ANSCRIPT HUB</h1>
-            <p style="opacity: 0.6; font-size: 12px; margin-bottom: 20px;">HELLO 2026 - BY ANSCRIPT VN</p>
-            <input type="text" id="ans-name-input" placeholder="NHẬP TÊN NHÂN VẬT">
-            <button class="btn-connect" onclick="connect()">KẾT NỐI</button>
-            <div id="status" class="status-msg">Vui lòng nhập tên Roblox của bạn</div>
+        <h1 style="color:var(--p); text-shadow: 0 0 20px var(--p);">ANSRIPT HUB</h1>
+        <p>DANH SÁCH ĐANG ONLINE TRONG GAME:</p>
+        <div id="user-list">
+            <p style="opacity: 0.5;">Đang quét tìm người chơi...</p>
         </div>
+        <p style="font-size: 10px; margin-top: 20px;">Hãy chạy Script trong Roblox trước khi kết nối!</p>
     </div>
 
     <div id="main-ui">
         <div class="sidebar glass">
-            <div style="text-align: center; margin-bottom: 30px;">
-                <b style="color:var(--p); font-size: 20px; letter-spacing: 2px;">ANSRIPT</b>
-                <div style="font-size: 10px; opacity: 0.5;">HUB VERSION 0.5</div>
-            </div>
-            
-            <div class="nav-item active" onclick="switchTab('home', this)">🏠 DASHBOARD</div>
-            <div class="nav-item" onclick="switchTab('scripts', this)">📜 SCRIPT HUB</div>
-            <div class="nav-item" onclick="switchTab('settings', this)">⚙️ SETTINGS</div>
-            
-            <button onclick="logout()" style="margin-top: auto; background: none; border: 1px solid var(--r); color: var(--r); padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold;">HỦY KẾT NỐI</button>
+            <h2>Anscript VN</h2>
+            <p id="current-user" style="color:var(--p)"></p>
+            <hr>
+            <button onclick="location.reload()">THOÁT</button>
         </div>
-
         <div class="content">
-            <div id="tab-home" class="tab-content">
-                <h2 style="color: var(--p);">THÔNG SỐ THỜI GIAN THỰC</h2>
-                <div class="stat-grid">
-                    <div class="stat-item"><span>PLAYER NAME</span><b id="stat-name">---</b></div>
-                    <div class="stat-item"><span>MÁU (HEALTH)</span><b id="stat-hp">0/100</b></div>
-                    <div class="stat-item"><span>WALKSPEED</span><b id="stat-ws">16</b></div>
-                    <div class="stat-item"><span>SERVER STATUS</span><b id="stat-status" style="color:var(--g)">ONLINE</b></div>
-                </div>
-                
-                <h2 style="margin-top: 40px;">GAME INFO</h2>
-                <div class="card glass">
-                    <p style="margin:0; opacity: 0.7;">Đang chơi tại:</p>
-                    <b id="stat-game" style="font-size: 20px; color: var(--g);">Đang tải dữ liệu...</b>
-                </div>
-            </div>
-
-            <div id="tab-scripts" class="tab-content" style="display:none">
-                <h2 style="color: var(--p);">KHO SCRIPT TỔNG HỢP</h2>
-                <div class="card glass">
-                    <div class="script-grid">
-                        <button class="script-btn" onclick="exec('Infinite Yield', 'https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source')">Infinite Yield</button>
-                        <button class="script-btn" onclick="exec('Ans Console', 'https://raw.githubusercontent.com/hothiptv/Anscript/refs/heads/Script/Ans_console')">Ans Console</button>
-                        <button class="script-btn" onclick="exec('Redz Hub', 'https://raw.githubusercontent.com/redz-hub/redz-V5-remake/main/main.luau')">Redz Hub (V5)</button>
-                        <button class="script-btn" onclick="exec('Blox Fruits', 'https://raw.githubusercontent.com/reavz/bloxfruits/main/script')">Blox Fruits Hub</button>
-                        <button class="script-btn" onclick="exec('Fly Script', 'https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.lua')">Fly Script (V3)</button>
-                    </div>
-                </div>
+            <div class="stat-box">
+                <p>MÁU: <span id="hp">0</span></p>
+                <p>TỐC ĐỘ: <span id="ws">0</span></p>
+                <button onclick="exec('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source')">CHẠY INFINITE YIELD</button>
             </div>
         </div>
     </div>
 
     <script>
-        let ws;
-        let playerName = localStorage.getItem('ans_player_name');
-        const statusTxt = document.getElementById('status');
+        let ws = new WebSocket("wss://anshub-production.up.railway.app/");
+        
+        ws.onmessage = (e) => {
+            const d = JSON.parse(e.data);
+            
+            if(d.type === "online_list") {
+                const listDiv = document.getElementById('user-list');
+                listDiv.innerHTML = "";
+                if(d.list.length === 0) listDiv.innerHTML = "Chưa có ai chạy script...";
+                d.list.forEach(name => {
+                    const card = document.createElement('div');
+                    card.className = "glass user-card";
+                    card.innerText = name;
+                    card.onclick = () => {
+                        ws.send(JSON.stringify({ type: "web_connect", playerName: name }));
+                        card.innerText = "ĐANG CHỜ PHÊ DUYỆT...";
+                    };
+                    listDiv.appendChild(card);
+                });
+            }
 
-        // Hàm khởi tạo kết nối
-        function initConnection() {
-            ws = new WebSocket("wss://anshub-production.up.railway.app/");
+            if(d.type === "connect_success") {
+                document.getElementById('login-screen').style.display = "none";
+                document.getElementById('main-ui').style.display = "grid";
+            }
 
-            ws.onopen = () => {
-                console.log("Đã kết nối Socket Railway.");
-                if (playerName) {
-                    statusTxt.innerText = "Tự động kết nối lại cho: " + playerName;
-                    ws.send(JSON.stringify({ type: "web_connect", playerName: playerName }));
-                }
-            };
+            if(d.type === "ui_update") {
+                document.getElementById('hp').innerText = d.data.hp;
+                document.getElementById('ws').innerText = d.data.ws;
+            }
+        };
 
-            ws.onmessage = (e) => {
-                const d = JSON.parse(e.data);
-
-                if (d.type === "waiting_accept") {
-                    statusTxt.innerText = "ĐANG CHỜ PHÊ DUYỆT TRONG ROBLOX...";
-                    statusTxt.style.color = "#ffcc00";
-                }
-
-                if (d.type === "connect_success") {
-                    localStorage.setItem('ans_player_name', playerName);
-                    document.getElementById('login-screen').style.display = "none";
-                    document.getElementById('main-ui').style.display = "grid";
-                    updateUI(d.data);
-                }
-
-                if (d.type === "ui_update") {
-                    updateUI(d.data);
-                }
-
-                if (d.type === "error") {
-                    statusTxt.innerText = d.msg;
-                    statusTxt.style.color = var(--r);
-                    localStorage.removeItem('ans_player_name');
-                }
-            };
-
-            ws.onclose = () => {
-                setTimeout(initConnection, 3000); // Tự động kết nối lại nếu sập
-            };
+        function exec(url) {
+            ws.send(JSON.stringify({ type: "execute", code: `loadstring(game:HttpGet('${url}'))()` }));
         }
-
-        // Nút kết nối thủ công
-        function connect() {
-            const inputName = document.getElementById('ans-name-input').value.trim();
-            if (!inputName) return alert("An ơi, nhập tên nhân vật đã!");
+    </script>
+</body>
+</html>
+e) return alert("An ơi, nhập tên nhân vật đã!");
             playerName = inputName;
             ws.send(JSON.stringify({ type: "web_connect", playerName: inputName }));
         }
