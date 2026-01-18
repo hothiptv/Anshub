@@ -4,25 +4,47 @@ const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 
 const app = express();
+const DB_PATH = path.join(__dirname, 'database.json');
 
-// 1. Cấu hình để Express có thể đọc file trong thư mục 'public'
-app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
-// 2. Định tuyến cho trang chủ (Sửa lỗi Cannot GET /)
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// Đảm bảo có file database
+if (!fs.existsSync(DB_PATH)) fs.writeFileSync(DB_PATH, JSON.stringify({ users: [], projects: {} }));
+
+const getData = () => JSON.parse(fs.readFileSync(DB_PATH));
+const saveData = (data) => fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
+
+// Trang chủ
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+
+// API Đăng ký & Đăng nhập (Gộp chung để gọn)
+app.post('/api/auth', (req, res) => {
+    const { user, pass, type } = req.body;
+    let data = getData();
+    if (type === 'register') {
+        if (data.users.find(u => u.user === user)) return res.status(400).send("User tồn tại");
+        data.users.push({ user, pass });
+        saveData(data);
+        return res.send({ success: true });
+    }
+    const found = data.users.find(u => u.user === user && u.pass === pass);
+    res.send({ success: !!found });
 });
 
-// --- Database & API (Giữ nguyên logic cũ) ---
-const DB_PATH = './database.json';
-if (!fs.existsSync(DB_PATH)) {
-    fs.writeFileSync(DB_PATH, JSON.stringify({ users: [], projects: {} }));
-}
+// API Lấy/Cập nhật Project
+app.get('/api/project/:key', (req, res) => {
+    const project = getData().projects[req.params.key];
+    project ? res.json(project) : res.status(404).send("Not Found");
+});
 
-// ... (Các API auth và project khác bạn đã viết) ...
+app.post('/api/project/save', (req, res) => {
+    const { key, config } = req.body;
+    let data = getData();
+    data.projects[key] = config;
+    saveData(data);
+    res.send("Saved");
+});
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server Anshub đang chạy tại port: ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Anshub Live: ${PORT}`));
