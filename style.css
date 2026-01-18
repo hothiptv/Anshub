@@ -1,59 +1,82 @@
 :root {
+    --bg: #0f1016;
+    --card: #1a1c26;
     --primary: #00f2ff;
-    --bg: #0a0b10;
-    --glass: rgba(255, 255, 255, 0.05);
+    --text: #ffffff;
+    --danger: #ff4b4b;
 }
 
 body {
-    background: var(--bg);
-    color: white;
-    font-family: 'Segoe UI', sans-serif;
     margin: 0;
-    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
 }
 
-.container {
+.flex-center {
     height: 100vh;
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
-    background: radial-gradient(circle, #1a1c2c 0%, #0a0b10 100%);
 }
 
-.ui-button {
-    background: var(--glass);
-    border: 1px solid var(--primary);
-    color: white;
-    padding: 10px 20px;
+.glass-card {
+    background: var(--card);
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    width: 350px;
+    text-align: center;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    background: #252836;
+    border: 1px solid #3d4154;
     border-radius: 8px;
+    color: white;
+    box-sizing: border-box;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    background: var(--primary);
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
     cursor: pointer;
     transition: 0.3s;
-    margin: 5px;
-    box-shadow: 0 0 10px rgba(0, 242, 255, 0.2);
 }
 
-.ui-button:hover {
-    background: var(--primary);
-    color: black;
-    box-shadow: 0 0 20px var(--primary);
+button:hover { opacity: 0.8; transform: translateY(-2px); }
+
+.sidebar {
+    width: 250px;
+    background: var(--card);
+    height: 100vh;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
 }
 
-/* Modal effect */
-.modal {
-    position: fixed;
-    top:0; left:0; width:100%; height:100%;
-    background: rgba(0,0,0,0.8);
-    backdrop-filter: blur(10px);
-    display: none;
-    justify-content: center;
-    align-items: center;
+.main-dashboard {
+    display: flex;
+    height: 100vh;
 }
 
-.modal-content {
-    background: var(--glass);
-    padding: 40px;
-    border-radius: 20px;
-    border: 1px solid rgba(255,255,255,0.1);
-    text-align: center;
+.content {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+}
+
+.tab-item {
+    background: #252836;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    border-left: 4px solid var(--primary);
 }
