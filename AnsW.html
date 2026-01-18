@@ -1,128 +1,181 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-    <title>Anscript Hub v0.5 | Infinity Edition</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anscript Hub v0.5 | Ultimate Control</title>
     <style>
-        :root { --p: #bdacff; --bg: #050505; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; margin:0; }
-        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); border: 1px solid rgba(189,172,255,0.2); border-radius: 20px; }
-        
-        /* Màn hình chờ */
-        #login-screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
-        .user-card { 
-            padding: 15px 30px; margin: 10px; cursor: pointer; transition: 0.3s; 
-            border-left: 5px solid var(--p); width: 250px; text-align: center;
+        :root {
+            --p: #bdacff; --g: #00ffcc; --r: #ff4d4d; --bg: #050505;
+            --accent: linear-gradient(90deg, #bdacff, #7a5cf5);
         }
-        .user-card:hover { background: var(--p); color: black; transform: scale(1.1); }
 
-        #main-ui { display: none; height: 100vh; grid-template-columns: 250px 1fr; }
-        .sidebar { padding: 20px; border-right: 1px solid #222; }
-        .content { padding: 40px; }
-        .stat-box { padding: 20px; background: #111; border-radius: 10px; border-bottom: 2px solid var(--p); }
+        body {
+            margin: 0; padding: 0; background: var(--bg); color: white;
+            font-family: 'Segoe UI', system-ui, sans-serif; overflow: hidden;
+            background-image: radial-gradient(circle at 50% 50%, #111122 0%, #050505 100%);
+        }
+
+        /* Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(189, 172, 255, 0.2);
+            border-radius: 15px;
+        }
+
+        /* Login Screen */
+        #login-screen {
+            position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .login-box { padding: 40px; text-align: center; width: 380px; box-shadow: 0 0 50px rgba(0,0,0,1); }
+        .user-card {
+            padding: 15px; margin: 10px 0; cursor: pointer; transition: 0.3s;
+            border-left: 4px solid var(--p); background: rgba(255,255,255,0.05); text-align: left;
+        }
+        .user-card:hover { background: var(--p); color: black; transform: translateX(10px); }
+
+        /* Main UI Layout */
+        #main-ui { display: none; height: 100vh; grid-template-columns: 260px 1fr; }
+        
+        /* Sidebar */
+        .sidebar { padding: 25px; border-right: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 8px; }
+        .nav-item {
+            padding: 14px 18px; cursor: pointer; border-radius: 10px; transition: 0.3s;
+            display: flex; align-items: center; gap: 12px; font-weight: 500; color: #aaa;
+        }
+        .nav-item:hover { background: rgba(189, 172, 255, 0.1); color: var(--p); }
+        .nav-item.active { background: var(--accent); color: white; box-shadow: 0 4px 15px rgba(122, 92, 245, 0.4); }
+
+        /* Content Area */
+        .content { padding: 40px; overflow-y: auto; }
+        .tab-content { animation: fadeIn 0.4s ease; }
+
+        /* Dashboard Components */
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .stat-item { padding: 20px; border-left: 4px solid var(--p); background: rgba(0,0,0,0.4); }
+        .stat-item span { display: block; font-size: 11px; text-transform: uppercase; opacity: 0.6; margin-bottom: 5px; }
+        .stat-item b { font-size: 22px; color: var(--p); }
+
+        /* Script Hub Components */
+        .script-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+        .script-btn {
+            background: rgba(255,255,255,0.05); border: 1px solid #333; color: white;
+            padding: 15px; border-radius: 10px; cursor: pointer; transition: 0.2s; font-weight: 600;
+        }
+        .script-btn:hover { background: var(--p); color: black; border-color: var(--p); transform: translateY(-3px); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
     <div id="login-screen">
-        <h1 style="color:var(--p); text-shadow: 0 0 20px var(--p);">ANSRIPT HUB</h1>
-        <p>DANH SÁCH ĐANG ONLINE TRONG GAME:</p>
-        <div id="user-list">
-            <p style="opacity: 0.5;">Đang quét tìm người chơi...</p>
+        <div class="glass login-box">
+            <h1 style="color:var(--p); letter-spacing: 3px; margin-bottom: 5px;">ANSRIPT HUB</h1>
+            <p style="font-size: 11px; opacity: 0.5; margin-bottom: 30px;">V0.5 ULTIMATE CONTROL PANEL</p>
+            <p style="font-size: 13px; text-align: left; margin-bottom: 10px;">DASHBOARD ONLINE:</p>
+            <div id="user-list">
+                <p style="opacity: 0.4; font-size: 13px;">Đang quét tìm người chơi trong game...</p>
+            </div>
+            <p style="margin-top: 25px; font-size: 10px; opacity: 0.4;">Hãy chạy Script Loader trong Roblox trước.</p>
         </div>
-        <p style="font-size: 10px; margin-top: 20px;">Hãy chạy Script trong Roblox trước khi kết nối!</p>
     </div>
 
     <div id="main-ui">
         <div class="sidebar glass">
-            <h2>Anscript VN</h2>
-            <p id="current-user" style="color:var(--p)"></p>
-            <hr>
-            <button onclick="location.reload()">THOÁT</button>
+            <div style="padding: 10px; margin-bottom: 20px;">
+                <b style="color:var(--p); font-size: 18px;">ANSRIPT VN</b>
+            </div>
+            <div class="nav-item active" onclick="switchTab('home', this)">📊 DASHBOARD</div>
+            <div class="nav-item" onclick="switchTab('scripts', this)">📜 SCRIPT HUB</div>
+            <div class="nav-item" onclick="switchTab('server', this)">🌐 SERVER INFO</div>
+            <div class="nav-item" onclick="switchTab('settings', this)">⚙️ SETTINGS</div>
+            
+            <button onclick="location.reload()" style="margin-top: auto; background: none; border: 1px solid var(--r); color: var(--r); padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold;">HỦY KẾT NỐI</button>
         </div>
+
         <div class="content">
-            <div class="stat-box">
-                <p>MÁU: <span id="hp">0</span></p>
-                <p>TỐC ĐỘ: <span id="ws">0</span></p>
-                <button onclick="exec('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source')">CHẠY INFINITE YIELD</button>
+            <div id="tab-home" class="tab-content">
+                <h2 style="color: var(--p);">REAL-TIME STATS</h2>
+                <div class="stat-grid">
+                    <div class="stat-item glass"><span>PLAYER</span><b id="st-name">N/A</b></div>
+                    <div class="stat-item glass"><span>HEALTH</span><b id="st-hp">0/100</b></div>
+                    <div class="stat-item glass"><span>WALKSPEED</span><b id="st-ws">16</b></div>
+                    <div class="stat-item glass"><span>FPS</span><b id="st-fps">60</b></div>
+                </div>
+                <div class="stat-item glass" style="width: 100%; border-left-color: var(--g);">
+                    <span>GAME NAME</span><b id="st-game" style="color:var(--g)">Đang tải...</b>
+                </div>
+            </div>
+
+            <div id="tab-scripts" class="tab-content" style="display:none">
+                <h2 style="color: var(--p);">SCRIPT EXECUTOR</h2>
+                <div class="script-grid">
+                    <button class="script-btn" onclick="exec('Infinite Yield', 'https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source')">Infinite Yield</button>
+                    <button class="script-btn" onclick="exec('Ans Console', 'https://raw.githubusercontent.com/hothiptv/Anscript/refs/heads/Script/Ans_console')">Ans Console</button>
+                    <button class="script-btn" onclick="exec('Redz Hub', 'https://raw.githubusercontent.com/redz-hub/redz-V5-remake/main/main.luau')">Redz Hub V5</button>
+                    <button class="script-btn" onclick="exec('Blox Fruit', 'https://raw.githubusercontent.com/reavz/bloxfruits/main/script')">Blox Fruit Hub</button>
+                    <button class="script-btn" onclick="exec('Fly', 'https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.lua')">Fly Script</button>
+                </div>
+            </div>
+
+            <div id="tab-server" class="tab-content" style="display:none">
+                <h2>SERVER INFORMATION</h2>
+                <div class="stat-item glass" style="margin-bottom: 10px;"><span>SERVER LINK</span><b>anshub-production.up.railway.app</b></div>
+                <div class="stat-item glass"><span>STATUS</span><b style="color:var(--g)">SYSTEM ONLINE</b></div>
             </div>
         </div>
     </div>
 
     <script>
-        let ws = new WebSocket("wss://anshub-production.up.railway.app/");
-        
+        // PHẦN LOGIC JAVASCRIPT - PHẢI NẰM TRONG THẺ SCRIPT
+        const ws = new WebSocket("wss://anshub-production.up.railway.app/");
+        const userList = document.getElementById('user-list');
+
         ws.onmessage = (e) => {
             const d = JSON.parse(e.data);
-            
-            if(d.type === "online_list") {
-                const listDiv = document.getElementById('user-list');
-                listDiv.innerHTML = "";
-                if(d.list.length === 0) listDiv.innerHTML = "Chưa có ai chạy script...";
+
+            if (d.type === "online_list") {
+                userList.innerHTML = "";
+                if (d.list.length === 0) userList.innerHTML = "<p style='opacity:0.4'>Chưa có người chơi nào online...</p>";
                 d.list.forEach(name => {
                     const card = document.createElement('div');
-                    card.className = "glass user-card";
-                    card.innerText = name;
+                    card.className = "user-card glass";
+                    card.innerHTML = `<b>${name}</b><br><small style='opacity:0.6'>Đang đợi kết nối...</small>`;
                     card.onclick = () => {
                         ws.send(JSON.stringify({ type: "web_connect", playerName: name }));
-                        card.innerText = "ĐANG CHỜ PHÊ DUYỆT...";
+                        card.style.borderColor = "#ffcc00";
+                        card.innerHTML = `<b>${name}</b><br><small style='color:#ffcc00'>HÃY CHẤP NHẬN TRONG ROBLOX!</small>`;
                     };
-                    listDiv.appendChild(card);
+                    userList.appendChild(card);
                 });
             }
 
-            if(d.type === "connect_success") {
+            if (d.type === "connect_success") {
                 document.getElementById('login-screen').style.display = "none";
                 document.getElementById('main-ui').style.display = "grid";
             }
 
-            if(d.type === "ui_update") {
-                document.getElementById('hp').innerText = d.data.hp;
-                document.getElementById('ws').innerText = d.data.ws;
+            if (d.type === "ui_update") {
+                document.getElementById('st-name').innerText = d.data.name;
+                document.getElementById('st-hp').innerText = Math.floor(d.data.hp) + "/100";
+                document.getElementById('st-ws').innerText = d.data.ws;
+                document.getElementById('st-game').innerText = d.data.game;
             }
         };
 
-        function exec(url) {
-            ws.send(JSON.stringify({ type: "execute", code: `loadstring(game:HttpGet('${url}'))()` }));
-        }
-    </script>
-</body>
-</html>
-e) return alert("An ơi, nhập tên nhân vật đã!");
-            playerName = inputName;
-            ws.send(JSON.stringify({ type: "web_connect", playerName: inputName }));
-        }
-
-        // Cập nhật dữ liệu lên UI
-        function updateUI(data) {
-            document.getElementById('stat-name').innerText = data.name || "N/A";
-            document.getElementById('stat-hp').innerText = Math.floor(data.hp || 0) + "/100";
-            document.getElementById('stat-ws').innerText = data.ws || 16;
-            document.getElementById('stat-game').innerText = data.game || "Unknown Game";
-        }
-
-        // Chuyển Tab
-        function switchTab(tabId, el) {
+        function switchTab(tab, el) {
             document.querySelectorAll('.tab-content').forEach(t => t.style.display = "none");
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            document.getElementById('tab-' + tabId).style.display = "block";
+            document.getElementById('tab-' + tab).style.display = "block";
             el.classList.add('active');
         }
 
-        // Gửi lệnh chạy Script
         function exec(name, url) {
-            const code = `loadstring(game:HttpGet('${url}'))()`;
-            ws.send(JSON.stringify({ type: "execute", code: code }));
-            alert("Đã gửi lệnh chạy: " + name);
+            ws.send(JSON.stringify({ type: "execute", code: `loadstring(game:HttpGet('${url}'))()` }));
+            alert("Đã gửi lệnh thực thi: " + name);
         }
-
-        // Đăng xuất
-        function logout() {
-            localStorage.removeItem('ans_player_name');
-            location.reload();
-        }
-
-        // Khởi động
-        initConnection();
     </script>
 </body>
 </html>
