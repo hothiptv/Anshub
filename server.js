@@ -1,58 +1,62 @@
 const express = require('express');
 const http = require('http');
-const { Server } = require('socket.io');
+const WebSocket = require('ws');
 const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const wss = new WebSocket.Server({ server });
 
 app.use(express.static(__dirname));
 
-let connections = {}; // Lưu trữ: { id: { gameSocket, webSocket, data } }
+let sessions = {}; // Lưu: { id: { gameWs, webWs, data } }
 
-io.on('connection', (socket) => {
-    // Game khởi tạo và nhận ID
-    socket.on('game_init', (data) => {
-        const ansID = "ANS-" + Math.random().toString(36).substr(2, 5).toUpperCase();
-        socket.ansID = ansID;
-        connections[ansID] = { gameSocket: socket, data: data };
-        socket.emit('assigned_id', ansID);
-    });
+wss.on('connection', (ws) => {
+    ws.on('message', (message) => {
+        const d = JSON.parse(message);
 
-    // Web kết nối bằng ID
-    socket.on('web_connect', (id) => {
-        if (connections[id]) {
-            connections[id].webSocket = socket;
-            socket.ansID = id;
-            socket.emit('connect_success', connections[id].data);
-        } else {
-            socket.emit('connect_error', 'ID không tồn tại hoặc đã offline!');
+        // Game khởi tạo
+        if (d.type === "game_init") {
+            const id = "ANS-" + Math.random().toString(36).substr(2, 5).toUpperCase();
+            ws.ansID = id;
+            sessions[id] = { gameWs: ws, data: d.data };
+            ws.send(JSON.stringify({ type: "assigned_id", id: id }));
+            console.log("Game Online: " + id);
+        }
+
+        // Web kết nối
+        if (d.type === "web_connect") {
+            if (sessions[d.id]) {
+                sessions[d.id].webWs = ws;
+                ws.ansID = d.id;
+                ws.send(JSON.stringify({ type: "connect_success", data: sessions[d.id].data }));
+            } else {
+                ws.send(JSON.stringify({ type: "error", msg: "ID không tồn tại!" }));
+            }
+        }
+
+        // Chuyển tiếp lệnh từ Web xuống Game
+        if (d.type === "execute") {
+            const session = sessions[ws.ansID];
+            if (session && session.gameWs) {
+                session.gameWs.send(JSON.stringify({ type: "run_script", code: d.code }));
+            }
+        }
+
+        // Cập nhật dữ liệu từ Game lên Web
+        if (d.type === "update") {
+            const session = sessions[ws.ansID];
+            if (session && session.webWs) {
+                session.webWs.send(JSON.stringify({ type: "ui_update", data: d.data }));
+            }
         }
     });
 
-    // Cập nhật dữ liệu từ Game lên Web
-    socket.on('update_from_game', (data) => {
-        const session = connections[socket.ansID];
-        if (session && session.webSocket) {
-            session.data = data;
-            session.webSocket.emit('update_ui', data);
-        }
-    });
-
-    // Gửi lệnh từ Web xuống Game (Executor, Cam, v.v.)
-    socket.on('web_command', (cmd) => {
-        const session = connections[socket.ansID];
-        if (session && session.gameSocket) {
-            session.gameSocket.emit('execute_game', cmd);
-        }
-    });
-
-    socket.on('disconnect', () => {
-        if (socket.ansID && connections[socket.ansID]) {
-            delete connections[socket.ansID];
-        }
+    ws.on('close', () => {
+        if (ws.ansID) delete sessions[ws.ansID];
     });
 });
 
-server.listen(process.env.PORT || 8080);
+server.listen(process.env.PORT || 8080, () => {
+    console.log("Server đang chạy tại: https://anshub-production.up.railway.app/");
+});
