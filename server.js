@@ -16,21 +16,12 @@ wss.on('connection', (ws) => {
     ws.on('message', (msg) => {
         try {
             const d = JSON.parse(msg);
-            
-            // GAME ONLINE
             if (d.type === "game_init") {
                 ws.playerName = d.playerName;
                 ws.isGame = true;
-                sessions[d.playerName] = { gameWs: ws, data: d.data, status: "pending" };
+                sessions[d.playerName] = { gameWs: ws, data: d.data };
                 broadcastOnlineList();
             }
-
-            // WEB ĐÒI DANH SÁCH
-            if (d.type === "get_online_list") {
-                broadcastOnlineList();
-            }
-
-            // WEB KẾT NỐI
             if (d.type === "web_connect") {
                 const target = d.playerName;
                 if (sessions[target]) {
@@ -39,43 +30,37 @@ wss.on('connection', (ws) => {
                     sessions[target].gameWs.send(JSON.stringify({ type: "auth_request" }));
                 }
             }
-
             if (d.type === "auth_response" && d.accepted) {
-                if (sessions[ws.playerName] && sessions[ws.playerName].webWs) {
+                if (sessions[ws.playerName]?.webWs) {
                     sessions[ws.playerName].webWs.send(JSON.stringify({ type: "connect_success", data: sessions[ws.playerName].data }));
                 }
             }
-
-            if (d.type === "update") {
-                if (sessions[ws.playerName] && sessions[ws.playerName].webWs) {
-                    sessions[ws.playerName].data = d.data;
-                    sessions[ws.playerName].webWs.send(JSON.stringify({ type: "ui_update", data: d.data }));
-                }
+            if (d.type === "update" && sessions[ws.playerName]?.webWs) {
+                sessions[ws.playerName].data = d.data;
+                sessions[ws.playerName].webWs.send(JSON.stringify({ type: "ui_update", data: d.data }));
             }
-
-            if (d.type === "execute") {
-                if (sessions[ws.playerName] && sessions[ws.playerName].gameWs) {
-                    sessions[ws.playerName].gameWs.send(JSON.stringify({ type: "run_script", code: d.code }));
-                }
+            if (d.type === "execute" && sessions[ws.playerName]?.gameWs) {
+                sessions[ws.playerName].gameWs.send(JSON.stringify({ type: "run_script", code: d.code }));
             }
         } catch(e) {}
     });
 
     ws.on('close', () => {
-        if (ws.playerName && ws.isGame) {
-            delete sessions[ws.playerName];
-            broadcastOnlineList();
+        if (ws.isGame) {
+            // Đợi 30 giây mới xóa để An kịp đổi Server
+            setTimeout(() => {
+                if (!sessions[ws.playerName]?.gameWs || sessions[ws.playerName].gameWs.readyState !== WebSocket.OPEN) {
+                    delete sessions[ws.playerName];
+                    broadcastOnlineList();
+                }
+            }, 30000);
         }
     });
 });
 
 function broadcastOnlineList() {
     const list = Object.keys(sessions);
-    wss.clients.forEach(client => {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify({ type: "online_list", list: list }));
-        }
-    });
+    wss.clients.forEach(c => c.readyState === WebSocket.OPEN && c.send(JSON.stringify({ type: "online_list", list: list })));
 }
 
 server.listen(process.env.PORT || 8080);
