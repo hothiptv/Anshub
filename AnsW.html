@@ -1,38 +1,211 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-    <title>Anscript Hub v0.5 | Control Panel</title>
-    <link rel="stylesheet" href="bog.css">
-    <script src="/socket.io/socket.io.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anscript Hub v0.5 | Infinity Control</title>
+    <style>
+        :root {
+            --p: #bdacff; /* Tím Neon */
+            --g: #00ffcc; /* Xanh Cyan */
+            --bg: #050505;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            background: var(--bg);
+            color: white;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            overflow: hidden;
+            background-image: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #050505 100%);
+        }
+
+        /* Hiệu ứng Kính mờ */
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(189, 172, 255, 0.2);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Màn hình Login */
+        #login-screen {
+            position: fixed; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000;
+        }
+
+        .login-box {
+            padding: 40px; text-align: center; width: 350px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        h1 { font-size: 28px; margin-bottom: 20px; letter-spacing: 5px; color: var(--p); text-shadow: 0 0 10px var(--p); }
+
+        input {
+            width: 100%; padding: 15px; margin-bottom: 20px;
+            background: rgba(0,0,0,0.5); border: 1px solid #333;
+            border-radius: 10px; color: white; text-align: center;
+            font-size: 18px; font-weight: bold; outline: none; transition: 0.3s;
+        }
+
+        input:focus { border-color: var(--p); box-shadow: 0 0 15px rgba(189, 172, 255, 0.4); }
+
+        .btn-connect {
+            width: 100%; padding: 15px; border: none; border-radius: 10px;
+            background: linear-gradient(90deg, var(--p), #7a5cf5);
+            color: white; font-weight: bold; cursor: pointer;
+            font-size: 16px; transition: 0.3s;
+        }
+
+        .btn-connect:hover { transform: scale(1.02); box-shadow: 0 0 20px var(--p); }
+
+        /* Dashboard chính */
+        #main-ui {
+            display: none; height: 100vh;
+            grid-template-columns: 250px 1fr;
+        }
+
+        .sidebar {
+            padding: 30px 20px; border-right: 1px solid rgba(255,255,255,0.05);
+            display: flex; flex-direction: column; gap: 10px;
+        }
+
+        .nav-item {
+            padding: 15px; cursor: pointer; border-radius: 12px;
+            transition: 0.3s; font-weight: 500; display: flex; align-items: center; gap: 10px;
+        }
+
+        .nav-item:hover { background: rgba(189, 172, 255, 0.1); color: var(--p); }
+        .nav-item.active { background: rgba(189, 172, 255, 0.2); color: var(--p); border: 1px solid var(--p); }
+
+        .content { padding: 40px; overflow-y: auto; }
+
+        .card {
+            background: rgba(255,255,255,0.02); border-radius: 15px;
+            padding: 20px; border: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 20px;
+        }
+
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .stat-item { padding: 15px; border-radius: 10px; background: rgba(0,0,0,0.3); border-left: 4px solid var(--p); }
+        .stat-item span { display: block; font-size: 12px; opacity: 0.6; margin-bottom: 5px; }
+        .stat-item b { font-size: 20px; color: var(--p); }
+
+        .script-btn {
+            background: rgba(255,255,255,0.05); border: 1px solid #333;
+            color: white; padding: 12px; border-radius: 8px; cursor: pointer;
+            margin: 5px; transition: 0.2s;
+        }
+
+        .script-btn:hover { background: var(--p); color: black; border-color: var(--p); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
 </head>
 <body>
+
     <div id="login-screen">
-        <div class="glass-card">
+        <div class="glass login-box">
             <h1>ANSCRIPT HUB</h1>
-            <p>Nhập mã ANS-XXXXX để kết nối</p>
-            <input type="text" id="ans-id-input" placeholder="ANS-xxxxx">
-            <button onclick="connectToGame()">KẾT NỐI</button>
+            <input type="text" id="ans-id" placeholder="NHẬP MÃ ANS-XXXXX">
+            <button class="btn-connect" onclick="connect()">KẾT NỐI NGAY</button>
+            <p id="status" style="margin-top: 15px; font-size: 12px; opacity: 0.5;"></p>
         </div>
     </div>
 
-    <div id="main-ui" style="display:none">
-        <div class="sidebar">
-            <h2>Anscript VN</h2>
-            <div class="tab-btn active" onclick="showTab('home')">HOME</div>
-            <div class="tab-btn" onclick="showTab('script')">SCRIPTS</div>
-            <div class="tab-btn" onclick="showTab('server')">SERVER</div>
+    <div id="main-ui">
+        <div class="sidebar glass">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <b style="color:var(--p); font-size: 20px;">Anscript VN</b>
+                <div style="font-size: 10px; opacity: 0.5;">PHIÊN BẢN v0.5</div>
+            </div>
+            <div class="nav-item active" onclick="switchTab('home')">🏠 DASHBOARD</div>
+            <div class="nav-item" onclick="switchTab('scripts')">📜 SCRIPT HUB</div>
+            <div class="nav-item" onclick="switchTab('server')">🌐 SERVER INFO</div>
+            <button onclick="location.reload()" style="margin-top: auto; background: none; border: 1px solid #f44; color: #f44; padding: 10px; border-radius: 8px; cursor: pointer;">HỦY KẾT NỐI</button>
         </div>
-        
+
         <div class="content">
-            <div id="tab-home" class="tab-page">
+            <div id="tab-home" class="tab-content">
+                <h2 style="color: var(--p);">CHỈ SỐ NHÂN VẬT</h2>
+                <div class="stat-grid">
+                    <div class="stat-item"><span>NGƯỜI CHƠI</span><b id="stat-name">---</b></div>
+                    <div class="stat-item"><span>MÁU (HP)</span><b id="stat-hp">0/100</b></div>
+                    <div class="stat-item"><span>TỐC ĐỘ</span><b id="stat-ws">16</b></div>
+                    <div class="stat-item"><span>TRẠNG THÁI</span><b id="stat-status" style="color:var(--g)">Trực Tuyến</b></div>
                 </div>
-            <div id="tab-server" class="tab-page" style="display:none">
+                <h2 style="margin-top: 40px;">GAME ĐANG CHƠI</h2>
+                <div class="card" id="stat-game">Đang đợi dữ liệu...</div>
+            </div>
+
+            <div id="tab-scripts" class="tab-content" style="display:none">
+                <h2>SCRIPT TỔNG HỢP</h2>
+                <div class="card">
+                    <button class="script-btn" onclick="exec('Infinite Yield', 'https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source')">Infinite Yield</button>
+                    <button class="script-btn" onclick="exec('Ans Console', 'https://raw.githubusercontent.com/hothiptv/Anscript/refs/heads/Script/Ans_console')">Ans Console</button>
+                    <button class="script-btn" onclick="exec('Redz Hub', 'https://raw.githubusercontent.com/redz-hub/redz-V5-remake/main/main.luau')">Redz Hub</button>
                 </div>
-            <div id="tab-script" class="tab-page" style="display:none">
-                </div>
+            </div>
         </div>
     </div>
-    <script src="bo.js"></script>
-    <script src="bog.js"></script>
+
+    <script>
+        let ws;
+        const statusTxt = document.getElementById('status');
+
+        function connect() {
+            const id = document.getElementById('ans-id').value.toUpperCase();
+            if(!id) return alert("Nhập mã đi An ơi!");
+
+            statusTxt.innerText = "Đang kết nối tới Railway...";
+            
+            // Đổi ws thành wss cho Railway
+            ws = new WebSocket("wss://anshub-production.up.railway.app/");
+
+            ws.onopen = () => {
+                ws.send(JSON.stringify({ type: "web_connect", id: id }));
+            };
+
+            ws.onmessage = (e) => {
+                const d = JSON.parse(e.data);
+                if(d.type === "connect_success") {
+                    document.getElementById('login-screen').style.display = "none";
+                    document.getElementById('main-ui').style.display = "grid";
+                    updateData(d.data);
+                } else if(d.type === "ui_update") {
+                    updateData(d.data);
+                } else if(d.type === "error") {
+                    statusTxt.innerText = d.msg;
+                    statusTxt.style.color = "#f44";
+                }
+            };
+
+            ws.onclose = () => {
+                statusTxt.innerText = "Mất kết nối server!";
+            };
+        }
+
+        function updateData(data) {
+            document.getElementById('stat-name').innerText = data.name || "N/A";
+            document.getElementById('stat-hp').innerText = Math.floor(data.hp || 0) + "/100";
+            document.getElementById('stat-ws').innerText = data.ws || 16;
+            document.getElementById('stat-game').innerText = data.game || "Không rõ";
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(t => t.style.display = "none");
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.getElementById('tab-' + tab).style.display = "block";
+            event.currentTarget.classList.add('active');
+        }
+
+        function exec(name, url) {
+            const code = `loadstring(game:HttpGet('${url}'))()`;
+            ws.send(JSON.stringify({ type: "execute", code: code }));
+            alert("Đã gửi lệnh chạy " + name + " xuống Roblox!");
+        }
+    </script>
 </body>
 </html>
