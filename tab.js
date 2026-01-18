@@ -1,67 +1,37 @@
-const TabLib = {
-    tabs: {},
-    
-    // Tạo Tab mới
-    createTab(tabName) {
-        const sidebar = document.querySelector('.sidebar ul');
-        const contentArea = document.querySelector('.content');
+const socket = io();
 
-        // Thêm nút vào sidebar
-        const navItem = document.createElement('li');
-        navItem.innerText = tabName;
-        navItem.onclick = () => this.showTab(tabName);
-        sidebar.appendChild(navItem);
+function connectToGame() {
+    const id = document.getElementById('ans-id-input').value;
+    socket.emit('web_connect', id);
+}
 
-        // Thêm vùng chứa nội dung
-        const tabPane = document.createElement('div');
-        tabPane.id = `tab-${tabName.toLowerCase()}`;
-        tabPane.className = 'tab-pane';
-        tabPane.style.display = 'none';
-        contentArea.appendChild(tabPane);
+socket.on('connect_success', (data) => {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main-ui').style.display = 'grid';
+    initHome(data);
+});
 
-        this.tabs[tabName] = tabPane;
-        return tabPane;
-    },
+// Hàm tạo nút kiểu An muốn
+function addRemoteButton(tabId, name, code) {
+    const btn = document.createElement('button');
+    btn.className = 'ans-btn';
+    btn.innerText = name;
+    btn.onclick = () => {
+        socket.emit('web_command', { type: 'execute', value: code });
+    };
+    document.getElementById(tabId).appendChild(btn);
+}
 
-    // Hàm add.button
-    addButton(tabName, text, callback) {
-        const btn = document.createElement('button');
-        btn.className = 'ui-button';
-        btn.innerText = text;
-        btn.onclick = callback;
-        this.tabs[tabName].appendChild(btn);
-    },
-
-    // Hàm add.toggle
-    addToggle(tabName, text, callback) {
-        const container = document.createElement('div');
-        container.className = 'ui-toggle-container';
-        container.innerHTML = `
-            <span>${text}</span>
-            <label class="switch">
-                <input type="checkbox">
-                <span class="slider round"></span>
-            </label>
-        `;
-        container.querySelector('input').onchange = (e) => callback(e.target.checked);
-        this.tabs[tabName].appendChild(container);
-    },
-
-    showTab(name) {
-        document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
-        this.tabs[name].style.display = 'block';
-    }
-};
-
-// Khởi tạo Home khi kết nối thành công
-function initDefaultTabs() {
-    TabLib.createTab("Home");
-    TabLib.addButton("Home", "Sao chép Link Web", () => {
-        navigator.clipboard.writeText("anshub-production.up.railway.app");
-        alert("Đã sao chép!");
-    });
-    
-    TabLib.createTab("Server");
-    TabLib.createTab("Executor");
-    TabLib.createTab("Settings");
+// Cấu hình Tab Home
+function initHome(data) {
+    const home = document.getElementById('tab-home');
+    home.innerHTML = `
+        <div class="khung">
+            <h3>CHỈ SỐ</h3>
+            <p>👤 Tên: <span id="p-name">${data.name}</span></p>
+            <p>❤️ HP: <span id="p-hp">${data.hp}</span></p>
+            <p>⚡ Tốc độ: <span id="p-ws">${data.ws}</span></p>
+            <p>🎮 Game: ${data.game}</p>
+        </div>
+    `;
 }
