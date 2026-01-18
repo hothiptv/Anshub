@@ -1,55 +1,46 @@
-class TabUI {
-  constructor(name) {
-    this.name = name;
-    this.container = document.createElement("div");
-    this.container.className = "tab";
-    document.getElementById("content").appendChild(this.container);
-  }
+const AnUI = {
+    socket: null,
+    init(ws) {
+        this.socket = ws;
+        // TỰ ĐỘNG TẠO CÁC TAB CƠ BẢN
+        this.addTab("Home", "🏠");
+        this.addTab("Executor", "💻");
+        this.showTab("Home");
+        
+        // VÍ DỤ TẠO NÚT
+        this.addButton("Home", "Tăng Tốc (50)", () => this.sendHack("walkspeed", 50));
+        this.addButton("Home", "Reset Nhân Vật", () => this.sendHack("execute", "game.Players.LocalPlayer.Character.Humanoid.Health = 0"));
+    },
 
-  button(name, cb) {
-    let btn = document.createElement("button");
-    btn.innerText = name;
-    btn.onclick = cb;
-    this.container.appendChild(btn);
-  }
+    addTab(name, icon) {
+        let b = document.createElement('div');
+        b.innerHTML = `${icon} ${name}`;
+        b.style = "padding:15px; cursor:pointer; border-radius:8px; margin-bottom:5px;";
+        b.onclick = () => this.showTab(name);
+        b.onmouseover = () => b.style.background = "#1a1a1a";
+        b.onmouseout = () => b.style.background = "transparent";
+        document.getElementById('menu').appendChild(b);
 
-  toggle(name, def) {
-    let label = document.createElement("label");
-    let input = document.createElement("input");
-    input.type = "checkbox";
-    input.checked = def;
-    label.append(name, input);
-    this.container.appendChild(label);
-  }
+        let c = document.createElement('div');
+        c.id = "tab-" + name;
+        c.style.display = "none";
+        document.getElementById('content').appendChild(c);
+    },
 
-  slider(name, min, max) {
-    let input = document.createElement("input");
-    input.type = "range";
-    input.min = min;
-    input.max = max;
-    this.container.append(name, input);
-  }
+    addButton(tabName, btnText, callback) {
+        let btn = document.createElement('button');
+        btn.innerText = btnText;
+        btn.style = "background:#222; color:white; border:1px solid #333; padding:10px; margin:5px; border-radius:5px; cursor:pointer;";
+        btn.onclick = callback;
+        document.getElementById('tab-' + tabName).appendChild(btn);
+    },
 
-  input(name) {
-    let i = document.createElement("input");
-    i.placeholder = name;
-    this.container.appendChild(i);
-  }
+    showTab(name) {
+        document.querySelectorAll('[id^="tab-"]').forEach(t => t.style.display = "none");
+        document.getElementById('tab-' + name).style.display = "block";
+    },
 
-  list(name, arr) {
-    let select = document.createElement("select");
-    arr.forEach(v => {
-      let o = document.createElement("option");
-      o.innerText = v;
-      select.appendChild(o);
-    });
-    this.container.append(name, select);
-  }
-}
-
-/* API GIỐNG BẠN YÊU CẦU */
-window.add = {
-  tab(name) {
-    return new TabUI(name);
-  }
+    sendHack(action, value) {
+        this.socket.send(JSON.stringify({ type: "execute", action: action, value: value }));
+    }
 };
