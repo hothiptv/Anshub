@@ -1,52 +1,78 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Anshub Cloud v0.6</title>
+    <title>Anshub v0.7 | Cyber Edition</title>
     <style>
-        :root { --p: #bdacff; --bg: #0a0a0a; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; }
-        #login-screen { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .login-box { background: #111; padding: 40px; border-radius: 15px; border: 1px solid var(--p); text-align: center; }
+        :root { --p: #bdacff; --bg: #030303; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; }
+        canvas { position: fixed; top: 0; left: 0; z-index: -1; opacity: 0.15; }
         
+        #login-screen { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(10px); }
+        .login-box { background: #111; padding: 40px; border-radius: 15px; border: 2px solid var(--p); text-align: center; box-shadow: 0 0 30px var(--p); animation: float 3s infinite ease-in-out; }
+        
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
         #dashboard { display: none; height: 100vh; }
-        .sidebar { width: 240px; background: #111; border-right: 1px solid #222; }
-        .nav-btn { padding: 20px; cursor: pointer; border-bottom: 1px solid #222; transition: 0.3s; }
-        .nav-btn:hover { background: var(--p); color: black; }
-        
-        .main { flex: 1; padding: 30px; overflow-y: auto; }
-        .card { background: #161616; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #333; }
-        
-        .hp-bg { background: #333; height: 12px; border-radius: 6px; margin: 10px 0; }
-        .hp-fill { background: #ff4d4d; height: 100%; border-radius: 6px; transition: 0.3s; }
-        textarea { width: 100%; height: 200px; background: #000; color: #0f0; border: 1px solid #333; border-radius: 8px; padding: 10px; box-sizing: border-box; }
-        .btn-p { background: var(--p); color: black; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
-        .log-container { height: 100px; background: #000; font-size: 12px; padding: 10px; overflow-y: auto; border: 1px solid #222; margin-bottom: 5px; color: #aaa; }
+        .sidebar { width: 250px; background: rgba(15,15,15,0.8); backdrop-filter: blur(10px); border-right: 1px solid #222; }
+        .nav-btn { padding: 20px; cursor: pointer; transition: 0.4s; border-left: 4px solid transparent; }
+        .nav-btn:hover { background: rgba(189,172,255,0.1); border-left-color: var(--p); text-shadow: 0 0 10px var(--p); }
+
+        .card { background: rgba(25,25,25,0.6); padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #333; transition: 0.3s; }
+        .neon-border:hover { border-color: var(--p); box-shadow: 0 0 15px var(--p); }
+
+        .btn-glow { background: var(--p); color: black; border: none; padding: 15px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; box-shadow: 0 0 15px var(--p); }
+        .hp-fill { background: linear-gradient(90deg, #ff4d4d, #ff8e8e); height: 100%; border-radius: 6px; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     </style>
 </head>
 <body>
-
+    <canvas id="canvas"></canvas>
     <div id="login-screen">
         <div class="login-box">
-            <h1 style="color:var(--p)">ANSHUB CLOUD</h1>
-            <input type="text" id="adm-name" placeholder="Tên Admin..." style="padding:10px; border-radius:5px; border:none;"><br>
-            <button class="btn-p" onclick="connect()">KẾT NỐI</button>
+            <h1 style="color:var(--p); letter-spacing: 5px;">SYSTEM LOGIN</h1>
+            <input type="password" id="adm-name" placeholder="Enter Access Key..." style="padding:12px; border-radius:8px; border:1px solid var(--p); background:#000; color:white; text-align:center;"><br>
+            <button class="btn-glow" style="margin-top:20px;" onclick="connect()">INITIALIZE</button>
+            <p id="err" style="color:red; font-size:12px; margin-top:10px;"></p>
         </div>
     </div>
 
     <div id="dashboard">
-        <div class="sidebar" id="sidebar-menu">
-            <div style="padding: 25px; font-weight: bold; color: var(--p); border-bottom: 2px solid var(--p);">CONTROL PANEL</div>
-        </div>
-        <div class="main" id="main-content"></div>
+        <div class="sidebar" id="sidebar-menu"></div>
+        <div class="main" style="flex:1; padding:40px; overflow-y:auto;" id="main-content"></div>
     </div>
 
     <script src="tab.js"></script>
     <script>
+        // Matrix Background Effect
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(1);
+        function draw() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#bdacff"; ctx.font = fontSize + "px arial";
+            drops.forEach((y, i) => {
+                const text = letters[Math.floor(Math.random() * letters.length)];
+                ctx.fillText(text, i * fontSize, y * fontSize);
+                if (y * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            });
+        }
+        setInterval(draw, 33);
+
         let socket;
         function connect() {
-            const name = document.getElementById('adm-name').value;
+            const inputName = document.getElementById('adm-name').value;
+            // KIỂM TRA TÊN TỪ TAB.JS
+            if(inputName !== ADMIN_CONFIG.userName) {
+                document.getElementById('err').innerText = "SAI TÊN ADMIN! TRUY CẬP BỊ TỪ CHỐI.";
+                return;
+            }
+
             socket = new WebSocket("wss://anshub-production.up.railway.app");
-            socket.onopen = () => socket.send(JSON.stringify({type:"admin_connect", name:name}));
+            socket.onopen = () => socket.send(JSON.stringify({type:"admin_connect", name:inputName}));
             socket.onmessage = (e) => {
                 const d = JSON.parse(e.data);
                 if(d.type === "connected") {
@@ -55,18 +81,18 @@
                     initUI();
                 } else if(d.type === "game_data") {
                     document.getElementById('hp-bar').style.width = d.hp + "%";
-                    document.getElementById('hp-text').innerText = Math.floor(d.hp) + "/100";
+                    document.getElementById('hp-text').innerText = Math.floor(d.hp) + "/" + Math.floor(d.maxHp);
                     document.getElementById('speed-text').innerText = d.speed;
-                } else if(d.type === "log") {
-                    const log = document.getElementById('logs');
-                    log.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${d.msg}</div>`;
-                    log.scrollTop = log.scrollHeight;
+                    document.getElementById('game-name').innerText = "🎮 Game: " + d.gameName;
+                    document.getElementById('player-status').innerText = "🟢 Người chơi đang trong game";
+                } else if(d.type === "player_left") {
+                    document.getElementById('player-status').innerText = "🔴 " + d.msg;
+                    document.getElementById('player-status').style.color = "#ff4d4d";
                 }
             };
         }
-        function send(action, value) {
-            socket.send(JSON.stringify({action: action, value: value}));
-        }
+        function send(action, value) { socket.send(JSON.stringify({action: action, value: value})); }
+        function runScript() { send('execute', document.getElementById('code-box').value); }
     </script>
 </body>
 </html>
