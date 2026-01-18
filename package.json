@@ -1,16 +1,15 @@
 {
-  "name": "anshub-server",
-  "version": "1.0.0",
-  "description": "Anscript Hub v0.5 Server",
+  "name": "anshub-cloud-engine",
+  "version": "0.5.0",
+  "description": "Hệ thống điều khiển từ xa cho Anscript Hub",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "ws": "^8.16.0"
+    "ws": "^8.13.0"
   },
-  "author": "An",
-  "license": "MIT"
+  "engines": {
+    "node": ">=14.0.0"
+  }
 }
- 
