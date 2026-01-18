@@ -1,46 +1,67 @@
-const AnUI = {
-    socket: null,
-    init(ws) {
-        this.socket = ws;
-        // TỰ ĐỘNG TẠO CÁC TAB CƠ BẢN
-        this.addTab("Home", "🏠");
-        this.addTab("Executor", "💻");
-        this.showTab("Home");
-        
-        // VÍ DỤ TẠO NÚT
-        this.addButton("Home", "Tăng Tốc (50)", () => this.sendHack("walkspeed", 50));
-        this.addButton("Home", "Reset Nhân Vật", () => this.sendHack("execute", "game.Players.LocalPlayer.Character.Humanoid.Health = 0"));
+const TabLib = {
+    tabs: {},
+    
+    // Tạo Tab mới
+    createTab(tabName) {
+        const sidebar = document.querySelector('.sidebar ul');
+        const contentArea = document.querySelector('.content');
+
+        // Thêm nút vào sidebar
+        const navItem = document.createElement('li');
+        navItem.innerText = tabName;
+        navItem.onclick = () => this.showTab(tabName);
+        sidebar.appendChild(navItem);
+
+        // Thêm vùng chứa nội dung
+        const tabPane = document.createElement('div');
+        tabPane.id = `tab-${tabName.toLowerCase()}`;
+        tabPane.className = 'tab-pane';
+        tabPane.style.display = 'none';
+        contentArea.appendChild(tabPane);
+
+        this.tabs[tabName] = tabPane;
+        return tabPane;
     },
 
-    addTab(name, icon) {
-        let b = document.createElement('div');
-        b.innerHTML = `${icon} ${name}`;
-        b.style = "padding:15px; cursor:pointer; border-radius:8px; margin-bottom:5px;";
-        b.onclick = () => this.showTab(name);
-        b.onmouseover = () => b.style.background = "#1a1a1a";
-        b.onmouseout = () => b.style.background = "transparent";
-        document.getElementById('menu').appendChild(b);
-
-        let c = document.createElement('div');
-        c.id = "tab-" + name;
-        c.style.display = "none";
-        document.getElementById('content').appendChild(c);
-    },
-
-    addButton(tabName, btnText, callback) {
-        let btn = document.createElement('button');
-        btn.innerText = btnText;
-        btn.style = "background:#222; color:white; border:1px solid #333; padding:10px; margin:5px; border-radius:5px; cursor:pointer;";
+    // Hàm add.button
+    addButton(tabName, text, callback) {
+        const btn = document.createElement('button');
+        btn.className = 'ui-button';
+        btn.innerText = text;
         btn.onclick = callback;
-        document.getElementById('tab-' + tabName).appendChild(btn);
+        this.tabs[tabName].appendChild(btn);
+    },
+
+    // Hàm add.toggle
+    addToggle(tabName, text, callback) {
+        const container = document.createElement('div');
+        container.className = 'ui-toggle-container';
+        container.innerHTML = `
+            <span>${text}</span>
+            <label class="switch">
+                <input type="checkbox">
+                <span class="slider round"></span>
+            </label>
+        `;
+        container.querySelector('input').onchange = (e) => callback(e.target.checked);
+        this.tabs[tabName].appendChild(container);
     },
 
     showTab(name) {
-        document.querySelectorAll('[id^="tab-"]').forEach(t => t.style.display = "none");
-        document.getElementById('tab-' + name).style.display = "block";
-    },
-
-    sendHack(action, value) {
-        this.socket.send(JSON.stringify({ type: "execute", action: action, value: value }));
+        document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
+        this.tabs[name].style.display = 'block';
     }
 };
+
+// Khởi tạo Home khi kết nối thành công
+function initDefaultTabs() {
+    TabLib.createTab("Home");
+    TabLib.addButton("Home", "Sao chép Link Web", () => {
+        navigator.clipboard.writeText("anshub-production.up.railway.app");
+        alert("Đã sao chép!");
+    });
+    
+    TabLib.createTab("Server");
+    TabLib.createTab("Executor");
+    TabLib.createTab("Settings");
+}
