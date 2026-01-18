@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Anscript Hub v0.5 | Control Panel</title>
+    <link rel="stylesheet" href="bog.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div id="login-screen">
+        <div class="glass-card">
+            <h1>ANSCRIPT HUB</h1>
+            <p>Nhập mã ANS-XXXXX để kết nối</p>
+            <input type="text" id="ans-id-input" placeholder="ANS-xxxxx">
+            <button onclick="connectToGame()">KẾT NỐI</button>
+        </div>
+    </div>
+
+    <div id="main-ui" style="display:none">
+        <div class="sidebar">
+            <h2>Anscript VN</h2>
+            <div class="tab-btn active" onclick="showTab('home')">HOME</div>
+            <div class="tab-btn" onclick="showTab('script')">SCRIPTS</div>
+            <div class="tab-btn" onclick="showTab('server')">SERVER</div>
+        </div>
+        
+        <div class="content">
+            <div id="tab-home" class="tab-page">
+                </div>
+            <div id="tab-server" class="tab-page" style="display:none">
+                </div>
+            <div id="tab-script" class="tab-page" style="display:none">
+                </div>
+        </div>
+    </div>
+    <script src="bo.js"></script>
+    <script src="bog.js"></script>
+</body>
+</html>
