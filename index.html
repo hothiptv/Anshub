@@ -1,57 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Anshub v0.8 | Security</title>
-    <style>
-        /* ... CSS Matrix và Neon của An ở bản trước ... */
-        #auth-screen { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; flex-direction: column; align-items: center; justify-content: center; }
-        .loading-ring { width: 80px; height: 80px; border: 5px solid #333; border-top: 5px solid var(--p); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-    </style>
+  <title>ANS HUB</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="auth-screen">
-        <div class="loading-ring"></div>
-        <h2 style="color:var(--p)">ĐANG CHỜ NGƯỜI CHƠI CHẤP NHẬN...</h2>
-        <p>Vui lòng ấn "Chấp nhận" trong game Roblox để tiếp tục.</p>
-        <button class="btn-glow" style="width:200px" onclick="location.reload()">HỦY & TẢI LẠI</button>
-    </div>
+<div id="app">
+  <h1>ANS HUB</h1>
+  <input id="name" placeholder="Tên Roblox">
+  <button onclick="connect()">Kết nối</button>
+  <div id="status"></div>
+</div>
 
-    <div id="login-screen">
-        <div class="login-box">
-            <h1>ANSHUB CONNECT</h1>
-            <input type="text" id="target-name" placeholder="Nhập tên nhân vật Roblox...">
-            <button class="btn-glow" onclick="startConnect()">KẾT NỐI</button>
-        </div>
-    </div>
-
-    <div id="dashboard" style="display:none">
-        </div>
-
-    <script>
-        let socket;
-        function startConnect() {
-            const name = document.getElementById('target-name').value;
-            socket = new WebSocket("wss://anshub-production.up.railway.app");
-            
-            socket.onopen = () => {
-                socket.send(JSON.stringify({type: "admin_request", target: name}));
-            };
-
-            socket.onmessage = (e) => {
-                const d = JSON.parse(e.data);
-                if (d.type === "waiting_auth") {
-                    document.getElementById('login-screen').style.display = "none";
-                    document.getElementById('auth-screen').style.display = "flex";
-                } else if (d.type === "connected") {
-                    document.getElementById('auth-screen').style.display = "none";
-                    document.getElementById('dashboard').style.display = "flex";
-                    // Khởi tạo tab.js tại đây
-                } else if (d.type === "player_offline") {
-                    alert("Người chơi đã thoát game. Đang chờ kết nối lại...");
-                }
-            };
-        }
-    </script>
+<script src="app.js"></script>
 </body>
 </html>
