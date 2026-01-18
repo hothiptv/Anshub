@@ -10,67 +10,72 @@ const wss = new WebSocket.Server({ server });
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'AnsW.html')));
 app.use(express.static(__dirname));
 
-let sessions = {}; // { playerName: { gameWs, webWs, data, status: "pending" | "connected" } }
+let sessions = {}; 
 
 wss.on('connection', (ws) => {
     ws.on('message', (msg) => {
         try {
             const d = JSON.parse(msg);
-
-            // GAME KHỞI TẠO
+            
+            // GAME ONLINE
             if (d.type === "game_init") {
                 ws.playerName = d.playerName;
-                if (!sessions[d.playerName]) sessions[d.playerName] = {};
-                sessions[d.playerName].gameWs = ws;
-                sessions[d.playerName].data = d.data;
-                console.log(`Game online: ${d.playerName}`);
+                ws.isGame = true;
+                sessions[d.playerName] = { gameWs: ws, data: d.data, status: "pending" };
+                broadcastOnlineList();
             }
 
-            // WEB YÊU CẦU KẾT NỐI THEO TÊN
+            // WEB ĐÒI DANH SÁCH
+            if (d.type === "get_online_list") {
+                broadcastOnlineList();
+            }
+
+            // WEB KẾT NỐI
             if (d.type === "web_connect") {
                 const target = d.playerName;
-                ws.playerName = target; // Gán tên cho web socket
-
-                if (sessions[target] && sessions[target].gameWs) {
+                if (sessions[target]) {
                     sessions[target].webWs = ws;
-                    
-                    if (sessions[target].status === "connected") {
-                        // Nếu đã xác minh trước đó, cho vào luôn
-                        ws.send(JSON.stringify({ type: "connect_success", data: sessions[target].data }));
-                    } else {
-                        // Gửi yêu cầu xác nhận xuống Game
-                        ws.send(JSON.stringify({ type: "waiting_accept" }));
-                        sessions[target].gameWs.send(JSON.stringify({ type: "auth_request" }));
-                    }
-                } else {
-                    ws.send(JSON.stringify({ type: "error", msg: "Người chơi này không online!" }));
+                    ws.playerName = target;
+                    sessions[target].gameWs.send(JSON.stringify({ type: "auth_request" }));
                 }
             }
 
-            // GAME CHẤP NHẬN KẾT NỐI
             if (d.type === "auth_response" && d.accepted) {
-                const session = sessions[ws.playerName];
-                if (session && session.webWs) {
-                    session.status = "connected";
-                    session.webWs.send(JSON.stringify({ type: "connect_success", data: session.data }));
+                if (sessions[ws.playerName] && sessions[ws.playerName].webWs) {
+                    sessions[ws.playerName].webWs.send(JSON.stringify({ type: "connect_success", data: sessions[ws.playerName].data }));
                 }
             }
 
-            // ĐIỀU KHIỂN & CẬP NHẬT (Giữ nguyên logic cũ)
-            if (d.type === "execute" && sessions[ws.playerName]?.gameWs) {
-                sessions[ws.playerName].gameWs.send(JSON.stringify({ type: "run_script", code: d.code }));
-            }
-            if (d.type === "update" && sessions[ws.playerName]?.webWs) {
-                sessions[ws.playerName].data = d.data;
-                sessions[ws.playerName].webWs.send(JSON.stringify({ type: "ui_update", data: d.data }));
+            if (d.type === "update") {
+                if (sessions[ws.playerName] && sessions[ws.playerName].webWs) {
+                    sessions[ws.playerName].data = d.data;
+                    sessions[ws.playerName].webWs.send(JSON.stringify({ type: "ui_update", data: d.data }));
+                }
             }
 
+            if (d.type === "execute") {
+                if (sessions[ws.playerName] && sessions[ws.playerName].gameWs) {
+                    sessions[ws.playerName].gameWs.send(JSON.stringify({ type: "run_script", code: d.code }));
+                }
+            }
         } catch(e) {}
     });
 
     ws.on('close', () => {
-        // Không xóa ngay session để chờ tải lại trang, chỉ xóa socket tương ứng
+        if (ws.playerName && ws.isGame) {
+            delete sessions[ws.playerName];
+            broadcastOnlineList();
+        }
     });
 });
+
+function broadcastOnlineList() {
+    const list = Object.keys(sessions);
+    wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({ type: "online_list", list: list }));
+        }
+    });
+}
 
 server.listen(process.env.PORT || 8080);
