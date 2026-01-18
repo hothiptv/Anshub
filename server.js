@@ -4,14 +4,12 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-/* SERVE HTML */
 app.use(express.static(path.join(__dirname, "public")));
 
-/* FIX Cannot GET / */
-app.get("/", (req, res) => {
+app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 app.listen(PORT, () => {
-  console.log("ANSHUB WEB ONLINE");
+  console.log("ANSHUB ONLINE");
 });
