@@ -1,69 +1,75 @@
-const express = require("express")
-const app = express()
-const path = require("path")
+const express = require("express");
+const { WebSocketServer } = require("ws");
+const { v4: uuidv4 } = require("uuid");
 
-app.use(express.json())
-app.use(express.static("public"))
+const app = express();
+app.use(express.static("public"));
 
-let sessions = {} 
+const server = app.listen(process.env.PORT || 3000);
+const wss = new WebSocketServer({ server });
+
 /*
-sessions = {
-  playerName: {
-    status: "WAITING" | "PENDING" | "CONNECTED",
-    id: "ans-xxxxx",
-    serverId: "",
-    lastPing: Date
-  }
+playerName => {
+  socket,
+  id,
+  accepted
 }
 */
+let waitingPlayers = {};
 
-function genId() {
-  return "ans-" + Math.random().toString(36).substring(2,7).toUpperCase()
-}
+wss.on("connection", ws => {
+  ws.on("message", msg => {
+    let data = JSON.parse(msg);
 
-// Roblox báo đang bật script
-app.post("/api/register", (req,res)=>{
-  const { player, serverId } = req.body
-  sessions[player] = {
-    status: "WAITING",
-    serverId,
-    id: null,
-    lastPing: Date.now()
-  }
-  res.json({ ok:true })
-})
+    // Roblox đăng ký chờ kết nối
+    if (data.type === "roblox_wait") {
+      const id = "ans-" + uuidv4().slice(0, 6);
+      waitingPlayers[data.player] = {
+        socket: ws,
+        id,
+        accepted: false
+      };
 
-// Web nhập tên
-app.post("/api/request", (req,res)=>{
-  const { player } = req.body
-  const s = sessions[player]
-  if (!s) return res.json({ ok:false, msg:"PLAYER_OFFLINE" })
+      ws.send(JSON.stringify({
+        type: "waiting",
+        id
+      }));
+    }
 
-  s.id = genId()
-  s.status = "PENDING"
-  res.json({ ok:true, id:s.id })
-})
+    // Web yêu cầu kết nối
+    if (data.type === "web_request") {
+      const target = waitingPlayers[data.player];
+      if (!target) {
+        ws.send(JSON.stringify({
+          type: "error",
+          msg: "Người chơi chưa bật script"
+        }));
+        return;
+      }
 
-// Roblox polling
-app.get("/api/check/:player",(req,res)=>{
-  const s = sessions[req.params.player]
-  if (!s) return res.json({ status:"NONE" })
-  res.json(s)
-})
+      target.socket.send(JSON.stringify({
+        type: "confirm",
+        id: target.id
+      }));
 
-// Roblox chấp nhận
-app.post("/api/accept",(req,res)=>{
-  const { player } = req.body
-  if (sessions[player]) sessions[player].status="CONNECTED"
-  res.json({ ok:true })
-})
+      ws.send(JSON.stringify({
+        type: "pending",
+        id: target.id
+      }));
+    }
 
-// Hủy
-app.post("/api/cancel",(req,res)=>{
-  const { player } = req.body
-  delete sessions[player]
-  res.json({ ok:true })
-})
+    // Roblox chấp nhận
+    if (data.type === "roblox_accept") {
+      for (let p in waitingPlayers) {
+        if (waitingPlayers[p].id === data.id) {
+          waitingPlayers[p].accepted = true;
+          waitingPlayers[p].socket.send(JSON.stringify({
+            type: "connected"
+          }));
+        }
+      }
+    }
+  });
+});
 
-const PORT = process.env.PORT || 3000
-app.listen(PORT, ()=>console.log("ANS HUB ONLINE"))
+console.log("ANSHUB SERVER ONLINE");
