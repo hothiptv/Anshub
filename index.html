@@ -2,51 +2,45 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Anshub Dashboard</title>
+    <title>Anshub Cloud Builder</title>
     <link rel="stylesheet" href="style.css">
-    <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
-    <div id="auth-screen" class="container">
-        <h1>ANSHUB CONNECTION</h1>
-        <div class="input-group">
-            <input type="text" id="target-player" placeholder="Nhập tên Roblox của bạn...">
-            <button onclick="connectPlayer()">Kết nối</button>
-        </div>
-        <p id="status-msg"></p>
-    </div>
-
-    <div id="modal-auth" class="modal">
-        <div class="modal-content">
-            <h3>Đang chờ xác nhận...</h3>
-            <p>Mã xác nhận của bạn là:</p>
-            <h2 id="display-id">ANS-XXXXX</h2>
-            <button class="btn-cancel" onclick="cancelConn()">Hủy</button>
+    <div id="auth-page" class="flex-center">
+        <div class="glass-card">
+            <h1>ANSHUB LOGIN</h1>
+            <input type="text" id="username" placeholder="Tài khoản">
+            <input type="password" id="password" placeholder="Mật khẩu">
+            <button onclick="handleAuth('login')">Đăng nhập</button>
+            <button onclick="handleAuth('register')" class="btn-sub">Đăng ký</button>
         </div>
     </div>
 
-    <div id="main-ui" class="dashboard" style="display:none;">
+    <div id="main-dashboard" style="display:none;">
         <nav class="sidebar">
             <div class="logo">ANSHUB</div>
-            <ul>
-                <li onclick="showTab('home')">Home</li>
-                <li onclick="showTab('server')">Server</li>
-                <li onclick="showTab('executor')">Executor</li>
-                <li onclick="showTab('settings')">Settings</li>
-            </ul>
-        </nav>
-        <main class="content">
-            <div id="tab-home" class="tab-content">
-                <h2>Thông tin người chơi</h2>
-                <div class="stats-grid">
-                    <div class="card">Tên: <span id="p-name">-</span></div>
-                    <div class="card">HP: <span id="p-hp">-</span></div>
-                    <div class="card">Tốc độ: <span id="p-ws">-</span></div>
-                </div>
+            <div class="menu">
+                <button onclick="switchTab('settings')">Cấu hình chung</button>
+                <button onclick="switchTab('tabs')">Quản lý Tab</button>
+                <button onclick="switchTab('keys')">Key System</button>
             </div>
-            </main>
+            <button onclick="logout()" class="btn-logout">Đăng xuất</button>
+        </nav>
+
+        <main class="content">
+            <header>
+                <h2 id="project-title">Project: ---</h2>
+                <div class="actions">
+                    <button class="btn-save" onclick="saveProject()">Cập Nhật Lên Cloud</button>
+                    <button class="btn-copy" onclick="copyLoader()">Copy Script</button>
+                </div>
+            </header>
+
+            <div id="editor">
+                </div>
+        </main>
     </div>
 
-    <script src="script.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
