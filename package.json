@@ -1,15 +1,17 @@
 {
-  "name": "anshub-cloud-engine",
-  "version": "0.5.0",
-  "description": "Hệ thống điều khiển từ xa cho Anscript Hub",
-  "main": "index.js",
+  "name": "anshub",
+  "version": "1.0.0",
+  "description": "ANS Hub Web + Roblox Connector",
+  "main": "server.js",
   "scripts": {
-    "start": "node index.js"
-  },
-  "dependencies": {
-    "ws": "^8.13.0"
+    "start": "node server.js"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ws": "^8.16.0",
+    "cors": "^2.8.5"
   }
 }
