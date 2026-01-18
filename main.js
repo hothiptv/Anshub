@@ -1,14 +1,12 @@
-async function connect(){
-  const player = document.getElementById("name").value
-  const res = await fetch("/api/request",{
-    method:"POST",
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({player})
-  }).then(r=>r.json())
+const ws = new WebSocket(`wss://${location.host}`);
 
-  if(!res.ok){
-    status.innerText="Người chơi chưa bật script"
-  }else{
-    status.innerText="ID: "+res.id+" – chờ xác nhận"
-  }
-}
+const Home = add.tab("Home");
+
+Home.button("Copy link", () => {
+  navigator.clipboard.writeText(location.href);
+});
+
+Home.toggle("ESP", true);
+Home.slider("Speed", 16, 100);
+Home.input("Player");
+Home.list("Players", ["A", "B", "C"]);
