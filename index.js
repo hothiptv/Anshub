@@ -4,70 +4,72 @@ const fs = require('fs');
 const path = require('path');
 
 const server = http.createServer((req, res) => {
-    // Tự động tìm file index.html nếu vào trang chủ
     let fileName = req.url === '/' ? 'index.html' : req.url.substring(1);
-    let filePath = path.join(__dirname, fileName);
-    
-    fs.readFile(filePath, (err, data) => {
-        if (err) {
-            res.writeHead(404);
-            res.end("Khong tim thay file: " + fileName);
-            return;
-        }
-        // Xác định kiểu file để trình duyệt đọc đúng
-        let contentType = "text/html";
-        if (fileName.endsWith(".js")) contentType = "text/javascript";
-        if (fileName.endsWith(".css")) contentType = "text/css";
-        
-        res.writeHead(200, { 'Content-Type': contentType + '; charset=utf-8' });
-        res.end(data);
+    fs.readFile(path.join(__dirname, fileName), (err, data) => {
+        if (err) { res.writeHead(404); res.end("Not Found"); return; }
+        res.writeHead(200); res.end(data);
     });
 });
 
 const wss = new WebSocket.Server({ server });
 
-let currentAdmin = null;
-let currentGame = null; // Đã sửa từ nil thành null
+let sessions = {}; // Lưu trữ: { playerName: { adminWs, gameWs, status: "pending/connected" } }
 
 wss.on('connection', (ws) => {
     ws.on('message', (data) => {
-        try {
-            const d = JSON.parse(data.toString());
+        const d = JSON.parse(data.toString());
 
-            if (d.type === "admin_connect") {
-                if (currentAdmin && currentAdmin.readyState === WebSocket.OPEN) {
-                    ws.send(JSON.stringify({ type: "error", msg: "Admin khác đang dùng!" }));
-                } else {
-                    currentAdmin = ws;
-                    ws.send(JSON.stringify({ type: "connected" }));
-                    if (currentGame) currentGame.send(JSON.stringify({ action: "admin_online" }));
-                }
+        // 1. GAME KẾT NỐI (Khi bật script)
+        if (d.type === "game_init") {
+            if (!sessions[d.playerName]) sessions[d.playerName] = {};
+            sessions[d.playerName].gameWs = ws;
+            ws.playerName = d.playerName;
+            // Nếu có admin đang đợi hoặc đã kết nối trước đó, báo cho game
+            if (sessions[d.playerName].status === "connected") {
+                ws.send(JSON.stringify({ action: "admin_online" }));
             }
+        }
 
-            if (ws === currentAdmin && currentGame) {
-                currentGame.send(data.toString());
+        // 2. WEB GỬI YÊU CẦU KẾT NỐI
+        if (d.type === "admin_request") {
+            const target = d.target;
+            if (sessions[target] && sessions[target].gameWs) {
+                sessions[target].adminWs = ws;
+                sessions[target].status = "pending";
+                sessions[target].gameWs.send(JSON.stringify({ type: "auth_request" }));
+                ws.send(JSON.stringify({ type: "waiting_auth" }));
+            } else {
+                ws.send(JSON.stringify({ type: "error", msg: "Người chơi này hiện đang Offline!" }));
             }
+        }
 
-            if (d.type === "game_data" || d.type === "log") {
-                currentGame = ws;
-                if (currentAdmin) currentAdmin.send(data.toString());
+        // 3. GAME CHẤP NHẬN/TỪ CHỐI
+        if (d.type === "auth_response") {
+            const admin = sessions[ws.playerName].adminWs;
+            if (d.accepted) {
+                sessions[ws.playerName].status = "connected";
+                if (admin) admin.send(JSON.stringify({ type: "connected" }));
+            } else {
+                sessions[ws.playerName].status = null;
+                if (admin) admin.send(JSON.stringify({ type: "error", msg: "Người chơi đã từ chối kết nối!" }));
             }
-        } catch (e) {
-            console.log("Lỗi xử lý dữ liệu:", e);
+        }
+
+        // 4. CHUYỂN TIẾP LỆNH HACK (Chỉ khi status === "connected")
+        if (sessions[ws.playerName] && sessions[ws.playerName].status === "connected") {
+            // Chuyển tiếp từ Web xuống Game và ngược lại
         }
     });
 
     ws.on('close', () => {
-        if (ws === currentAdmin) {
-            currentAdmin = null;
-            if (currentGame) currentGame.send(JSON.stringify({ action: "admin_offline" }));
+        if (ws.playerName && sessions[ws.playerName]) {
+            if (ws === sessions[ws.playerName].gameWs) {
+                if (sessions[ws.playerName].adminWs) {
+                    sessions[ws.playerName].adminWs.send(JSON.stringify({ type: "player_offline" }));
+                }
+            }
         }
-        if (ws === currentGame) currentGame = null;
     });
 });
 
-const PORT = process.env.PORT || 8080;
-server.listen(PORT, () => {
-    console.log("Server dang chay tai cong: " + PORT);
-});
- 
+server.listen(process.env.PORT || 8080);
