@@ -1,0 +1,59 @@
+:root {
+    --primary: #00f2ff;
+    --bg: #0a0b10;
+    --glass: rgba(255, 255, 255, 0.05);
+}
+
+body {
+    background: var(--bg);
+    color: white;
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    overflow: hidden;
+}
+
+.container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle, #1a1c2c 0%, #0a0b10 100%);
+}
+
+.ui-button {
+    background: var(--glass);
+    border: 1px solid var(--primary);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+    margin: 5px;
+    box-shadow: 0 0 10px rgba(0, 242, 255, 0.2);
+}
+
+.ui-button:hover {
+    background: var(--primary);
+    color: black;
+    box-shadow: 0 0 20px var(--primary);
+}
+
+/* Modal effect */
+.modal {
+    position: fixed;
+    top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(10px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: var(--glass);
+    padding: 40px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+    text-align: center;
+}
