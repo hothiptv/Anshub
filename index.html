@@ -1,62 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-    <title>Anshub Cloud Control</title>
-    <style>
-        :root { --p: #bdacff; --bg: #050505; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; }
-        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
-        .box { background: #111; padding: 40px; border-radius: 20px; border: 1px solid var(--p); text-align: center; width: 320px; box-shadow: 0 0 30px var(--p); }
-        #dashboard { display: none; height: 100vh; grid-template-columns: 240px 1fr; }
-        .sidebar { background: #0a0a0a; border-right: 1px solid #222; padding: 20px; }
-        .v-id { font-size: 35px; color: var(--p); font-weight: bold; margin: 20px 0; letter-spacing: 3px; }
-        input { width: 100%; padding: 12px; background: #000; border: 1px solid #333; color: white; border-radius: 8px; margin-bottom: 10px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: var(--p); border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-    </style>
+    <meta charset="UTF-8">
+    <title>Anshub Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
-    <div id="overlay" class="overlay">
-        <div id="login-box" class="box">
-            <h2 style="color:var(--p)">ANSHUB CONNECT</h2>
-            <input type="text" id="target" placeholder="Tên Roblox của An...">
-            <button onclick="connect()">GỬI YÊU CẦU</button>
+    <div id="auth-screen" class="container">
+        <h1>ANSHUB CONNECTION</h1>
+        <div class="input-group">
+            <input type="text" id="target-player" placeholder="Nhập tên Roblox của bạn...">
+            <button onclick="connectPlayer()">Kết nối</button>
         </div>
-        <div id="wait-box" class="box" style="display:none">
-            <h3>XÁC MINH TRÊN GAME</h3>
-            <div id="v-id-display" class="v-id">ANS-XXXXX</div>
-            <p style="font-size: 12px; opacity: 0.6;">Mã này phải khớp với mã hiện trong Roblox</p>
-            <button style="background:#333; color:white;" onclick="location.reload()">HỦY</button>
+        <p id="status-msg"></p>
+    </div>
+
+    <div id="modal-auth" class="modal">
+        <div class="modal-content">
+            <h3>Đang chờ xác nhận...</h3>
+            <p>Mã xác nhận của bạn là:</p>
+            <h2 id="display-id">ANS-XXXXX</h2>
+            <button class="btn-cancel" onclick="cancelConn()">Hủy</button>
         </div>
     </div>
 
-    <div id="dashboard">
-        <div class="sidebar" id="menu">
-            <h2 style="color:var(--p)">ANSHUB</h2>
-            <hr border="0.1" color="#222">
-        </div>
-        <div class="main" id="content" style="padding: 30px;"></div>
+    <div id="main-ui" class="dashboard" style="display:none;">
+        <nav class="sidebar">
+            <div class="logo">ANSHUB</div>
+            <ul>
+                <li onclick="showTab('home')">Home</li>
+                <li onclick="showTab('server')">Server</li>
+                <li onclick="showTab('executor')">Executor</li>
+                <li onclick="showTab('settings')">Settings</li>
+            </ul>
+        </nav>
+        <main class="content">
+            <div id="tab-home" class="tab-content">
+                <h2>Thông tin người chơi</h2>
+                <div class="stats-grid">
+                    <div class="card">Tên: <span id="p-name">-</span></div>
+                    <div class="card">HP: <span id="p-hp">-</span></div>
+                    <div class="card">Tốc độ: <span id="p-ws">-</span></div>
+                </div>
+            </div>
+            </main>
     </div>
 
-    <script src="tab.js"></script>
-    <script>
-        let socket;
-        function connect() {
-            const name = document.getElementById('target').value;
-            socket = new WebSocket("wss://anshub-production.up.railway.app");
-            socket.onopen = () => socket.send(JSON.stringify({type: "admin_request", target: name}));
-            socket.onmessage = (e) => {
-                const d = JSON.parse(e.data);
-                if (d.type === "waiting_auth") {
-                    document.getElementById('login-box').style.display = "none";
-                    document.getElementById('wait-box').style.display = "flex";
-                    document.getElementById('v-id-display').innerText = d.vID;
-                } else if (d.type === "connected") {
-                    document.getElementById('overlay').style.display = "none";
-                    document.getElementById('dashboard').style.display = "grid";
-                    AnUI.init(socket); // Gọi hàm từ tab.js
-                }
-            };
-        }
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
