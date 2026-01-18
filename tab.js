@@ -1,34 +1,84 @@
-const RemoteTabs = [
-    {
-        name: "Người chơi",
-        author: "Anscript",
-        features: [
-            { type: "slider", name: "Tốc độ (Speed)", action: "walkspeed", min: 16, max: 500 },
-            { type: "button", name: "Nhảy cao (Infinite Jump)", action: "inf_jump" },
-            { type: "toggle", name: "Xuyên tường (Noclip)", action: "noclip" }
-        ]
-    },
-    {
-        name: "Thế giới",
-        author: "Anscript",
-        features: [
-            { type: "button", name: "Xóa mù (No Fog)", action: "nofog" },
-            { type: "button", name: "Bay (Fly)", action: "fly" }
-        ]
-    }
-];
+const AnshubUI = {
+    tabs: [
+        {
+            id: "home",
+            name: "🏠 Home",
+            content: `
+                <div class="card">
+                    <h3>Nhân vật của An</h3>
+                    <div class="stat-row">❤️ Máu: <span id="hp-text">100/100</span></div>
+                    <div class="hp-bg"><div id="hp-bar" class="hp-fill" style="width: 100%;"></div></div>
+                    <div class="stat-row">⚡ Tốc độ: <span id="speed-text">16</span></div>
+                </div>
+                <div class="card">
+                    <h3>Người chơi trong Server</h3>
+                    <div id="player-list" class="list-container"> Đang quét danh sách... </div>
+                </div>
+            `
+        },
+        {
+            id: "executor",
+            name: "💻 Executor",
+            content: `
+                <div class="card">
+                    <h3>Cloud Executor v0.6</h3>
+                    <textarea id="code-box" placeholder="-- Dán script của bạn vào đây..."></textarea>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn-p" onclick="runScript()">RUN SCRIPT</button>
+                        <button class="btn-p" style="background:#444" onclick="document.getElementById('code-box').value=''">CLEAR</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Nhật ký hệ thống (Logs)</h3>
+                    <div id="logs" class="log-container"></div>
+                    <button class="btn-p" style="font-size:10px; padding:5px;" onclick="document.getElementById('logs').innerHTML=''">Xóa Log</button>
+                </div>
+            `
+        },
+        {
+            id: "settings",
+            name: "⚙️ Settings",
+            content: `
+                <div class="card">
+                    <h3>Hệ thống</h3>
+                    <button class="btn-p" onclick="send('rejoin', true)">Rejoin Server</button>
+                    <button class="btn-p" onclick="send('hop', true)">Server Hop</button>
+                    <button class="btn-p" style="background:#ff4d4d" onclick="disconnect()">Hủy kết nối & Đóng Web</button>
+                </div>
+            `
+        }
+    ]
+};
 
-// Hàm này sẽ tự động vẽ UI lên web từ dữ liệu trên
-function renderTabs() {
-    const container = document.getElementById('tabs-container');
-    RemoteTabs.forEach(tab => {
-        let tabHTML = `<div class="card"><h3>${tab.name}</h3><small>By ${tab.author}</small>`;
-        tab.features.forEach(f => {
-            if(f.type === "button") tabHTML += `<button class="btn" onclick="sendCommand('${f.action}', true)">${f.name}</button>`;
-            if(f.type === "slider") tabHTML += `<p>${f.name}</p><input type="range" min="${f.min}" max="${f.max}" oninput="sendCommand('${f.action}', this.value)">`;
-        });
-        tabHTML += `</div>`;
-        container.innerHTML += tabHTML;
+// Hàm tự động vẽ Menu và Tab
+function initUI() {
+    const menu = document.getElementById('sidebar-menu');
+    const content = document.getElementById('main-content');
+    
+    AnshubUI.tabs.forEach(tab => {
+        // Tạo nút Menu
+        let btn = document.createElement('div');
+        btn.className = 'nav-btn';
+        btn.innerHTML = tab.name;
+        btn.onclick = () => showTab(tab.id);
+        menu.appendChild(btn);
+        
+        // Tạo nội dung Tab
+        let section = document.createElement('div');
+        section.id = tab.id;
+        section.className = 'tab-content';
+        section.innerHTML = tab.content;
+        content.appendChild(section);
     });
+    showTab('home'); // Mặc định mở tab Home
 }
- 
+
+function showTab(id) {
+    document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+    document.getElementById(id).style.display = 'block';
+}
+
+function runScript() {
+    const code = document.getElementById('code-box').value;
+    send('execute', code);
+}
