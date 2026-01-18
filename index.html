@@ -1,98 +1,57 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Anshub v0.7 | Cyber Edition</title>
+    <title>Anshub v0.8 | Security</title>
     <style>
-        :root { --p: #bdacff; --bg: #030303; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; }
-        canvas { position: fixed; top: 0; left: 0; z-index: -1; opacity: 0.15; }
-        
-        #login-screen { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(10px); }
-        .login-box { background: #111; padding: 40px; border-radius: 15px; border: 2px solid var(--p); text-align: center; box-shadow: 0 0 30px var(--p); animation: float 3s infinite ease-in-out; }
-        
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-
-        #dashboard { display: none; height: 100vh; }
-        .sidebar { width: 250px; background: rgba(15,15,15,0.8); backdrop-filter: blur(10px); border-right: 1px solid #222; }
-        .nav-btn { padding: 20px; cursor: pointer; transition: 0.4s; border-left: 4px solid transparent; }
-        .nav-btn:hover { background: rgba(189,172,255,0.1); border-left-color: var(--p); text-shadow: 0 0 10px var(--p); }
-
-        .card { background: rgba(25,25,25,0.6); padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #333; transition: 0.3s; }
-        .neon-border:hover { border-color: var(--p); box-shadow: 0 0 15px var(--p); }
-
-        .btn-glow { background: var(--p); color: black; border: none; padding: 15px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; box-shadow: 0 0 15px var(--p); }
-        .hp-fill { background: linear-gradient(90deg, #ff4d4d, #ff8e8e); height: 100%; border-radius: 6px; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        /* ... CSS Matrix và Neon của An ở bản trước ... */
+        #auth-screen { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; flex-direction: column; align-items: center; justify-content: center; }
+        .loading-ring { width: 80px; height: 80px; border: 5px solid #333; border-top: 5px solid var(--p); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <canvas id="canvas"></canvas>
+    <div id="auth-screen">
+        <div class="loading-ring"></div>
+        <h2 style="color:var(--p)">ĐANG CHỜ NGƯỜI CHƠI CHẤP NHẬN...</h2>
+        <p>Vui lòng ấn "Chấp nhận" trong game Roblox để tiếp tục.</p>
+        <button class="btn-glow" style="width:200px" onclick="location.reload()">HỦY & TẢI LẠI</button>
+    </div>
+
     <div id="login-screen">
         <div class="login-box">
-            <h1 style="color:var(--p); letter-spacing: 5px;">SYSTEM LOGIN</h1>
-            <input type="password" id="adm-name" placeholder="Enter Access Key..." style="padding:12px; border-radius:8px; border:1px solid var(--p); background:#000; color:white; text-align:center;"><br>
-            <button class="btn-glow" style="margin-top:20px;" onclick="connect()">INITIALIZE</button>
-            <p id="err" style="color:red; font-size:12px; margin-top:10px;"></p>
+            <h1>ANSHUB CONNECT</h1>
+            <input type="text" id="target-name" placeholder="Nhập tên nhân vật Roblox...">
+            <button class="btn-glow" onclick="startConnect()">KẾT NỐI</button>
         </div>
     </div>
 
-    <div id="dashboard">
-        <div class="sidebar" id="sidebar-menu"></div>
-        <div class="main" style="flex:1; padding:40px; overflow-y:auto;" id="main-content"></div>
-    </div>
+    <div id="dashboard" style="display:none">
+        </div>
 
-    <script src="tab.js"></script>
     <script>
-        // Matrix Background Effect
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        const fontSize = 16;
-        const columns = canvas.width / fontSize;
-        const drops = Array(Math.floor(columns)).fill(1);
-        function draw() {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.05)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "#bdacff"; ctx.font = fontSize + "px arial";
-            drops.forEach((y, i) => {
-                const text = letters[Math.floor(Math.random() * letters.length)];
-                ctx.fillText(text, i * fontSize, y * fontSize);
-                if (y * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-                drops[i]++;
-            });
-        }
-        setInterval(draw, 33);
-
         let socket;
-        function connect() {
-            const inputName = document.getElementById('adm-name').value;
-            // KIỂM TRA TÊN TỪ TAB.JS
-            if(inputName !== ADMIN_CONFIG.userName) {
-                document.getElementById('err').innerText = "SAI TÊN ADMIN! TRUY CẬP BỊ TỪ CHỐI.";
-                return;
-            }
-
+        function startConnect() {
+            const name = document.getElementById('target-name').value;
             socket = new WebSocket("wss://anshub-production.up.railway.app");
-            socket.onopen = () => socket.send(JSON.stringify({type:"admin_connect", name:inputName}));
+            
+            socket.onopen = () => {
+                socket.send(JSON.stringify({type: "admin_request", target: name}));
+            };
+
             socket.onmessage = (e) => {
                 const d = JSON.parse(e.data);
-                if(d.type === "connected") {
+                if (d.type === "waiting_auth") {
                     document.getElementById('login-screen').style.display = "none";
+                    document.getElementById('auth-screen').style.display = "flex";
+                } else if (d.type === "connected") {
+                    document.getElementById('auth-screen').style.display = "none";
                     document.getElementById('dashboard').style.display = "flex";
-                    initUI();
-                } else if(d.type === "game_data") {
-                    document.getElementById('hp-bar').style.width = d.hp + "%";
-                    document.getElementById('hp-text').innerText = Math.floor(d.hp) + "/" + Math.floor(d.maxHp);
-                    document.getElementById('speed-text').innerText = d.speed;
-                    document.getElementById('game-name').innerText = "🎮 Game: " + d.gameName;
-                    document.getElementById('player-status').innerText = "🟢 Người chơi đang trong game";
-                } else if(d.type === "player_left") {
-                    document.getElementById('player-status').innerText = "🔴 " + d.msg;
-                    document.getElementById('player-status').style.color = "#ff4d4d";
+                    // Khởi tạo tab.js tại đây
+                } else if (d.type === "player_offline") {
+                    alert("Người chơi đã thoát game. Đang chờ kết nối lại...");
                 }
             };
         }
-        function send(action, value) { socket.send(JSON.stringify({action: action, value: value})); }
-        function runScript() { send('execute', document.getElementById('code-box').value); }
     </script>
 </body>
 </html>
