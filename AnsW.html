@@ -1,49 +1,94 @@
-<div id="tab-api" class="tab-content">
-    <h2 style="color:var(--p)">CẤU HÌNH HỆ THỐNG KEY</h2>
-    <div class="glass" style="padding: 30px; max-width: 600px;">
-        <div style="margin-bottom: 20px;">
-            <label style="display:block; margin-bottom: 8px; opacity: 0.8;">Linkvertise User ID (Số ngắn)</label>
-            <input type="text" id="cfg-id" class="glass-input" placeholder="Ví dụ: 582931">
-        </div>
-
-        <div style="margin-bottom: 20px;">
-            <label style="display:block; margin-bottom: 8px; opacity: 0.8;">Linkvertise API Key (Mã dài An gửi)</label>
-            <input type="password" id="cfg-key" class="glass-input" placeholder="Dán mã bảo mật vào đây...">
-        </div>
-
-        <div style="margin-bottom: 25px;">
-            <label style="display:block; margin-bottom: 8px; opacity: 0.8;">Thời gian Key hết hạn (Giờ)</label>
-            <input type="number" id="cfg-timer" class="glass-input" value="24">
-        </div>
-
-        <button class="nav-item active" style="border:none; width: 100%; justify-content: center; height: 45px;" onclick="saveConfigToServer()">
-            💾 LƯU CẤU HÌNH VÀO SERVER
-        </button>
-        
-        <p id="save-status" style="font-size: 12px; margin-top: 15px; text-align: center; display: none;"></p>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Anscript Admin | Premium</title>
+    <style>
+        :root { --p: #bdacff; --g: #00ffcc; --r: #ff4d4d; --bg: #050505; }
+        body { margin: 0; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; }
+        .sidebar { width: 250px; position: fixed; height: 100%; border-right: 1px solid rgba(189,172,255,0.2); padding: 20px; background: rgba(255,255,255,0.02); }
+        .main-content { margin-left: 270px; padding: 30px; }
+        .nav-btn { padding: 12px; margin: 5px 0; cursor: pointer; border-radius: 8px; transition: 0.3s; color: #888; }
+        .nav-btn.active { background: var(--p); color: black; font-weight: bold; box-shadow: 0 0 15px var(--p); }
+        .glass-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(189,172,255,0.1); padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; color: var(--p); padding: 10px; border-bottom: 1px solid #333; }
+        td { padding: 10px; border-bottom: 1px solid #111; }
+        .status-on { color: var(--g); text-shadow: 0 0 5px var(--g); }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2 style="color:var(--p)">ANSRIPT ADMIN</h2>
+        <div class="nav-btn active" onclick="showTab('dash', this)">📊 DASHBOARD</div>
+        <div class="nav-btn" onclick="showTab('keys', this)">🔑 KEY SYSTEM</div>
+        <div class="nav-btn" onclick="showTab('api', this)">⚙️ CẤU HÌNH API</div>
+        <div class="nav-btn" onclick="showTab('scripts', this)">📜 SCRIPTS HUB</div>
     </div>
-</div>
 
-<script>
-async function saveConfigToServer() {
-    const userId = document.getElementById('cfg-id').value;
-    const apiKey = document.getElementById('cfg-key').value;
-    const timer = document.getElementById('cfg-timer').value;
-    const status = document.getElementById('save-status');
+    <div class="main-content">
+        <div id="tab-keys" style="display:none">
+            <h2 style="color:var(--p)">DANH SÁCH KEY ĐANG HOẠT ĐỘNG</h2>
+            <div class="glass-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>KEY</th>
+                            <th>HẠN DÙNG</th>
+                            <th>TRẠNG THÁI</th>
+                            <th>HÀNH ĐỘNG</th>
+                        </tr>
+                    </thead>
+                    <tbody id="key-list-admin">
+                        </tbody>
+                </table>
+            </div>
+        </div>
 
-    if(!userId || !apiKey) return alert("Vui lòng điền đủ ID và Key!");
+        <div id="tab-api" style="display:none">
+             <h2 style="color:var(--p)">CẤU HÌNH API</h2>
+             <div class="glass-card">
+                <input type="text" id="api-id" placeholder="User ID" class="glass-input" value="2650959">
+                <input type="text" id="api-key" placeholder="API Key" class="glass-input" value="8e902ba7c0...ca0">
+                <button onclick="saveConfig()">LƯU</button>
+             </div>
+        </div>
+        
+        </div>
 
-    const res = await fetch('/api/save-config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, apiKey, timer })
-    });
+    <script>
+        let ws = new WebSocket("wss://anshub-production.up.railway.app/");
+        
+        function showTab(name, el) {
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            // Logic ẩn hiện các div tab
+            if(name === 'keys') loadKeyList();
+        }
 
-    const result = await res.json();
-    if(result.success) {
-        status.innerText = "✅ Đã cập nhật cấu hình lên Railway!";
-        status.style.display = "block";
-        status.style.color = "var(--g)";
-    }
-}
-</script>
+        function loadKeyList() {
+            // Gửi yêu cầu qua WS để lấy danh sách key từ server.js
+            ws.send(JSON.stringify({type: "admin_get_keys"}));
+        }
+
+        ws.onmessage = (e) => {
+            let d = JSON.parse(e.data);
+            if(d.type === "key_list") {
+                let html = "";
+                for(let k in d.list) {
+                    html += `<tr>
+                        <td>${k}</td>
+                        <td>24 Giờ</td>
+                        <td class="status-on">Online</td>
+                        <td><button onclick="deleteKey('${k}')" style="color:red">XÓA</button></td>
+                    </tr>`;
+                }
+                document.getElementById('key-list-admin').innerHTML = html;
+            }
+        };
+
+        function deleteKey(k) {
+            ws.send(JSON.stringify({type: "admin_delete_key", key: k}));
+        }
+    </script>
+</body>
+</html>
