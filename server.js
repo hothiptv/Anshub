@@ -1,41 +1,30 @@
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const app = express();
 const server = require('http').createServer(app);
 const wss = new (require('ws').Server)({ server });
 
 app.use(express.json());
 
-// Dòng này cực kỳ quan trọng: Nó cho phép truy cập tất cả file .html, .css trong thư mục
-app.use(express.static(__dirname));
+// Tự động tìm file trong thư mục gốc
+app.get('/:filename', (req, res, next) => {
+    const filePath = path.join(__dirname, req.params.filename);
+    if (fs.existsSync(filePath)) {
+        res.sendFile(filePath);
+    } else {
+        next();
+    }
+});
 
-let db = { 
-    keys: {}, 
-    config: { lv_id: "2650959", timer: 24 } 
-};
-
-// Route cho trang Admin
+// Trang chủ mặc định
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'AnsW.html'));
 });
 
-// Route cho trang Get Key (Fix lỗi không tìm thấy file)
-app.get('/getkey.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'getkey.html'));
-});
+// --- LOGIC KEY SYSTEM ---
+let db = { keys: {}, config: { lv_id: "2650959", timer: 24 } };
 
-// API Tạo link Linkvertise động
-app.get('/api/get-link', (req, res) => {
-    const step = req.query.step || "1";
-    const domain = `https://${req.get('host')}`;
-    let target = (step === "1") ? `${domain}/getkey.html?step=2` : `${domain}/getkey.html?step=done`;
-    
-    // Tạo link Linkvertise
-    const lv_url = `https://link-to.net/${db.config.lv_id}/${Math.random().toString(36).substring(7)}/dynamic?r=${Buffer.from(target).toString('base64')}`;
-    res.json({ url: lv_url });
-});
-
-// API Xác minh cho Script Roblox
 app.get('/api/verify', (req, res) => {
     const key = req.query.key;
     if (db.keys[key] && db.keys[key].expires > Date.now()) {
@@ -45,7 +34,6 @@ app.get('/api/verify', (req, res) => {
     }
 });
 
-// API Tạo key
 app.get('/api/generate-key', (req, res) => {
     const newKey = "ans-" + Math.random().toString(36).substring(2, 10);
     db.keys[newKey] = { 
@@ -55,7 +43,15 @@ app.get('/api/generate-key', (req, res) => {
     res.json({ key: newKey });
 });
 
-// WebSocket cho Admin
+app.get('/api/get-link', (req, res) => {
+    const step = req.query.step || "1";
+    const domain = `https://${req.get('host')}`;
+    let target = (step === "1") ? `${domain}/getkey.html?step=2` : `${domain}/getkey.html?step=done`;
+    const lv_url = `https://link-to.net/${db.config.lv_id}/${Math.random().toString(36).substring(7)}/dynamic?r=${Buffer.from(target).toString('base64')}`;
+    res.json({ url: lv_url });
+});
+
+// --- WEBSOCKET ADMIN ---
 wss.on('connection', (ws) => {
     ws.send(JSON.stringify({ type: "key_list", list: db.keys }));
     ws.on('message', (msg) => {
@@ -68,6 +64,7 @@ wss.on('connection', (ws) => {
     });
 });
 
-server.listen(process.env.PORT || 8080, '0.0.0.0', () => {
-    console.log("Server is running...");
+const PORT = process.env.PORT || 8080;
+server.listen(PORT, '0.0.0.0', () => {
+    console.log("Server is running on port " + PORT);
 });
