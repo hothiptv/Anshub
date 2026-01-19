@@ -1,24 +1,22 @@
-spawn(function()
-    while wait(5) do -- 5 giây kiểm tra lệnh 1 lần
-        local status = game:HttpGet("https://anshub-production.up.railway.app/api/get-bot")
-        
-        if status == "start_farm" then
-            _G.AutoFarm = true
-            print("Admin đã bật Farm từ xa!")
-        elseif status == "stop" then
-            _G.AutoFarm = false
-            print("Admin đã tắt Farm!")
-        end
-    end
-end)
+<div class="tab-content" id="tsb-remote">
+    <h2 style="color: #00ffcc;">ĐIỀU KHIỂN TREO MÁY TSB</h2>
+    <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+        <button onclick="sendBotCmd('start_farm')" style="background: #28a745; color: white; padding: 15px 30px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold;">
+            BẮT ĐẦU FARM (ON)
+        </button>
+        <button onclick="sendBotCmd('stop')" style="background: #dc3545; color: white; padding: 15px 30px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold;">
+            DỪNG FARM (OFF)
+        </button>
+    </div>
+    <p id="bot-status" style="margin-top: 20px; opacity: 0.7;">Trạng thái: Đang chờ lệnh...</p>
+</div>
 
--- Logic Farm TSB của An
-spawn(function()
-    while wait() do
-        if _G.AutoFarm then
-            -- Code tự đánh, tự tung chiêu TSB ở đây
-            game:GetService("VirtualInputManager"):SendKeyEvent(true, "Z", false, game)
-            wait(1)
-        end
-    end
-end)
+<script>
+    function sendBotCmd(cmd) {
+        fetch('/api/set-command?cmd=' + cmd)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('bot-status').innerText = "Trạng thái hiện tại: " + data.command.toUpperCase();
+            });
+    }
+</script>
