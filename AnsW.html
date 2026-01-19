@@ -1,162 +1,49 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <title>Anscript Hub | Ultimate Dashboard</title>
-    <style>
-        :root { --p: #bdacff; --g: #00ffcc; --r: #ff4d4d; --bg: #050505; }
-        body { margin: 0; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
-        
-        /* Hiệu ứng lơ lửng */
-        .bg-animate { position: absolute; width: 100%; height: 100%; z-index: -1; overflow: hidden; }
-        .circle { position: absolute; background: rgba(189, 172, 255, 0.05); border-radius: 50%; filter: blur(60px); animation: float 15s infinite; }
-        @keyframes float { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(30px, -50px); } }
-
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(189, 172, 255, 0.15); border-radius: 15px; }
-        
-        /* Layout chính */
-        #main-ui { display: grid; height: 100vh; grid-template-columns: 260px 1fr; }
-        .sidebar { padding: 25px; border-right: 1px solid rgba(255, 255, 255, 0.05); display: flex; flex-direction: column; gap: 10px; }
-        .nav-item { padding: 12px 18px; cursor: pointer; border-radius: 10px; transition: 0.3s; color: #aaa; display: flex; align-items: center; gap: 10px; }
-        .nav-item:hover { background: rgba(189, 172, 255, 0.1); color: var(--p); }
-        .nav-item.active { background: var(--p); color: black; font-weight: bold; }
-
-        .content { padding: 40px; overflow-y: auto; position: relative; }
-        .tab-content { display: none; animation: fadeIn 0.4s ease; }
-        .tab-content.active { display: block; }
-
-        /* Key Table Style */
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { text-align: left; padding: 12px; border-bottom: 1px solid var(--p); color: var(--p); font-size: 12px; }
-        td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
-        
-        .btn-delete { background: none; border: 1px solid var(--r); color: var(--r); padding: 5px 10px; border-radius: 5px; cursor: pointer; }
-        .btn-delete:hover { background: var(--r); color: white; }
-
-        .glass-input { background: rgba(0,0,0,0.3); border: 1px solid #444; color: white; padding: 10px; border-radius: 8px; width: 100%; margin-bottom: 15px; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
-</head>
-<body>
-    <div class="bg-animate">
-        <div class="circle" style="width: 400px; height: 400px; top: -10%; right: -5%;"></div>
-        <div class="circle" style="width: 300px; height: 300px; bottom: -5%; left: 5%; animation-delay: 2s;"></div>
-    </div>
-
-    <div id="main-ui">
-        <div class="sidebar glass">
-            <div style="padding: 10px; margin-bottom: 20px;">
-                <b style="color:var(--p); font-size: 22px; letter-spacing: 1px;">ANSRIPT</b>
-                <div style="font-size: 10px; opacity: 0.5;">ADMIN CONSOLE V0.7</div>
-            </div>
-            <div class="nav-item active" onclick="switchTab('home', this)">📊 DASHBOARD</div>
-            <div class="nav-item" onclick="switchTab('keys', this)">🔑 QUẢN LÝ KEY</div>
-            <div class="nav-item" onclick="switchTab('api', this)">⚙️ CẤU HÌNH API</div>
-            <div class="nav-item" onclick="switchTab('scripts', this)">📜 SCRIPT HUB</div>
-            
-            <div style="margin-top: auto; font-size: 12px; padding: 10px;" id="server-status">
-                Status: <span style="color:var(--g)">● Online</span>
-            </div>
+<div id="tab-api" class="tab-content">
+    <h2 style="color:var(--p)">CẤU HÌNH HỆ THỐNG KEY</h2>
+    <div class="glass" style="padding: 30px; max-width: 600px;">
+        <div style="margin-bottom: 20px;">
+            <label style="display:block; margin-bottom: 8px; opacity: 0.8;">Linkvertise User ID (Số ngắn)</label>
+            <input type="text" id="cfg-id" class="glass-input" placeholder="Ví dụ: 582931">
         </div>
 
-        <div class="content">
-            
-            <div id="tab-home" class="tab-content active">
-                <h2 style="color:var(--p)">REAL-TIME PLAYER</h2>
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
-                    <div class="glass" style="padding: 20px;"><span>MÁU</span><br><b id="st-hp" style="font-size: 24px;">0</b></div>
-                    <div class="glass" style="padding: 20px;"><span>TỐC ĐỘ</span><br><b id="st-ws" style="font-size: 24px;">16</b></div>
-                    <div class="glass" style="padding: 20px;"><span>NAME</span><br><b id="st-name" style="font-size: 24px;">N/A</b></div>
-                </div>
-                <div class="glass" style="margin-top: 20px; padding: 20px;">
-                    <span>GAME HIỆN TẠI</span><br><b id="st-game" style="color:var(--g)">Đang quét game...</b>
-                </div>
-            </div>
-
-            <div id="tab-keys" class="tab-content">
-                <h2 style="color:var(--p)">KEY DATABASE (24H)</h2>
-                <div class="glass" style="padding: 20px;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>KEY CODE</th>
-                                <th>NGÀY TẠO</th>
-                                <th>HẾT HẠN TRONG</th>
-                                <th>HÀNH ĐỘNG</th>
-                            </tr>
-                        </thead>
-                        <tbody id="key-table">
-                            </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div id="tab-api" class="tab-content">
-                <h2 style="color:var(--p)">LINKVERTISE SETTINGS</h2>
-                <div class="glass" style="padding: 30px; max-width: 500px;">
-                    <label>Linkvertise User ID</label>
-                    <input type="text" id="cfg-id" class="glass-input" placeholder="Ví dụ: 123456">
-                    <label>Thời gian Key (Giờ)</label>
-                    <input type="number" id="cfg-timer" class="glass-input" value="24">
-                    <button class="nav-item active" style="border:none; width: 100%; justify-content: center;" onclick="saveConfig()">CẬP NHẬT CẤU HÌNH</button>
-                </div>
-            </div>
+        <div style="margin-bottom: 20px;">
+            <label style="display:block; margin-bottom: 8px; opacity: 0.8;">Linkvertise API Key (Mã dài An gửi)</label>
+            <input type="password" id="cfg-key" class="glass-input" placeholder="Dán mã bảo mật vào đây...">
         </div>
+
+        <div style="margin-bottom: 25px;">
+            <label style="display:block; margin-bottom: 8px; opacity: 0.8;">Thời gian Key hết hạn (Giờ)</label>
+            <input type="number" id="cfg-timer" class="glass-input" value="24">
+        </div>
+
+        <button class="nav-item active" style="border:none; width: 100%; justify-content: center; height: 45px;" onclick="saveConfigToServer()">
+            💾 LƯU CẤU HÌNH VÀO SERVER
+        </button>
+        
+        <p id="save-status" style="font-size: 12px; margin-top: 15px; text-align: center; display: none;"></p>
     </div>
+</div>
 
-    <script>
-        let ws = new WebSocket("wss://anshub-production.up.railway.app/");
+<script>
+async function saveConfigToServer() {
+    const userId = document.getElementById('cfg-id').value;
+    const apiKey = document.getElementById('cfg-key').value;
+    const timer = document.getElementById('cfg-timer').value;
+    const status = document.getElementById('save-status');
 
-        ws.onopen = () => ws.send(JSON.stringify({ type: "admin_get_keys" }));
+    if(!userId || !apiKey) return alert("Vui lòng điền đủ ID và Key!");
 
-        ws.onmessage = (e) => {
-            const d = JSON.parse(e.data);
+    const res = await fetch('/api/save-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, apiKey, timer })
+    });
 
-            // Cập nhật Dashboard
-            if (d.type === "ui_update") {
-                document.getElementById('st-hp').innerText = Math.floor(d.data.hp);
-                document.getElementById('st-ws').innerText = d.data.ws;
-                document.getElementById('st-name').innerText = d.data.name;
-                document.getElementById('st-game').innerText = d.data.game;
-            }
-
-            // Cập nhật danh sách Key
-            if (d.type === "key_list") {
-                const tbody = document.getElementById('key-table');
-                tbody.innerHTML = "";
-                for (let key in d.list) {
-                    const info = d.list[key];
-                    const timeLeft = Math.max(0, Math.floor((info.expires - Date.now()) / 1000 / 60)); // Phút
-                    tbody.innerHTML += `
-                        <tr>
-                            <td><code>${key}</code></td>
-                            <td>${new Date(info.created).toLocaleTimeString()}</td>
-                            <td style="color:${timeLeft < 60 ? 'var(--r)' : 'var(--g)'}">${Math.floor(timeLeft/60)}h ${timeLeft%60}m</td>
-                            <td><button class="btn-delete" onclick="deleteKey('${key}')">XÓA</button></td>
-                        </tr>
-                    `;
-                }
-            }
-        };
-
-        function switchTab(tabId, el) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            document.getElementById('tab-' + tabId).classList.add('active');
-            el.classList.add('active');
-            if(tabId === 'keys') ws.send(JSON.stringify({ type: "admin_get_keys" }));
-        }
-
-        function deleteKey(key) {
-            if(confirm("Xóa key này sẽ khiến người chơi bị kick khỏi script. Chắc chắn?")) {
-                ws.send(JSON.stringify({ type: "admin_delete_key", key: key }));
-            }
-        }
-
-        function saveConfig() {
-            alert("Đã lưu cấu hình lên Server!");
-            // Gửi lệnh save config tới nodejs ở đây
-        }
-    </script>
-</body>
-</html>
+    const result = await res.json();
+    if(result.success) {
+        status.innerText = "✅ Đã cập nhật cấu hình lên Railway!";
+        status.style.display = "block";
+        status.style.color = "var(--g)";
+    }
+}
+</script>
