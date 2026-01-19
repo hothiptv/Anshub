@@ -2,59 +2,71 @@ const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 const path = require('path');
-const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
+// Dòng này cực kỳ quan trọng để sửa lỗi "Cannot GET"
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'AnsW.html'));
+});
+
+// Phục vụ các file khác nếu có (như getkey.html)
 app.use(express.static(__dirname));
 
-// Cơ sở dữ liệu tạm thời (Nên dùng file JSON để lưu khi restart server)
-let db = {
-    keys: {}, 
-    config: { lv_id: "123456", lv_key: "", timer: 24 }
-};
+let sessions = {}; 
+let db = { keys: {}, config: { lv_id: "123456", timer: 24 } };
 
 wss.on('connection', (ws) => {
     ws.on('message', (msg) => {
         try {
             const d = JSON.parse(msg);
             
-            // ADMIN: Lấy danh sách key
+            // Xử lý game kết nối
+            if (d.type === "game_init") {
+                if (sessions[d.playerName]) delete sessions[d.playerName];
+                ws.playerName = d.playerName;
+                ws.isGame = true;
+                sessions[d.playerName] = { gameWs: ws, data: d.data };
+                broadcastOnlineList();
+            }
+
+            // Admin lấy danh sách Key
             if (d.type === "admin_get_keys") {
                 ws.send(JSON.stringify({ type: "key_list", list: db.keys }));
             }
 
-            // ADMIN: Xóa Key (Làm key hết hạn ngay lập tức)
+            // Admin xóa Key
             if (d.type === "admin_delete_key") {
                 delete db.keys[d.key];
                 broadcastKeys();
             }
 
-            // SCRIPT: Xác minh Key từ Roblox
-            if (d.type === "verify_key") {
-                const info = db.keys[d.key];
-                if (info && info.expires > Date.now()) {
-                    ws.send(JSON.stringify({ type: "key_valid", success: true }));
-                } else {
-                    ws.send(JSON.stringify({ type: "key_valid", success: false, msg: "Key hết hạn hoặc không tồn tại!" }));
-                }
-            }
-        } catch (e) {}
+            // Thêm các logic update dashboard ở đây...
+            
+        } catch (e) { console.log(e); }
+    });
+
+    ws.on('close', () => {
+        if (ws.isGame) {
+            delete sessions[ws.playerName];
+            broadcastOnlineList();
+        }
     });
 });
 
-// API cho trang Get Key
-app.get('/api/generate-key', (req, res) => {
-    const newKey = "ans-" + Math.random().toString(36).substring(2, 12);
-    const expireTime = Date.now() + (db.config.timer * 60 * 60 * 1000);
-    db.keys[newKey] = { expires: expireTime, created: Date.now() };
-    res.json({ key: newKey });
-});
-
-function broadcastKeys() {
-    wss.clients.forEach(c => c.readyState === WebSocket.OPEN && c.send(JSON.stringify({ type: "key_list", list: db.keys })));
+function broadcastOnlineList() {
+    const list = Object.keys(sessions);
+    wss.clients.forEach(c => c.send(JSON.stringify({ type: "online_list", list: list })));
 }
 
-server.listen(process.env.PORT || 8080);
+function broadcastKeys() {
+    wss.clients.forEach(c => c.send(JSON.stringify({ type: "key_list", list: db.keys })));
+}
+
+const PORT = process.env.PORT || 8080;
+server.listen(PORT, () => {
+    console.log("Server is running on port " + PORT);
+});
+ 
