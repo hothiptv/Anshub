@@ -1,12 +1,12 @@
-let botCommand = "stop"; // Lệnh mặc định là dừng
+let currentCommand = "stop"; // Lệnh mặc định
 
-// API để Admin ra lệnh (An bấm trên web)
-app.get('/api/set-bot', (req, res) => {
-    botCommand = req.query.cmd; // ví dụ: ?cmd=start_farm
-    res.json({ success: true, current: botCommand });
+// API để Script Roblox lấy lệnh
+app.get('/api/get-command', (req, res) => {
+    res.send(currentCommand);
 });
 
-// API để Script Roblox lấy lệnh về
-app.get('/api/get-bot', (req, res) => {
-    res.send(botCommand);
+// API để Web Admin gửi lệnh
+app.get('/api/set-command', (req, res) => {
+    currentCommand = req.query.cmd;
+    res.json({ status: "Success", command: currentCommand });
 });
