@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ANSCRIPT | KEY SYSTEM</title>
+    <style>
+        body { background: #050505; color: white; font-family: 'Segoe UI'; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .bg-animate { position: absolute; width: 100%; height: 100%; z-index: -1; }
+        .circle { position: absolute; background: rgba(189, 172, 255, 0.1); border-radius: 50%; filter: blur(50px); animation: float 10s infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-50px); } }
+
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid rgba(189, 172, 255, 0.2); padding: 40px; border-radius: 20px; text-align: center; width: 350px; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
+        .btn { background: #bdacff; color: black; border: none; padding: 15px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
+        .btn:hover { transform: scale(1.05); box-shadow: 0 0 20px #bdacff; }
+        #key-box { margin-top: 20px; padding: 10px; background: rgba(0,0,0,0.5); border: 1px dashed var(--p); display: none; }
+    </style>
+</head>
+<body>
+    <div class="bg-animate">
+        <div class="circle" style="width: 300px; height: 300px; top: 10%; left: 10%;"></div>
+        <div class="circle" style="width: 200px; height: 200px; bottom: 10%; right: 10%; animation-delay: 2s;"></div>
+    </div>
+
+    <div class="glass">
+        <h1 style="color:#bdacff; margin:0;">ANSRIPT</h1>
+        <p style="opacity:0.6; font-size: 12px;">KEY SYSTEM - HẠN DÙNG 24H</p>
+        <hr style="border:0; border-top:1px solid rgba(189,172,255,0.2); margin: 20px 0;">
+        
+        <div id="status">Vui lòng hoàn thành các bước!</div>
+        <button id="main-btn" class="btn" onclick="processStep()">BẮT ĐẦU (STEP 1/2)</button>
+
+        <div id="key-box">
+            <small>Key của bạn:</small>
+            <h3 id="final-key">ans-xxxxxx</h3>
+            <button class="btn" style="padding:5px;" onclick="copyKey()">SAO CHÉP</button>
+        </div>
+    </div>
+
+    <script>
+        let step = new URLSearchParams(window.location.search).get('step') || 1;
+        const btn = document.getElementById('main-btn');
+
+        if(step == 2) {
+            btn.innerText = "TIẾP TỤC (STEP 2/2)";
+            document.getElementById('status').innerText = "Checkpoint 1 hoàn tất!";
+        } else if(step == "done") {
+            finishKey();
+        }
+
+        function processStep() {
+            const lv_id = "123456"; // ID Linkvertise của An
+            if(step == 1) {
+                window.location.href = `https://link-to.net/${lv_id}/ans-step-1/dynamic?r=${btoa(window.location.origin + "/getkey.html?step=2")}`;
+            } else if(step == 2) {
+                window.location.href = `https://link-to.net/${lv_id}/ans-step-2/dynamic?r=${btoa(window.location.origin + "/getkey.html?step=done")}`;
+            }
+        }
+
+        async function finishKey() {
+            const res = await fetch('/api/generate-key');
+            const data = await res.json();
+            btn.style.display = "none";
+            document.getElementById('status').innerText = "XÁC MINH THÀNH CÔNG!";
+            document.getElementById('key-box').style.display = "block";
+            document.getElementById('final-key').innerText = data.key;
+            localStorage.setItem('ans_key', data.key);
+        }
+
+        function copyKey() {
+            navigator.clipboard.writeText(document.getElementById('final-key').innerText);
+            alert("Đã copy key!");
+        }
+    </script>
+</body>
+</html>
