@@ -1,72 +1,24 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Anscript Admin | v0.8</title>
-    <style>
-        :root { --p: #bdacff; --g: #00ffcc; --r: #ff4d4d; --bg: #050505; }
-        body { margin: 0; background: var(--bg); color: white; font-family: 'Segoe UI'; display: flex; }
-        .sidebar { width: 240px; height: 100vh; background: rgba(255,255,255,0.02); border-right: 1px solid #222; padding: 20px; }
-        .nav-btn { padding: 12px; margin: 8px 0; cursor: pointer; border-radius: 8px; color: #888; transition: 0.3s; }
-        .nav-btn:hover, .nav-btn.active { background: var(--p); color: black; font-weight: bold; box-shadow: 0 0 15px rgba(189,172,255,0.3); }
-        .content { flex: 1; padding: 40px; overflow-y: auto; }
-        .glass { background: rgba(255,255,255,0.03); border: 1px solid #222; padding: 20px; border-radius: 12px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th { text-align: left; color: var(--p); padding: 10px; border-bottom: 1px solid #333; }
-        td { padding: 10px; border-bottom: 1px solid #111; font-family: monospace; }
-        .btn-del { color: var(--r); border: 1px solid var(--r); background: none; cursor: pointer; border-radius: 4px; padding: 4px 8px; }
-    </style>
-</head>
-<body>
-    <div class="sidebar">
-        <h2 style="color:var(--p)">ANSRIPT Hub</h2>
-        <div class="nav-btn active" onclick="showTab('dash', this)">📊 Dashboard</div>
-        <div class="nav-btn" onclick="showTab('keys', this)">🔑 Key System</div>
-        <div class="nav-btn" onclick="showTab('api', this)">⚙️ API Settings</div>
-        <div class="nav-btn" onclick="showTab('scripts', this)">📜 Script Hub</div>
-    </div>
-
-    <div class="content">
-        <div id="tab-dash" class="tab"><h2>Chào mừng Admin, An!</h2><p>Hệ thống đang hoạt động.</p></div>
+spawn(function()
+    while wait(5) do -- 5 giây kiểm tra lệnh 1 lần
+        local status = game:HttpGet("https://anshub-production.up.railway.app/api/get-bot")
         
-        <div id="tab-keys" class="tab" style="display:none">
-            <h2>Quản lý Key System</h2>
-            <div class="glass">
-                <table>
-                    <thead><tr><th>Key ID</th><th>Thời gian còn lại</th><th>Hành động</th></tr></thead>
-                    <tbody id="key-table"></tbody>
-                </table>
-            </div>
-        </div>
+        if status == "start_farm" then
+            _G.AutoFarm = true
+            print("Admin đã bật Farm từ xa!")
+        elseif status == "stop" then
+            _G.AutoFarm = false
+            print("Admin đã tắt Farm!")
+        end
+    end
+end)
 
-        <div id="tab-api" class="tab" style="display:none">
-            <h2>Cấu hình API Linkvertise</h2>
-            <div class="glass">
-                <input type="text" id="inp-id" class="glass" style="width:90%; margin-bottom:10px;" value="2650959">
-                <input type="text" id="inp-key" class="glass" style="width:90%;" value="8e902ba7c0333745760a4589b7470f37a5e778b32eb72c9e058e69329f786ca0">
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let ws = new WebSocket("wss://" + location.host);
-        function showTab(t, el) {
-            document.querySelectorAll('.tab').forEach(x => x.style.display = 'none');
-            document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
-            document.getElementById('tab-'+t).style.display = 'block';
-            el.classList.add('active');
-            if(t === 'keys') ws.send(JSON.stringify({type: "admin_get_keys"}));
-        }
-        ws.onmessage = (e) => {
-            let d = JSON.parse(e.data);
-            if(d.type === "key_list") {
-                let h = "";
-                for(let k in d.list) {
-                    h += `<tr><td>${k}</td><td>~24 Giờ</td><td><button class="btn-del" onclick="delKey('${k}')">Xóa</button></td></tr>`;
-                }
-                document.getElementById('key-table').innerHTML = h;
-            }
-        };
-        function delKey(k) { ws.send(JSON.stringify({type: "admin_delete_key", key: k})); setTimeout(()=>ws.send(JSON.stringify({type: "admin_get_keys"})), 200); }
-    </script>
-</body>
-</html>
+-- Logic Farm TSB của An
+spawn(function()
+    while wait() do
+        if _G.AutoFarm then
+            -- Code tự đánh, tự tung chiêu TSB ở đây
+            game:GetService("VirtualInputManager"):SendKeyEvent(true, "Z", false, game)
+            wait(1)
+        end
+    end
+end)
