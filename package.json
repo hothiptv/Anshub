@@ -1,13 +1,13 @@
 {
   "name": "anscript-hub",
   "version": "1.0.0",
-  "description": "Anscript Remote Control",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "ws": "^8.13.0"
+    "ws": "^8.13.0",
+    "path": "^0.12.7"
   }
 }
