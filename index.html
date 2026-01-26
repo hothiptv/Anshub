@@ -2,57 +2,49 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Anscript Control</title>
     <style>
-        body { margin: 0; background: #050505; color: #00ffcc; font-family: 'Segoe UI', sans-serif; overflow: hidden; height: 100vh; }
-        #app { display: flex; flex-direction: column; height: 100%; position: relative; }
-        
-        .header { height: 60px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border-bottom: 1px solid #00ffcc; }
+        * { box-sizing: border-box; -webkit-user-select: none; }
+        body { margin: 0; background: #000; overflow: hidden; height: 100vh; font-family: sans-serif; }
         
         /* Joystick Area */
-        .joystick-zone { position: absolute; bottom: 40px; width: 160px; height: 160px; background: rgba(255,255,255,0.1); border-radius: 50%; border: 1px solid rgba(0,255,204,0.5); touch-action: none; }
+        .joy-zone { position: absolute; width: 140px; height: 140px; background: rgba(255,255,255,0.1); border-radius: 50%; border: 2px solid #00ffcc; bottom: 50px; }
         #move-zone { left: 40px; }
         #cam-zone { right: 40px; }
-        .stick { position: absolute; width: 60px; height: 60px; background: #00ffcc; border-radius: 50%; top: 50px; left: 50px; box-shadow: 0 0 20px #00ffcc; }
+        .stick { position: absolute; width: 60px; height: 60px; background: #00ffcc; border-radius: 50%; top: 40px; left: 40px; box-shadow: 0 0 15px #00ffcc; }
 
-        /* Buttons Area */
-        .actions { position: absolute; top: 100px; width: 100%; display: flex; justify-content: center; gap: 10px; }
-        button { background: #111; color: #00ffcc; border: 1px solid #00ffcc; padding: 10px 20px; border-radius: 5px; font-weight: bold; }
-        .jump-btn { position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%); width: 80px; height: 80px; border-radius: 50%; background: #ff0055; box-shadow: 0 0 20px #ff0055; border: none; color: white; }
+        /* Actions */
+        .top-bar { position: absolute; top: 20px; width: 100%; display: flex; justify-content: center; gap: 10px; }
+        .btn { padding: 10px 15px; background: #222; color: #00ffcc; border: 1px solid #00ffcc; border-radius: 5px; font-weight: bold; }
+        .jump { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); width: 70px; height: 70px; border-radius: 50%; background: red; border: none; color: white; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div id="app">
-        <div class="header">ANSRIPT CLOUD CONTROL</div>
-        
-        <div class="actions">
-            <button onclick="send('esc')">ESC</button>
-            <button onclick="send('tab')">TAB</button>
-            <button onclick="send('zoom_in')">ZOOM +</button>
-            <button onclick="send('zoom_out')">ZOOM -</button>
-        </div>
-
-        <div id="move-zone" class="joystick-zone"><div id="move-stick" class="stick"></div></div>
-        <div id="cam-zone" class="joystick-zone"><div id="cam-stick" class="stick"></div></div>
-        
-        <button class="jump-btn" onclick="send('jump')">JUMP</button>
+    <div class="top-bar">
+        <button class="btn" onclick="send('esc')">ESC</button>
+        <button class="btn" onclick="send('tab')">TAB</button>
+        <button class="btn" onclick="send('zoom_in')">ZOOM+</button>
+        <button class="btn" onclick="send('zoom_out')">ZOOM-</button>
     </div>
 
+    <div id="move-zone" class="joy-zone"><div id="move-stick" class="stick"></div></div>
+    <div id="cam-zone" class="joy-zone"><div id="cam-stick" class="stick"></div></div>
+    
+    <button class="jump" onclick="send('jump')">JUMP</button>
+
     <script>
-        const USER = "Tên_Roblox_Của_An"; // Thay bằng tên nhân vật của An
-        
+        const USER = "Tên_Roblox_Của_An"; // <--- THAY TÊN ACC VÀO ĐÂY
         function send(cmd, x=0, y=0) {
             fetch(`/api/send?user=${USER}&cmd=${cmd}&x=${x}&y=${y}`);
         }
 
-        function initJoy(zoneId, stickId, type) {
-            const zone = document.getElementById(zoneId);
+        function setup(id, stickId, type) {
+            const zone = document.getElementById(id);
             const stick = document.getElementById(stickId);
             zone.addEventListener('touchmove', (e) => {
                 const rect = zone.getBoundingClientRect();
-                let x = e.touches[0].clientX - rect.left - 80;
-                let y = e.touches[0].clientY - rect.top - 80;
-                const dist = Math.sqrt(x*x + y*y);
-                if(dist > 50) { x *= 50/dist; y *= 50/dist; }
+                let x = e.touches[0].clientX - rect.left - 70;
+                let y = e.touches[0].clientY - rect.top - 70;
                 stick.style.transform = `translate(${x}px, ${y}px)`;
                 send(type, x, y);
             });
@@ -61,8 +53,8 @@
                 send(type, 0, 0);
             });
         }
-        initJoy('move-zone', 'move-stick', 'move');
-        initJoy('cam-zone', 'cam-stick', 'camera');
+        setup('move-zone', 'move-stick', 'move');
+        setup('cam-zone', 'cam-stick', 'camera');
     </script>
 </body>
 </html>
