@@ -1,82 +1,68 @@
-:root {
-    --bg: #0f1016;
-    --card: #1a1c26;
-    --primary: #00f2ff;
-    --text: #ffffff;
-    --danger: #ff4b4b;
-}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <style>
+        body { margin: 0; background: #050505; color: #00ffcc; font-family: 'Segoe UI', sans-serif; overflow: hidden; height: 100vh; }
+        #app { display: flex; flex-direction: column; height: 100%; position: relative; }
+        
+        .header { height: 60px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border-bottom: 1px solid #00ffcc; }
+        
+        /* Joystick Area */
+        .joystick-zone { position: absolute; bottom: 40px; width: 160px; height: 160px; background: rgba(255,255,255,0.1); border-radius: 50%; border: 1px solid rgba(0,255,204,0.5); touch-action: none; }
+        #move-zone { left: 40px; }
+        #cam-zone { right: 40px; }
+        .stick { position: absolute; width: 60px; height: 60px; background: #00ffcc; border-radius: 50%; top: 50px; left: 50px; box-shadow: 0 0 20px #00ffcc; }
 
-body {
-    margin: 0;
-    font-family: 'Inter', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-}
+        /* Buttons Area */
+        .actions { position: absolute; top: 100px; width: 100%; display: flex; justify-content: center; gap: 10px; }
+        button { background: #111; color: #00ffcc; border: 1px solid #00ffcc; padding: 10px 20px; border-radius: 5px; font-weight: bold; }
+        .jump-btn { position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%); width: 80px; height: 80px; border-radius: 50%; background: #ff0055; box-shadow: 0 0 20px #ff0055; border: none; color: white; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="header">ANSRIPT CLOUD CONTROL</div>
+        
+        <div class="actions">
+            <button onclick="send('esc')">ESC</button>
+            <button onclick="send('tab')">TAB</button>
+            <button onclick="send('zoom_in')">ZOOM +</button>
+            <button onclick="send('zoom_out')">ZOOM -</button>
+        </div>
 
-.flex-center {
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+        <div id="move-zone" class="joystick-zone"><div id="move-stick" class="stick"></div></div>
+        <div id="cam-zone" class="joystick-zone"><div id="cam-stick" class="stick"></div></div>
+        
+        <button class="jump-btn" onclick="send('jump')">JUMP</button>
+    </div>
 
-.glass-card {
-    background: var(--card);
-    padding: 2rem;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    width: 350px;
-    text-align: center;
-}
+    <script>
+        const USER = "Tên_Roblox_Của_An"; // Thay bằng tên nhân vật của An
+        
+        function send(cmd, x=0, y=0) {
+            fetch(`/api/send?user=${USER}&cmd=${cmd}&x=${x}&y=${y}`);
+        }
 
-input {
-    width: 100%;
-    padding: 12px;
-    margin: 10px 0;
-    background: #252836;
-    border: 1px solid #3d4154;
-    border-radius: 8px;
-    color: white;
-    box-sizing: border-box;
-}
-
-button {
-    width: 100%;
-    padding: 12px;
-    background: var(--primary);
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-button:hover { opacity: 0.8; transform: translateY(-2px); }
-
-.sidebar {
-    width: 250px;
-    background: var(--card);
-    height: 100vh;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-}
-
-.main-dashboard {
-    display: flex;
-    height: 100vh;
-}
-
-.content {
-    flex: 1;
-    padding: 30px;
-    overflow-y: auto;
-}
-
-.tab-item {
-    background: #252836;
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 15px;
-    border-left: 4px solid var(--primary);
-}
+        function initJoy(zoneId, stickId, type) {
+            const zone = document.getElementById(zoneId);
+            const stick = document.getElementById(stickId);
+            zone.addEventListener('touchmove', (e) => {
+                const rect = zone.getBoundingClientRect();
+                let x = e.touches[0].clientX - rect.left - 80;
+                let y = e.touches[0].clientY - rect.top - 80;
+                const dist = Math.sqrt(x*x + y*y);
+                if(dist > 50) { x *= 50/dist; y *= 50/dist; }
+                stick.style.transform = `translate(${x}px, ${y}px)`;
+                send(type, x, y);
+            });
+            zone.addEventListener('touchend', () => {
+                stick.style.transform = `translate(0px, 0px)`;
+                send(type, 0, 0);
+            });
+        }
+        initJoy('move-zone', 'move-stick', 'move');
+        initJoy('cam-zone', 'cam-stick', 'camera');
+    </script>
+</body>
+</html>
