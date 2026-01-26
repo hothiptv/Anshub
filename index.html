@@ -2,49 +2,75 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>Anscript Control</title>
     <style>
-        * { box-sizing: border-box; -webkit-user-select: none; }
-        body { margin: 0; background: #000; overflow: hidden; height: 100vh; font-family: sans-serif; }
+        * { box-sizing: border-box; touch-action: none; -webkit-user-select: none; }
+        body { margin: 0; background: #0a0a0f; color: #00ffcc; font-family: sans-serif; overflow: hidden; height: 100vh; }
         
-        /* Joystick Area */
-        .joy-zone { position: absolute; width: 140px; height: 140px; background: rgba(255,255,255,0.1); border-radius: 50%; border: 2px solid #00ffcc; bottom: 50px; }
-        #move-zone { left: 40px; }
-        #cam-zone { right: 40px; }
-        .stick { position: absolute; width: 60px; height: 60px; background: #00ffcc; border-radius: 50%; top: 40px; left: 40px; box-shadow: 0 0 15px #00ffcc; }
+        /* Màn hình nhập tên */
+        #login { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 20px; }
+        input { padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; background: #111; color: #fff; width: 250px; text-align: center; }
+        
+        /* Màn hình điều khiển */
+        #controller { display: none; height: 100%; position: relative; }
+        .joy-zone { position: absolute; width: 150px; height: 150px; background: rgba(255,255,255,0.05); border-radius: 50%; border: 2px solid #00ffcc; bottom: 40px; }
+        #move-zone { left: 30px; }
+        #cam-zone { right: 30px; }
+        .stick { position: absolute; width: 60px; height: 60px; background: #00ffcc; border-radius: 50%; top: 45px; left: 45px; box-shadow: 0 0 15px #00ffcc; }
 
-        /* Actions */
-        .top-bar { position: absolute; top: 20px; width: 100%; display: flex; justify-content: center; gap: 10px; }
-        .btn { padding: 10px 15px; background: #222; color: #00ffcc; border: 1px solid #00ffcc; border-radius: 5px; font-weight: bold; }
-        .jump { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); width: 70px; height: 70px; border-radius: 50%; background: red; border: none; color: white; font-weight: bold; }
+        /* Nút Jump ở trên Joystick Cam */
+        .jump-btn { position: absolute; right: 65px; bottom: 210px; width: 80px; height: 80px; background: #ff0055; border-radius: 50%; border: none; color: white; font-weight: bold; box-shadow: 0 0 20px #ff0055; }
+
+        /* Nhóm phím chức năng */
+        .skills { position: absolute; bottom: 200px; left: 30px; display: flex; gap: 15px; }
+        .top-btns { position: absolute; top: 20px; width: 100%; display: flex; justify-content: center; gap: 10px; }
+        .btn { background: #1a1a1a; color: #00ffcc; border: 1px solid #00ffcc; padding: 10px 20px; border-radius: 8px; font-weight: bold; min-width: 60px; }
     </style>
 </head>
 <body>
-    <div class="top-bar">
-        <button class="btn" onclick="send('esc')">ESC</button>
-        <button class="btn" onclick="send('tab')">TAB</button>
-        <button class="btn" onclick="send('zoom_in')">ZOOM+</button>
-        <button class="btn" onclick="send('zoom_out')">ZOOM-</button>
+    <div id="login">
+        <h1>ANSRIPT REMOTE</h1>
+        <input type="text" id="username" placeholder="Nhập tên nhân vật...">
+        <button class="btn" style="width: 150px; background: #00ffcc; color: #000;" onclick="start()">KẾT NỐI</button>
     </div>
 
-    <div id="move-zone" class="joy-zone"><div id="move-stick" class="stick"></div></div>
-    <div id="cam-zone" class="joy-zone"><div id="cam-stick" class="stick"></div></div>
-    
-    <button class="jump" onclick="send('jump')">JUMP</button>
+    <div id="controller">
+        <div class="top-btns">
+            <button class="btn" onclick="send('esc')">ESC</button>
+            <button class="btn" onclick="send('tab')">TAB</button>
+        </div>
+
+        <div class="skills">
+            <button class="btn" style="background: #5500ff; color: white; width: 70px; height: 70px;" onclick="send('q')">Q</button>
+            <button class="btn" style="background: #0088ff; color: white; width: 70px; height: 70px;" onclick="send('e')">E</button>
+        </div>
+
+        <button class="jump-btn" onclick="send('jump')">JUMP</button>
+
+        <div id="move-zone" class="joy-zone"><div id="move-stick" class="stick"></div></div>
+        <div id="cam-zone" class="joy-zone"><div id="cam-stick" class="stick"></div></div>
+    </div>
 
     <script>
-        const USER = "Tên_Roblox_Của_An"; // <--- THAY TÊN ACC VÀO ĐÂY
-        function send(cmd, x=0, y=0) {
-            fetch(`/api/send?user=${USER}&cmd=${cmd}&x=${x}&y=${y}`);
+        let targetUser = "";
+        function start() {
+            targetUser = document.getElementById('username').value;
+            if(targetUser) {
+                document.getElementById('login').style.display = 'none';
+                document.getElementById('controller').style.display = 'block';
+            }
         }
 
-        function setup(id, stickId, type) {
-            const zone = document.getElementById(id);
+        function send(cmd, x=0, y=0) {
+            fetch(`/api/send?user=${targetUser}&cmd=${cmd}&x=${x}&y=${y}`);
+        }
+
+        function setupJoy(zoneId, stickId, type) {
+            const zone = document.getElementById(zoneId);
             const stick = document.getElementById(stickId);
             zone.addEventListener('touchmove', (e) => {
                 const rect = zone.getBoundingClientRect();
-                let x = e.touches[0].clientX - rect.left - 70;
-                let y = e.touches[0].clientY - rect.top - 70;
+                let x = e.touches[0].clientX - rect.left - 75;
+                let y = e.touches[0].clientY - rect.top - 75;
                 stick.style.transform = `translate(${x}px, ${y}px)`;
                 send(type, x, y);
             });
@@ -53,8 +79,8 @@
                 send(type, 0, 0);
             });
         }
-        setup('move-zone', 'move-stick', 'move');
-        setup('cam-zone', 'cam-stick', 'camera');
+        setupJoy('move-zone', 'move-stick', 'move');
+        setupJoy('cam-zone', 'cam-stick', 'camera');
     </script>
 </body>
 </html>
