@@ -1,7 +1,6 @@
 {
   "name": "troll-ai-chat",
   "version": "1.0.0",
-  "description": "Ứng dụng giả lập AI để troll bạn bè",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -9,8 +8,5 @@
   "dependencies": {
     "express": "^4.18.2",
     "socket.io": "^4.7.2"
-  },
-  "engines": {
-    "node": ">=14.0.0"
   }
 }
