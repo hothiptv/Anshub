@@ -2,92 +2,104 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>BẢNG ĐIỀU KHIỂN AI (Troll Mode)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI Control Panel</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        body { font-family: sans-serif; display: flex; height: 100vh; margin: 0; background: #222; color: #fff; }
-        #sidebar { width: 280px; background: #333; border-right: 1px solid #444; padding: 15px; }
-        #chat-area { flex: 1; display: none; flex-direction: column; }
-        .user-btn { background: #444; color: white; border: none; padding: 12px; width: 100%; text-align: left; margin-bottom: 5px; cursor: pointer; border-radius: 5px; }
-        .user-btn:hover { background: #555; }
-        #msg-container { flex: 1; overflow-y: auto; padding: 20px; background: #1a1a1a; display: flex; flex-direction: column; }
-        .msg { margin-bottom: 10px; padding: 10px; border-radius: 8px; max-width: 70%; }
-        .guest { background: #005c4b; align-self: flex-start; }
-        .ai { background: #007bff; align-self: flex-end; }
-        .toolbar { padding: 15px; background: #333; display: flex; gap: 10px; flex-wrap: wrap; }
-        input { padding: 10px; border-radius: 5px; border: 1px solid #555; background: #444; color: white; }
+        body { font-family: sans-serif; margin: 0; display: flex; height: 100vh; background: #1c1c1c; color: white; overflow: hidden; }
+        #sidebar { width: 250px; background: #2c2c2c; padding: 15px; border-right: 1px solid #444; }
+        #chat { flex: 1; display: none; flex-direction: column; }
+        #messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; background: #141414; }
+        .msg { padding: 10px; border-radius: 10px; max-width: 70%; position: relative; }
+        .guest { background: #333; align-self: flex-start; border: 1px solid #444; }
+        .ai { background: #0084ff; align-self: flex-end; }
+        .typing-preview { padding: 10px; background: #2c2c2c; color: #ff9800; font-style: italic; border-top: 1px solid #444; }
+        .controls { padding: 15px; background: #2c2c2c; display: flex; gap: 10px; }
+        input { flex: 1; padding: 12px; border-radius: 5px; border: 1px solid #444; background: #333; color: white; }
+        button { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-send { background: #0084ff; color: white; }
+        .btn-send:disabled { background: #444; color: #888; }
+        .btn-func { background: #444; color: white; font-size: 12px; }
     </style>
 </head>
 <body>
-
     <div id="sidebar">
-        <h3>Hàng khách đang đợi</h3>
+        <h3>Khách chờ</h3>
         <div id="user-list"></div>
     </div>
 
-    <div id="chat-area">
-        <div class="toolbar">
-            <input type="text" id="ai-name-config" placeholder="Đổi tên AI (Ví dụ: Simsimi)">
-            <button onclick="setAiName()" style="background: #28a745; color:white; border:none; padding:10px;">Cập nhật Tên</button>
-            <button onclick="clearMessages()" style="background: #dc3545; color:white; border:none; padding:10px;">Xóa tin nhắn bên khách</button>
-            <button onclick="stop()" style="background: #666; color:white; border:none; padding:10px;">Ngắt kết nối</button>
+    <div id="chat">
+        <div class="controls" style="border-bottom: 1px solid #444">
+            <input type="text" id="ai-name" placeholder="Tên AI...">
+            <button class="btn-func" onclick="updateName()">Đổi tên</button>
+            <button class="btn-func" onclick="socket.emit('clear_chat_request')">Xóa Chat</button>
+            <button class="btn-func" style="background:#d32f2f" onclick="location.reload()">Ngắt</button>
         </div>
-        <div id="msg-container"></div>
-        <div class="toolbar">
-            <input type="text" id="ai-input" style="flex:1" placeholder="Nhập tin nhắn phản hồi...">
-            <button onclick="sendAiMsg()" style="background: #007bff; color:white; border:none; padding:10px 25px;">GỬI</button>
+        <div id="messages"></div>
+        <div class="typing-preview" id="guest-typing">Khách đang gõ: ...</div>
+        <div class="controls">
+            <input type="text" id="input" placeholder="Chờ khách nhắn..." disabled oninput="aiTyping()">
+            <button id="btn-send" class="btn-send" onclick="send()" disabled>GỬI AI</button>
         </div>
     </div>
 
     <script>
         const socket = io();
-        let connectedUserId = null;
+        let myTurn = false;
 
         socket.on('update_waiting_list', (users) => {
-            const list = document.getElementById('user-list');
-            list.innerHTML = users.map(u => `<button class="user-btn" onclick="connectTo('${u.id}')">Kết nối với: ${u.name}</button>`).join('');
+            document.getElementById('user-list').innerHTML = users.map(u => 
+                `<button class="btn-func" style="width:100%; margin-bottom:5px; text-align:left" onclick="conn('${u.id}')">${u.name}</button>`
+            ).join('');
         });
 
-        function connectTo(id) {
-            connectedUserId = id;
+        function conn(id) {
             socket.emit('ai_connect_user', id);
-            document.getElementById('chat-area').style.display = 'flex';
-            document.getElementById('msg-container').innerHTML = '<p style="text-align:center; color:#888;">Đã kết nối. Bắt đầu troll thôi!</p>';
+            document.getElementById('chat').style.display = 'flex';
         }
 
-        function setAiName() {
-            const name = document.getElementById('ai-name-config').value;
-            socket.emit('change_ai_name', name);
-            alert("Đã đổi tên hiển thị sang: " + name);
+        function setTurn(turn) {
+            myTurn = turn;
+            document.getElementById('input').disabled = !turn;
+            document.getElementById('btn-send').disabled = !turn;
+            document.getElementById('input').placeholder = turn ? "Trả lời khách..." : "Đang chờ khách nhắn...";
         }
 
-        function sendAiMsg() {
-            const val = document.getElementById('ai-input').value;
-            if(!val) return;
-            addMsg(val, 'ai');
-            socket.emit('send_message', { text: val });
-            document.getElementById('ai-input').value = '';
+        function aiTyping() {
+            socket.emit('ai_typing_status', document.getElementById('input').value.length > 0);
         }
 
-        socket.on('receive_message', (data) => addMsg(data.text, 'guest'));
-        
-        function clearMessages() {
-            socket.emit('clear_chat_request');
-            document.getElementById('msg-container').innerHTML = '';
+        function send() {
+            const val = document.getElementById('input').value;
+            if(val && myTurn) {
+                addMsg(val, 'ai');
+                socket.emit('send_message', { text: val });
+                socket.emit('ai_typing_status', false);
+                setTurn(false);
+                document.getElementById('input').value = '';
+            }
         }
 
-        function stop() {
-            socket.emit('disconnect_request');
-            location.reload();
+        socket.on('receive_message', (data) => {
+            addMsg(data.text, 'guest');
+            setTurn(true);
+            document.getElementById('guest-typing').innerText = "Khách đã gửi xong.";
+        });
+
+        socket.on('guest_typing_preview', (text) => {
+            document.getElementById('guest-typing').innerText = text ? "Khách đang gõ: " + text : "Khách đang chờ...";
+        });
+
+        function addMsg(t, type) {
+            const d = document.createElement('div');
+            d.className = 'msg ' + type;
+            d.innerText = t;
+            document.getElementById('messages').appendChild(d);
+            document.getElementById('messages').scrollTop = 9999;
         }
 
-        function addMsg(text, type) {
-            const div = document.createElement('div');
-            div.className = `msg ${type}`;
-            div.innerHTML = `<strong>${type === 'ai' ? 'Bạn (AI)' : 'Khách'}:</strong><br>${text}`;
-            const c = document.getElementById('msg-container');
-            c.appendChild(div);
-            c.scrollTop = c.scrollHeight;
+        function updateName() {
+            socket.emit('change_ai_name', document.getElementById('ai-name').value);
         }
     </script>
 </body>
