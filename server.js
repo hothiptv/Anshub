@@ -1,42 +1,66 @@
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 const path = require('path');
+
 const app = express();
-const PORT = process.env.PORT || 3000;
+const server = http.createServer(app);
+const io = new Server(server);
 
-let playerStates = {};
+app.use(express.static(path.join(__dirname, 'public')));
 
-app.use(express.static(__dirname));
+let waitingUsers = []; 
+let activeConnections = {}; 
 
-// API nhận lệnh từ Web
-app.get('/api/send', (req, res) => {
-    const { user, cmd, x, y } = req.query;
-    if (!user) return res.status(400).send("No user");
-    
-    playerStates[user] = {
-        cmd: cmd || "idle",
-        x: parseFloat(x) || 0,
-        y: parseFloat(y) || 0,
-        time: Date.now()
-    };
-    res.send("OK");
-});
+io.on('connection', (socket) => {
+    // Hành khách tham gia
+    socket.on('guest_join', (username) => {
+        socket.username = username;
+        waitingUsers.push({ id: socket.id, name: username });
+        io.emit('update_waiting_list', waitingUsers);
+    });
 
-// API cho Game lấy lệnh
-app.get('/api/get-command', (req, res) => {
-    const user = req.query.user;
-    if (playerStates[user]) {
-        res.json(playerStates[user]);
-        // Reset lệnh tức thời
-        if (["jump", "q", "e", "esc", "tab"].includes(playerStates[user].cmd)) {
-            playerStates[user].cmd = "idle";
+    // AI chọn kết nối với khách
+    socket.on('ai_connect_user', (userId) => {
+        activeConnections[socket.id] = userId;
+        activeConnections[userId] = socket.id;
+        io.to(userId).emit('connected_to_ai');
+        waitingUsers = waitingUsers.filter(u => u.id !== userId);
+        io.emit('update_waiting_list', waitingUsers);
+    });
+
+    // Chuyển tiếp tin nhắn
+    socket.on('send_message', (data) => {
+        const targetId = activeConnections[socket.id];
+        if (targetId) io.to(targetId).emit('receive_message', data);
+    });
+
+    // AI đổi tên hiển thị
+    socket.on('change_ai_name', (newName) => {
+        const targetId = activeConnections[socket.id];
+        if (targetId) io.to(targetId).emit('update_ai_name', newName);
+    });
+
+    // Xóa tin nhắn & Ngắt kết nối
+    socket.on('clear_chat_request', () => {
+        const targetId = activeConnections[socket.id];
+        if (targetId) io.to(targetId).emit('clear_chat');
+    });
+
+    socket.on('disconnect_request', () => {
+        const targetId = activeConnections[socket.id];
+        if (targetId) {
+            io.to(targetId).emit('force_disconnect');
+            delete activeConnections[targetId];
         }
-    } else {
-        res.json({ cmd: "idle", x: 0, y: 0 });
-    }
+        delete activeConnections[socket.id];
+    });
+
+    socket.on('disconnect', () => {
+        waitingUsers = waitingUsers.filter(u => u.id !== socket.id);
+        io.emit('update_waiting_list', waitingUsers);
+    });
 });
 
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-app.listen(PORT, () => console.log("Server Ready!"));
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
