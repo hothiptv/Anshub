@@ -1,87 +1,70 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>AI Assistant Chat</title>
+    <title>Chat với AI</title>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #f0f2f5; }
+        body { font-family: sans-serif; margin: 0; background: #ece5dd; }
         #login, #waiting { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
-        #chat-container { display: none; flex-direction: column; height: 100vh; max-width: 600px; margin: 0 auto; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        #header { padding: 15px; background: #075e54; color: white; font-weight: bold; text-align: center; }
-        #messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; }
-        .msg { margin-bottom: 12px; padding: 10px; border-radius: 8px; max-width: 80%; line-height: 1.4; }
-        .guest { align-self: flex-end; background: #dcf8c6; color: black; }
-        .ai { align-self: flex-start; background: #ebebeb; color: black; }
-        .input-area { padding: 15px; border-top: 1px solid #ddd; display: flex; gap: 10px; }
-        input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 20px; outline: none; }
-        button { padding: 10px 20px; border-radius: 20px; border: none; background: #075e54; color: white; cursor: pointer; }
+        #chat-box { display: none; flex-direction: column; height: 100vh; }
+        #header { background: #075e54; color: white; padding: 15px; text-align: center; }
+        #messages { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; }
+        .msg { margin: 5px; padding: 10px; border-radius: 10px; max-width: 80%; }
+        .guest { align-self: flex-end; background: #dcf8c6; }
+        .ai { align-self: flex-start; background: white; }
+        .input-area { display: flex; padding: 10px; background: #f0f0f0; }
+        input { flex: 1; padding: 10px; border-radius: 20px; border: 1px solid #ccc; }
     </style>
 </head>
 <body>
     <div id="login">
-        <h2>Nhập tên của bạn để bắt đầu</h2>
-        <input type="text" id="username" placeholder="Tên của bạn..." style="margin-bottom:10px; width:250px">
-        <button onclick="join()">Vào Chat</button>
+        <input type="text" id="nameInput" placeholder="Nhập tên của bạn...">
+        <button onclick="join()">Bắt đầu</button>
     </div>
-
-    <div id="waiting" style="display:none">
-        <div class="loader"></div>
-        <p>Vui lòng chờ AI kết nối...</p>
-    </div>
-
-    <div id="chat-container">
-        <div id="header">AI Assistant</div>
+    <div id="waiting" style="display:none"><h2>Vui lòng chờ AI kết nối...</h2></div>
+    <div id="chat-box">
+        <div id="header" id="aiName">AI Assistant</div>
         <div id="messages"></div>
         <div class="input-area">
-            <input type="text" id="msg-input" placeholder="Hỏi AI bất cứ điều gì...">
+            <input type="text" id="msgInput" placeholder="Nhập tin nhắn...">
             <button onclick="send()">Gửi</button>
         </div>
-        <button onclick="location.reload()" style="background:#888; border-radius:0; font-size:12px">Ngắt kết nối & Xóa lag</button>
+        <button onclick="location.reload()">Ngắt kết nối</button>
     </div>
-
     <script>
         const socket = io();
-        let aiDisplayName = "AI Assistant";
-
+        let currentAiName = "AI Assistant";
         function join() {
-            const name = document.getElementById('username').value;
-            if(!name) return;
-            socket.emit('guest_join', name);
-            document.getElementById('login').style.display = 'none';
-            document.getElementById('waiting').style.display = 'flex';
+            const name = document.getElementById('nameInput').value;
+            if(name) {
+                socket.emit('guest_join', name);
+                document.getElementById('login').style.display = 'none';
+                document.getElementById('waiting').style.display = 'flex';
+            }
         }
-
         socket.on('connected_to_ai', () => {
             document.getElementById('waiting').style.display = 'none';
-            document.getElementById('chat-container').style.display = 'flex';
+            document.getElementById('chat-box').style.display = 'flex';
         });
-
-        socket.on('update_ai_name', (newName) => {
-            aiDisplayName = newName;
-            document.getElementById('header').innerText = newName;
-        });
-
-        socket.on('clear_chat', () => { document.getElementById('messages').innerHTML = ''; });
-        socket.on('force_disconnect', () => { alert("Phiên làm việc kết thúc!"); location.reload(); });
-
-        function send() {
-            const text = document.getElementById('msg-input').value;
-            if(!text) return;
-            addMsg(text, 'guest');
-            socket.emit('send_message', { text, sender: 'guest' });
-            document.getElementById('msg-input').value = '';
-        }
-
         socket.on('receive_message', (data) => addMsg(data.text, 'ai'));
-
-        function addMsg(text, type) {
-            const div = document.createElement('div');
-            div.className = `msg ${type}`;
-            div.innerHTML = `<strong>${type === 'ai' ? aiDisplayName : 'Bạn'}:</strong><br>${text}`;
-            document.getElementById('messages').appendChild(div);
-            document.getElementById('messages').scrollTop = 9999;
+        socket.on('update_ai_name', (name) => { currentAiName = name; document.getElementById('header').innerText = name; });
+        socket.on('clear_chat', () => { document.getElementById('messages').innerHTML = ''; });
+        socket.on('force_disconnect', () => { alert("Phiên chat kết thúc"); location.reload(); });
+        function send() {
+            const text = document.getElementById('msgInput').value;
+            if(text) {
+                addMsg(text, 'guest');
+                socket.emit('send_message', { text });
+                document.getElementById('msgInput').value = '';
+            }
+        }
+        function addMsg(t, type) {
+            const d = document.createElement('div');
+            d.className = 'msg ' + type;
+            d.innerText = (type === 'ai' ? currentAiName : 'Bạn') + ": " + t;
+            document.getElementById('messages').appendChild(d);
+            document.getElementById('messages').scrollTop = 99999;
         }
     </script>
 </body>
