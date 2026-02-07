@@ -7,50 +7,49 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Cấu hình thư mục chứa file HTML (public)
+// Đảm bảo server có thể đọc được các file trong thư mục public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// CÁC ĐƯỜNG DẪN (ROUTING)
-// Truy cập link gốc (/) sẽ vào bộ hành khách
+// 1. ĐỊNH TUYẾN (ROUTING)
+// Link cho Hành khách: https://ten-app.up.railway.app/
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'user.html'));
 });
 
-// Truy cập (/ai-master) sẽ vào bộ điều khiển AI
+// Link cho bạn (AI): https://ten-app.up.railway.app/ai-master
 app.get('/ai-master', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'ai.html'));
 });
 
-// QUẢN LÝ KẾT NỐI REAL-TIME
+// 2. QUẢN LÝ LOGIC CHAT
 let waitingUsers = []; 
 let activeConnections = {}; 
 
 io.on('connection', (socket) => {
-    console.log('Có người vừa truy cập:', socket.id);
+    console.log('Kết nối mới:', socket.id);
 
-    // 1. Hành khách tham gia và nhập tên
+    // Khi khách vào web và gửi tên
     socket.on('guest_join', (username) => {
         socket.username = username;
         waitingUsers.push({ id: socket.id, name: username });
-        // Cập nhật danh sách cho tất cả các trang AI đang mở
+        // Gửi danh sách chờ mới nhất cho tất cả các trang AI
         io.emit('update_waiting_list', waitingUsers);
     });
 
-    // 2. AI chọn một khách hàng từ danh sách để "troll"
+    // Khi bạn (AI) nhấn nút "Kết nối" với một khách
     socket.on('ai_connect_user', (userId) => {
         activeConnections[socket.id] = userId;
         activeConnections[userId] = socket.id;
 
-        // Báo cho khách biết là AI đã online
+        // Báo cho khách biết AI đã vào cuộc
         io.to(userId).emit('connected_to_ai');
 
-        // Xóa khách này khỏi danh sách chờ
+        // Xóa người này khỏi danh sách chờ
         waitingUsers = waitingUsers.filter(u => u.id !== userId);
         io.emit('update_waiting_list', waitingUsers);
-        console.log(`AI ${socket.id} đã kết nối với Khách ${userId}`);
     });
 
-    // 3. Xử lý gửi tin nhắn qua lại
+    // Chuyển tin nhắn qua lại giữa 2 bên
     socket.on('send_message', (data) => {
         const targetId = activeConnections[socket.id];
         if (targetId) {
@@ -58,7 +57,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    // 4. AI đổi tên hiển thị (ví dụ: ChatGPT, Simsimi...)
+    // Bạn (AI) đổi tên hiển thị để troll
     socket.on('change_ai_name', (newName) => {
         const targetId = activeConnections[socket.id];
         if (targetId) {
@@ -66,7 +65,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    // 5. AI ra lệnh xóa hết tin nhắn ở màn hình khách
+    // Bạn (AI) xóa sạch tin nhắn bên máy khách
     socket.on('clear_chat_request', () => {
         const targetId = activeConnections[socket.id];
         if (targetId) {
@@ -74,7 +73,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    // 6. Ngắt kết nối (Về bảng chờ)
+    // Ngắt kết nối và đưa cả 2 về trang chờ
     socket.on('disconnect_request', () => {
         const targetId = activeConnections[socket.id];
         if (targetId) {
@@ -84,7 +83,7 @@ io.on('connection', (socket) => {
         delete activeConnections[socket.id];
     });
 
-    // 7. Khi một trong hai bên tắt trình duyệt
+    // Xử lý khi ai đó tắt tab trình duyệt
     socket.on('disconnect', () => {
         const targetId = activeConnections[socket.id];
         if (targetId) {
@@ -97,8 +96,8 @@ io.on('connection', (socket) => {
     });
 });
 
-// Khởi chạy Server
+// KHỞI CHẠY SERVER
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`Server đang chạy tại: http://localhost:${PORT}`);
+    console.log('Server is running on port ' + PORT);
 });
