@@ -1,91 +1,106 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ thống AI Trực tuyến</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hệ thống AI Chat</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; background: #e5ddd5; display: flex; flex-direction: column; height: 100vh; }
-        #screen-name, #screen-wait { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; background: white; }
-        #screen-chat { display: none; flex-direction: column; height: 100%; }
-        .header { background: #075e54; color: white; padding: 15px; text-align: center; font-weight: bold; }
-        #messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; }
-        .msg { margin-bottom: 10px; padding: 10px 15px; border-radius: 18px; max-width: 80%; word-wrap: break-word; position: relative; }
-        .guest { align-self: flex-end; background: #dcf8c6; border-bottom-right-radius: 2px; }
-        .ai { align-self: flex-start; background: white; border-bottom-left-radius: 2px; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
-        .input-area { background: #f0f0f0; padding: 10px; display: flex; gap: 8px; }
-        input[type="text"] { flex: 1; padding: 12px; border-radius: 25px; border: none; outline: none; }
-        button { background: #075e54; color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; }
-        .status { color: #666; font-size: 14px; margin-top: 10px; }
+        * { box-sizing: border-box; touch-action: pan-x pan-y; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; background: #f0f2f5; height: 100vh; }
+        #login, #wait { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: white; }
+        #chat-container { display: none; flex-direction: column; height: 100vh; }
+        .header { background: #0084ff; color: white; padding: 15px; text-align: center; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        #messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px 15px; border-radius: 18px; max-width: 85%; font-size: 15px; line-height: 1.4; }
+        .guest { align-self: flex-end; background: #0084ff; color: white; border-bottom-right-radius: 2px; }
+        .ai { align-self: flex-start; background: #e4e6eb; color: black; border-bottom-left-radius: 2px; }
+        .typing-status { font-size: 12px; color: #65676b; padding: 5px 15px; height: 20px; }
+        .input-area { background: white; padding: 10px; display: flex; gap: 10px; border-top: 1px solid #ddd; }
+        input { flex: 1; padding: 12px 18px; border-radius: 25px; border: 1px solid #ddd; outline: none; }
+        input:disabled { background: #f0f0f0; cursor: not-allowed; }
+        button { background: #0084ff; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
-
-    <div id="screen-name">
-        <h2>Chào mừng bạn đến với AI</h2>
-        <input type="text" id="username" placeholder="Nhập tên của bạn..." style="border: 1px solid #ccc; width: 250px; margin-bottom: 10px;">
-        <button onclick="join()">Bắt đầu Chat</button>
+    <div id="login">
+        <h3>Chào mừng bạn</h3>
+        <input type="text" id="username" placeholder="Nhập tên bạn...">
+        <button onclick="join()" style="margin-top:10px">Tham gia</button>
     </div>
 
-    <div id="screen-wait" style="display:none">
-        <h2>Vui lòng chờ...</h2>
-        <div class="status">Đang kết nối với chuyên gia AI...</div>
-    </div>
+    <div id="wait" style="display:none"><h3>Đang kết nối với AI...</h3></div>
 
-    <div id="screen-chat">
-        <div class="header" id="ai-display-name">AI Assistant</div>
+    <div id="chat-container">
+        <div class="header" id="ai-name">AI Assistant</div>
         <div id="messages"></div>
+        <div class="typing-status" id="ai-typing"></div>
         <div class="input-area">
-            <input type="text" id="user-input" placeholder="Hỏi AI một câu hỏi...">
-            <button onclick="send()">Gửi</button>
+            <input type="text" id="input" placeholder="Chờ đến lượt nhắn..." disabled oninput="handleTyping()">
+            <button id="btn-send" onclick="send()" disabled>Gửi</button>
         </div>
-        <button onclick="location.reload()" style="background:#cc0000; border-radius:0;">Ngắt kết nối & Xóa lag</button>
     </div>
 
     <script>
         const socket = io();
-        let aiName = "AI Assistant";
+        let myTurn = false;
 
         function join() {
             const name = document.getElementById('username').value;
-            if(!name) return alert("Vui lòng nhập tên!");
-            socket.emit('guest_join', name);
-            document.getElementById('screen-name').style.display = 'none';
-            document.getElementById('screen-wait').style.display = 'flex';
+            if(name) {
+                socket.emit('guest_join', name);
+                document.getElementById('login').style.display = 'none';
+                document.getElementById('wait').style.display = 'flex';
+            }
         }
 
         socket.on('connected_to_ai', () => {
-            document.getElementById('screen-wait').style.display = 'none';
-            document.getElementById('screen-chat').style.display = 'flex';
+            document.getElementById('wait').style.display = 'none';
+            document.getElementById('chat-container').style.display = 'flex';
+            setTurn(true); // Khách nhắn trước
         });
 
-        socket.on('update_ai_name', (name) => {
-            aiName = name;
-            document.getElementById('ai-display-name').innerText = name;
-        });
+        function handleTyping() {
+            socket.emit('typing_status', document.getElementById('input').value);
+        }
 
-        socket.on('receive_message', (data) => addMsg(data.text, 'ai'));
-        socket.on('clear_chat', () => document.getElementById('messages').innerHTML = '');
-        socket.on('force_disconnect', () => { alert("Phiên làm việc kết thúc!"); location.reload(); });
+        function setTurn(turn) {
+            myTurn = turn;
+            document.getElementById('input').disabled = !turn;
+            document.getElementById('btn-send').disabled = !turn;
+            document.getElementById('input').placeholder = turn ? "Nhập tin nhắn..." : "Chờ AI trả lời...";
+        }
 
         function send() {
-            const input = document.getElementById('user-input');
-            if(!input.value) return;
-            addMsg(input.value, 'guest');
-            socket.emit('send_message', { text: input.value });
-            input.value = '';
+            const val = document.getElementById('input').value;
+            if(val && myTurn) {
+                addMsg(val, 'guest');
+                socket.emit('send_message', { text: val });
+                socket.emit('typing_status', ''); 
+                setTurn(false);
+                document.getElementById('input').value = '';
+            }
         }
 
-        function addMsg(text, type) {
-            const div = document.createElement('div');
-            div.className = `msg ${type}`;
-            div.innerHTML = `<strong>${type === 'ai' ? aiName : 'Bạn'}:</strong><br>${text}`;
-            const m = document.getElementById('messages');
-            m.appendChild(div);
-            m.scrollTop = m.scrollHeight;
+        socket.on('receive_message', (data) => {
+            addMsg(data.text, 'ai');
+            setTurn(true);
+        });
+
+        socket.on('ai_is_typing', (status) => {
+            document.getElementById('ai-typing').innerText = status ? "AI đang soạn tin nhắn..." : "";
+        });
+
+        function addMsg(t, type) {
+            const d = document.createElement('div');
+            d.className = 'msg ' + type;
+            d.innerText = t;
+            document.getElementById('messages').appendChild(d);
+            document.getElementById('messages').scrollTop = 9999;
         }
+
+        socket.on('clear_chat', () => document.getElementById('messages').innerHTML = '');
+        socket.on('force_disconnect', () => location.reload());
     </script>
 </body>
 </html>
