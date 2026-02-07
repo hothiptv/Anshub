@@ -7,16 +7,20 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static(path.join(__dirname, 'public')));
+// ĐÃ SỬA: Bây giờ server sẽ tìm file trong thư mục 'boxl'
+app.use(express.static(path.join(__dirname, 'boxl')));
 
+// Điều hướng trang khách
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'user.html'));
+    res.sendFile(path.join(__dirname, 'boxl', 'user.html'));
 });
 
+// Điều hướng trang AI
 app.get('/ai-master', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'ai.html'));
+    res.sendFile(path.join(__dirname, 'boxl', 'ai.html'));
 });
 
+// LOGIC CHAT (GIỮ NGUYÊN)
 let waitingUsers = []; 
 let activeConnections = {}; 
 
@@ -60,15 +64,10 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
-        const targetId = activeConnections[socket.id];
-        if (targetId) {
-            io.to(targetId).emit('force_disconnect');
-            delete activeConnections[targetId];
-        }
         waitingUsers = waitingUsers.filter(u => u.id !== socket.id);
         io.emit('update_waiting_list', waitingUsers);
     });
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log('Server running on port ' + PORT));
+server.listen(PORT, () => console.log('Server chạy trên cổng ' + PORT));
