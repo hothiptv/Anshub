@@ -7,46 +7,49 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Chỉ định thư mục chứa file web là 'boxl'
-const folderName = 'boxl';
-app.use(express.static(path.join(__dirname, folderName)));
+// Tên thư mục chứa HTML của bạn
+const FOLDER_NAME = 'boxl';
 
-// Điều hướng link trang chủ -> Hành khách
+// Cấu hình để server nhận diện thư mục boxl
+app.use(express.static(path.join(__dirname, FOLDER_NAME)));
+
+// ROUTING: Điều hướng người dùng
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, folderName, 'user.html'));
+    res.sendFile(path.join(__dirname, FOLDER_NAME, 'user.html'));
 });
 
-// Điều hướng link /ai-master -> Bộ điều khiển AI
 app.get('/ai-master', (req, res) => {
-    res.sendFile(path.join(__dirname, folderName, 'ai.html'));
+    res.sendFile(path.join(__dirname, FOLDER_NAME, 'ai.html'));
 });
 
-// --- LOGIC XỬ LÝ CHAT ---
+// QUẢN LÝ LOGIC KẾT NỐI
 let waitingUsers = []; 
 let activeConnections = {}; 
 
 io.on('connection', (socket) => {
-    console.log('User connected:', socket.id);
+    console.log('Kết nối mới:', socket.id);
 
-    // Khi khách vào và nhập tên
+    // 1. Khi khách vào và nhập tên
     socket.on('guest_join', (username) => {
         socket.username = username;
         waitingUsers.push({ id: socket.id, name: username });
         io.emit('update_waiting_list', waitingUsers);
     });
 
-    // Khi bạn (AI) chọn kết nối với 1 người
+    // 2. Khi AI (bạn) chọn kết nối với 1 khách
     socket.on('ai_connect_user', (userId) => {
         activeConnections[socket.id] = userId;
         activeConnections[userId] = socket.id;
         
+        // Thông báo khách đã kết nối
         io.to(userId).emit('connected_to_ai');
         
+        // Xóa khỏi danh sách chờ
         waitingUsers = waitingUsers.filter(u => u.id !== userId);
         io.emit('update_waiting_list', waitingUsers);
     });
 
-    // Chuyển tiếp tin nhắn giữa AI và Khách
+    // 3. Xử lý tin nhắn (Chế độ nhắn tin luân phiên do HTML điều khiển)
     socket.on('send_message', (data) => {
         const targetId = activeConnections[socket.id];
         if (targetId) {
@@ -54,21 +57,34 @@ io.on('connection', (socket) => {
         }
     });
 
-    // AI đổi tên hiển thị bên khách
-    socket.on('change_ai_name', (newName) => {
+    // 4. TÍNH NĂNG MỚI: AI NHÌN THẤY KHÁCH ĐANG GÕ (Real-time Typing)
+    socket.on('typing_status', (text) => {
         const targetId = activeConnections[socket.id];
         if (targetId) {
-            io.to(targetId).emit('update_ai_name', newName);
+            // Gửi nội dung đang gõ sang cho bộ AI
+            io.to(targetId).emit('guest_typing_preview', text);
         }
     });
 
-    // AI ra lệnh xóa chat bên khách
+    // 5. TÍNH NĂNG MỚI: KHÁCH THẤY AI ĐANG SOẠN (Chỉ hiện thông báo)
+    socket.on('ai_typing_status', (isTyping) => {
+        const targetId = activeConnections[socket.id];
+        if (targetId) {
+            io.to(targetId).emit('ai_is_typing', isTyping);
+        }
+    });
+
+    // 6. Các tính năng quản trị khác
+    socket.on('change_ai_name', (newName) => {
+        const targetId = activeConnections[socket.id];
+        if (targetId) io.to(targetId).emit('update_ai_name', newName);
+    });
+
     socket.on('clear_chat_request', () => {
         const targetId = activeConnections[socket.id];
         if (targetId) io.to(targetId).emit('clear_chat');
     });
 
-    // Ngắt kết nối và quay lại bảng chờ
     socket.on('disconnect_request', () => {
         const targetId = activeConnections[socket.id];
         if (targetId) {
@@ -78,7 +94,7 @@ io.on('connection', (socket) => {
         delete activeConnections[socket.id];
     });
 
-    // Khi có người tắt trình duyệt
+    // 7. Khi ngắt kết nối (tắt tab hoặc mất mạng)
     socket.on('disconnect', () => {
         const targetId = activeConnections[socket.id];
         if (targetId) {
@@ -91,8 +107,8 @@ io.on('connection', (socket) => {
     });
 });
 
-// Chạy server trên port của Railway hoặc 3000
+// Cổng chạy server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log('Server is running on port ' + PORT);
+    console.log(`Server đang chạy mượt mà tại cổng: ${PORT}`);
 });
