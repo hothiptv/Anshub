@@ -1,42 +1,58 @@
 const express = require('express');
-const axios = require('axios');
-const cors = require('cors');
+const http = require('http');
+const { Server } = require('socket.io');
+
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: "*" } });
 
-app.use(express.json());
-app.use(cors());
+let waitingPlayer = null; // Máy A đang chờ
+let rooms = {}; // Lưu trữ các trận đấu đang diễn ra
 
-// Lấy API Key từ Variables của Railway
-const GROQ_API_KEY = process.env.GROQ_KEY;
+io.on('connection', (socket) => {
+    socket.on('join', (name) => {
+        socket.playerName = name;
+        if (!waitingPlayer) {
+            waitingPlayer = socket;
+            socket.emit('status', 'Đang chờ người chơi B...');
+        } else {
+            // Ghép đôi A và B
+            const roomName = `room_${waitingPlayer.id}_${socket.id}`;
+            const playerA = waitingPlayer;
+            const playerB = socket;
+            
+            playerA.join(roomName);
+            playerB.join(roomName);
 
-app.post('/chat', async (req, res) => {
-    if (!req.body.prompt) {
-        return res.status(400).json({ error: "Thiếu prompt" });
-    }
+            rooms[roomName] = {
+                players: [playerA.id, playerB.id],
+                names: { [playerA.id]: playerA.playerName, [playerB.id]: playerB.playerName },
+                bombs: {}, // Lưu vị trí kẹo nổ mỗi người chọn
+                grid: 32, // 8x4
+                turn: playerA.id // A chọn trước
+            };
 
-    try {
-        const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-            model: "llama3-70b-8192",
-            messages: [
-                { role: "system", content: "Bạn là Anscript, trả lời cực ngắn bằng tiếng Việt." },
-                { role: "user", content: req.body.prompt }
-            ]
-        }, {
-            headers: { 
-                'Authorization': `Bearer ${GROQ_API_KEY}`,
-                'Content-Type': 'application/json' 
+            io.to(roomName).emit('start', { 
+                room: roomName, 
+                opponent: playerB.playerName, 
+                firstTurn: playerA.id 
+            });
+            waitingPlayer = null;
+        }
+    });
+
+    // Khi người chơi chọn kẹo nổ bí mật của mình
+    socket.on('select_bomb', ({ room, index }) => {
+        if (rooms[room]) {
+            rooms[room].bombs[socket.id] = index;
+            // Nếu cả 2 đã chọn kẹo nổ xong
+            if (Object.keys(rooms[room].bombs).length === 2) {
+                io.to(room).emit('phase_eat', "Cả hai đã chọn xong! Bắt đầu ăn kẹo.");
             }
-        });
-        
-        res.json({ message: response.data.choices[0].message.content });
-    } catch (error) {
-        console.error("Lỗi gọi Groq:", error.message);
-        res.status(500).json({ error: "Lỗi API Groq" });
-    }
+        }
+    });
+
+    socket.on('disconnect', () => { if (waitingPlayer === socket) waitingPlayer = null; });
 });
 
-// Quan trọng: Railway yêu cầu lắng nghe trên cổng process.env.PORT
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server đang chạy trên port ${PORT}`);
-});
+server.listen(process.env.PORT || 3000, () => console.log("Game Server Running"));
