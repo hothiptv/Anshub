@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kẹo Nổ Multiplayer</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body { background: #222; color: white; text-align: center; font-family: sans-serif; }
+        #grid { display: grid; grid-template-columns: repeat(8, 60px); gap: 10px; justify-content: center; margin-top: 20px; }
+        .candy { width: 60px; height: 60px; background: #ffcc00; border-radius: 10px; cursor: pointer; color: #000; line-height: 60px; font-weight: bold; }
+        .candy.my-bomb { background: #ff4444 !important; color: white; }
+        .candy.safe { background: #444 !important; color: #888; cursor: default; }
+        #menu { margin-top: 100px; }
+        input { padding: 10px; border-radius: 5px; border: none; }
+        button { padding: 10px 20px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div id="menu">
+        <h1>KẸO NỔ</h1>
+        <input type="text" id="nameInp" placeholder="Nhập tên của bạn">
+        <button onclick="joinGame()">KẾT NỐI</button>
+    </div>
+
+    <div id="game" style="display:none">
+        <h2 id="status">Đang chờ...</h2>
+        <div id="grid"></div>
+    </div>
+
+    <script>
+        const socket = io();
+        let myRoom = "";
+        let myBomb = -1;
+        let isMyTurn = false;
+        let phase = "setting";
+
+        function joinGame() {
+            const name = document.getElementById('nameInp').value;
+            if(!name) return alert("Nhập tên!");
+            socket.emit('join', name);
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('game').style.display = 'block';
+        }
+
+        socket.on('waiting', m => document.getElementById('status').innerText = m);
+
+        socket.on('start', data => {
+            myRoom = data.roomID;
+            document.getElementById('status').innerText = "Chọn 1 kẹo để đặt nổ!";
+            createGrid();
+        });
+
+        function createGrid() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = "";
+            for(let i=0; i<32; i++) {
+                let div = document.createElement('div');
+                div.className = "candy";
+                div.id = "c-" + i;
+                div.innerText = "🍬";
+                div.onclick = () => handleClick(i);
+                grid.appendChild(div);
+            }
+        }
+
+        function handleClick(i) {
+            if (phase === "setting" && myBomb === -1) {
+                myBomb = i;
+                document.getElementById('c-'+i).classList.add('my-bomb');
+                document.getElementById('c-'+i).innerText = "BOMB";
+                socket.emit('setBomb', { roomID: myRoom, index: i });
+                document.getElementById('status').innerText = "Chờ đối thủ chọn kẹo...";
+            } else if (phase === "playing" && isMyTurn) {
+                if (i === myBomb) return alert("Kẹo của bạn mà!");
+                socket.emit('eat', { roomID: myRoom, index: i });
+            }
+        }
+
+        socket.on('playPhase', data => {
+            phase = "playing";
+            updateTurn(data.turn);
+        });
+
+        socket.on('nextTurn', data => {
+            document.getElementById('c-'+data.ateIndex).classList.add('safe');
+            document.getElementById('c-'+data.ateIndex).innerText = "X";
+            updateTurn(data.turn);
+        });
+
+        socket.on('gameOver', data => {
+            alert("TRÒ CHƠI KẾT THÚC! " + data.loser + " đã trúng kẹo nổ!");
+            location.reload();
+        });
+
+        function updateTurn(turnID) {
+            isMyTurn = (socket.id === turnID);
+            document.getElementById('status').innerText = isMyTurn ? "Lượt của bạn: ĂN KẸO ĐI!" : "Đang chờ đối thủ ăn...";
+        }
+    </script>
+</body>
+</html>
