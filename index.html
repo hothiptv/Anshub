@@ -3,100 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anscript Hub | Zoom Effect</title>
+    <title>Anscript Hub | Next-Gen UI</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.0/vanilla-tilt.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root { 
             --accent: #00ff96; 
             --bg: #050505; 
-            --card-bg: rgba(20, 20, 20, 0.8);
-            --neon-shadow: 0 0 20px rgba(0, 255, 150, 0.3);
+            --card-bg: rgba(15, 15, 15, 0.9);
+            --glow: 0 0 20px rgba(0, 255, 150, 0.3);
+            --speed: 0.5s;
         }
 
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { 
             background: var(--bg); color: #fff; font-family: 'Quicksand', sans-serif; 
             margin: 0; overflow-x: hidden;
+            background-image: radial-gradient(circle at center, #111 0%, #050505 100%);
         }
 
         /* --- Navbar --- */
         .navbar {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 15px 6%; background: rgba(0,0,0,0.9);
-            backdrop-filter: blur(15px); border-bottom: 1px solid rgba(0,255,150,0.2);
+            padding: 15px 5%; background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(20px); border-bottom: 2px solid rgba(0, 255, 150, 0.2);
             position: sticky; top: 0; z-index: 1000;
         }
+        .logo { 
+            font-family: 'Orbitron'; color: var(--accent); font-size: 1.5rem; 
+            text-shadow: var(--glow); letter-spacing: 2px;
+        }
 
-        /* --- Sidebar --- */
+        /* --- Search & Menu Buttons --- */
+        .nav-btns { display: flex; gap: 15px; align-items: center; }
+        .search-box {
+            display: flex; align-items: center; background: #111;
+            border: 1px solid #333; border-radius: 25px; padding: 5px 12px;
+            transition: 0.3s;
+        }
+        .search-box.active { border-color: var(--accent); box-shadow: var(--glow); }
+        .search-input { 
+            width: 0; opacity: 0; border: none; outline: none; background: none; 
+            color: white; transition: 0.4s; font-size: 14px;
+        }
+        .search-box.active .search-input { width: 130px; opacity: 1; }
+        .icon-btn { background: none; border: none; color: var(--accent); font-size: 1.4rem; cursor: pointer; transition: 0.3s; }
+        .icon-btn:hover { transform: scale(1.1); text-shadow: var(--glow); }
+
+        /* --- Sidebar Tabs --- */
         .sidebar {
             position: fixed; top: 0; left: -100%; width: 280px; height: 100%;
-            background: rgba(10,10,10,0.98); z-index: 2000; padding: 40px 25px;
-            border-right: 2px solid var(--accent); transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(5, 5, 5, 0.98); z-index: 2000; padding: 30px 20px;
+            border-right: 2px solid var(--accent); transition: 0.5s cubic-bezier(0.77, 0, 0.175, 1);
+            box-shadow: 20px 0 60px rgba(0,0,0,0.8);
         }
         .sidebar.active { left: 0; }
         
         .tab-item {
-            padding: 15px; margin-bottom: 12px; border-radius: 12px;
+            padding: 14px; margin-bottom: 12px; border-radius: 12px;
             border: 1px solid #222; cursor: pointer; text-align: center;
-            transition: 0.3s; position: relative;
+            font-weight: bold; transition: 0.3s; color: #888;
         }
         .tab-item.active { 
-            background: var(--accent); color: #000; font-weight: bold;
-            box-shadow: var(--neon-shadow); border-color: var(--accent);
+            background: var(--accent); color: #000; 
+            box-shadow: var(--glow); border-color: var(--accent);
+            transform: translateX(10px);
         }
 
-        /* --- Hiệu ứng Grid --- */
+        /* --- Grid & Transition Effects --- */
         .grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-            gap: 25px; padding: 40px 6%;
-            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 20px; padding: 30px 5%; min-height: 80vh;
         }
 
-        /* Lớp hiệu ứng thu nhỏ */
-        .grid.zoom-out {
-            transform: scale(0.3);
-            opacity: 0;
-        }
+        /* Hiệu ứng thu nhỏ biến mất */
+        .card-exit { transform: scale(0); opacity: 0; transition: var(--speed); }
+        
+        /* Hiệu ứng phóng to xuất hiện */
+        .card-enter { animation: zoomOutIn var(--speed) forwards; }
 
-        /* Lớp hiệu ứng phóng to */
-        .grid.zoom-in {
-            animation: zoomInEffect 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-
-        @keyframes zoomInEffect {
-            from { transform: scale(0.3); opacity: 0; }
+        @keyframes zoomOutIn {
+            from { transform: scale(0); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
 
-        /* --- Card UI --- */
         .card {
-            background: var(--card-bg); border-radius: 18px; overflow: hidden;
+            background: var(--card-bg); border-radius: 20px; overflow: hidden;
             border: 1px solid rgba(255,255,255,0.05); cursor: pointer;
-            transition: 0.3s;
+            position: relative; transition: transform 0.3s, box-shadow 0.3s;
         }
-        .card:hover { border-color: var(--accent); box-shadow: var(--neon-shadow); }
-        .card-img { width: 100%; height: 100%; object-fit: cover; }
-        .card-name { padding: 10px; text-align: center; font-family: 'Orbitron'; font-size: 0.8rem; color: var(--accent); }
-
-        /* Aspect Ratios */
+        .card:hover { border-color: var(--accent); box-shadow: var(--glow); }
+        
         .ratio-1-1 { aspect-ratio: 1/1; }
         .ratio-16-9 { aspect-ratio: 16/9; }
         .ratio-9-16 { aspect-ratio: 9/16; }
 
-        /* Modal */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; justify-content: center; align-items: center; }
-        .modal-content { background: #111; border: 1px solid var(--accent); padding: 25px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; }
+        .card-img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .card-name {
+            position: absolute; bottom: 0; width: 100%; padding: 12px 5px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.95) 70%);
+            text-align: center; font-family: 'Orbitron'; font-size: 0.75rem;
+            color: var(--accent); text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        /* --- Modal --- */
+        .modal {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            z-index: 3000; justify-content: center; align-items: center; padding: 20px;
+        }
+        .modal-content {
+            background: #0a0a0a; border: 1px solid var(--accent); padding: 25px;
+            border-radius: 25px; width: 100%; max-width: 420px;
+            box-shadow: var(--glow); position: relative;
+        }
+        .modal-img { width: 100%; border-radius: 15px; margin-bottom: 15px; border: 1px solid #222; }
+        .btn-group { display: flex; gap: 10px; }
+        .btn { flex: 1; padding: 14px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-family: 'Orbitron'; }
+        .btn-copy { background: var(--accent); color: #000; }
+        .btn-close { background: #222; color: #fff; }
+
+        @media (max-width: 500px) { .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; } }
     </style>
 </head>
 <body>
 
     <div class="navbar">
-        <button onclick="toggleSidebar(true)" style="background:none; border:none; color:var(--accent); font-size:1.8rem; cursor:pointer">☰</button>
-        <div style="font-family:'Orbitron'; color:var(--accent); letter-spacing:3px; font-size:1.5rem;">AN HUB</div>
-        <div></div> </div>
+        <button class="icon-btn" onclick="toggleSide(true)">☰</button>
+        <div class="logo">AN HUB</div>
+        <div class="nav-btns">
+            <div class="search-box" id="sBox">
+                <input type="text" id="sInp" class="search-input" placeholder="Tìm script..." oninput="filter()">
+                <button class="icon-btn" style="font-size: 1rem;" onclick="toggleSearch()">🔍</button>
+            </div>
+        </div>
+    </div>
 
     <div id="side" class="sidebar">
-        <h2 style="color:var(--accent); font-family:'Orbitron'; text-align:center;">TẬP TIN</h2>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px">
+            <h2 style="color:var(--accent); font-family:'Orbitron'; margin:0">TABS</h2>
+            <button class="icon-btn" onclick="toggleSide(false)" style="color:red; font-size:1.8rem">×</button>
+        </div>
         <div id="tList"></div>
     </div>
 
@@ -104,95 +151,94 @@
 
     <div id="m" class="modal">
         <div class="modal-content">
-            <img id="mI" style="width:100%; border-radius:10px; margin-bottom:15px">
-            <h2 id="mT" style="color:var(--accent); margin:0"></h2>
-            <p id="mD" style="color:#aaa; font-size:0.9rem; margin:15px 0"></p>
-            <button onclick="copy()" style="width:100%; padding:12px; background:var(--accent); border:none; border-radius:10px; font-weight:bold; cursor:pointer">COPY SCRIPT</button>
-            <button onclick="document.getElementById('m').style.display='none'" style="width:100%; margin-top:10px; background:none; border:none; color:#555; cursor:pointer">Đóng</button>
+            <img id="mI" class="modal-img">
+            <h2 id="mT" style="color:var(--accent); font-family:'Orbitron'; margin:0 0 10px 0; font-size:1.2rem"></h2>
+            <p id="mD" style="color:#888; font-size:0.85rem; margin-bottom:20px; max-height:100px; overflow-y:auto"></p>
+            <div class="btn-group">
+                <button class="btn btn-copy" onclick="copy()">COPY</button>
+                <button class="btn btn-close" onclick="closeM()">ĐÓNG</button>
+            </div>
         </div>
     </div>
 
     <script>
         const API = window.location.origin;
-        const DEF = "https://media.discordapp.net/attachments/1472992341156434219/1472992415303340276/Picsart_26-02-16_14-27-25-185.jpg";
+        const DEF = "https://cdn.discordapp.com/attachments/1472992341156434219/1472992415303340276/Picsart_26-02-16_14-27-25-185.jpg?ex=69949696&is=69934516&hm=67c31316f28cd9797f85a81657b2a6dbfa4d26325af3d5973c9d4eeb868c3545&";
+        
         let db = [], curT = "ALL", curC = "";
 
         async function init() {
             const r = await fetch(`${API}/get-hub`);
             const d = await r.json();
             db = d.scripts || [];
-            renderTabs(d.tabs || []);
-            renderCards(db);
+            renderT(d.tabs || []);
+            renderC(db);
         }
 
-        function toggleSidebar(open) {
-            document.getElementById('side').classList.toggle('active', open);
+        function toggleSide(o) { document.getElementById('side').classList.toggle('active', o); }
+        function toggleSearch() { 
+            const s = document.getElementById('sBox'); 
+            s.classList.toggle('active'); 
+            if(s.classList.contains('active')) document.getElementById('sInp').focus();
         }
 
-        function renderTabs(ts) {
-            const list = document.getElementById('tList');
-            list.innerHTML = `<div class="tab-item active" onclick="setTab('ALL', this)">TẤT CẢ</div>`;
-            ts.forEach(t => {
-                list.innerHTML += `<div class="tab-item" onclick="setTab('${t.Name}', this)">${t.Name}</div>`;
-            });
+        function renderT(ts) {
+            const l = document.getElementById('tList');
+            l.innerHTML = `<div class="tab-item active" onclick="setTab('ALL', this)">ALL SCRIPTS</div>`;
+            ts.forEach(t => l.innerHTML += `<div class="tab-item" onclick="setTab('${t.Name}', this)">${t.Name}</div>`);
         }
 
-        function setTab(t, el) {
-            if (curT === t) return;
+        // HÀM CHÍNH: Hiệu ứng thu nhỏ và phóng ra
+        async function setTab(t, el) {
+            if (curT === t) { toggleSide(false); return; }
+            
+            // 1. Thu nhỏ các card hiện tại
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(c => c.classList.add('card-exit'));
+            
+            // Đóng menu ngay lập tức cho đẹp
+            toggleSide(false);
+            
+            // Chờ hiệu ứng thu nhỏ hoàn tất (0.5s)
+            await new Promise(r => setTimeout(r, 450));
+            
+            // 2. Cập nhật trạng thái
             curT = t;
-
-            // Đánh dấu Tab active
             document.querySelectorAll('.tab-item').forEach(b => b.classList.remove('active'));
             el.classList.add('active');
-
-            const grid = document.getElementById('g');
-
-            // 1. Thu nhỏ danh sách cũ
-            grid.classList.add('zoom-out');
-
-            setTimeout(() => {
-                // 2. Đóng Sidebar
-                toggleSidebar(false);
-
-                // 3. Lọc và Render dữ liệu mới
-                const f = db.filter(s => (curT === "ALL" || s.tab === curT));
-                renderCards(f);
-
-                // 4. Phóng to danh sách mới ra
-                grid.classList.remove('zoom-out');
-                grid.classList.add('zoom-in');
-
-                // Xóa class zoom-in sau khi xong để lần sau dùng tiếp
-                setTimeout(() => grid.classList.remove('zoom-in'), 600);
-            }, 500); // Đợi hiệu ứng thu nhỏ chạy xong
+            
+            // 3. Lọc và render card mới với hiệu ứng phóng to
+            filter();
         }
 
-        function renderCards(ss) {
+        function renderC(ss) {
             const g = document.getElementById('g'); g.innerHTML = "";
-            ss.forEach(s => {
-                let imgPath = (s.img && s.img !== "") ? s.img : DEF;
-                const ratio = s.ratio || "ratio-1-1";
+            ss.forEach((s, i) => {
+                const img = (s.img && s.img !== "") ? s.img : DEF;
                 const card = document.createElement('div');
-                card.className = `card ${ratio}`;
+                card.className = `card ${s.ratio || 'ratio-1-1'} card-enter`;
+                // Delay một chút cho từng card để tạo hiệu ứng sóng (stagger)
+                card.style.animationDelay = `${i * 0.05}s`; 
+                
                 card.innerHTML = `
-                    <img src="${imgPath}" class="card-img" onerror="this.src='${DEF}'">
+                    <img src="${img}" class="card-img" onerror="this.src='${DEF}'">
                     <div class="card-name">${s.name}</div>
                 `;
-                card.onclick = () => {
-                    document.getElementById('mT').innerText = s.name;
-                    document.getElementById('mI').src = imgPath;
-                    document.getElementById('mD').innerText = s.describe || "";
-                    curC = s.script;
-                    document.getElementById('m').style.display = 'flex';
-                };
+                card.onclick = () => openM(s.name, img, s.script, s.describe);
                 g.appendChild(card);
             });
-            VanillaTilt.init(document.querySelectorAll(".card"), { max: 15, speed: 400 });
+            VanillaTilt.init(document.querySelectorAll(".card"), { max: 15, speed: 400, glare: true, "max-glare": 0.2 });
         }
 
-        function copy() { navigator.clipboard.writeText(curC); alert("Copied!"); }
+        function filter() {
+            const q = document.getElementById('sInp').value.toLowerCase();
+            const f = db.filter(s => (curT === "ALL" || s.tab === curT) && s.name.toLowerCase().includes(q));
+            renderC(f);
+        }
 
-        init();
-    </script>
-</body>
-</html>
+        function openM(n, i, c, d) {
+            document.getElementById('mT').innerText = n;
+            document.getElementById('mI').src = i;
+            document.getElementById('mD').innerText = d || "No info.";
+            curC = c; document.getElementById('m').style.display = 'flex';
+        }
