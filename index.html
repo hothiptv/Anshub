@@ -3,148 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anscript Hub v0.1</title>
+    <title>Anscript Hub</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.0/vanilla-tilt.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --accent: #00ff96; --bg: #0a0a0a; --glow: 0 0 15px rgba(0, 255, 150, 0.4); --text: #e0e0e0; }
-        * { box-sizing: border-box; }
-        body { background: var(--bg); color: var(--text); font-family: 'Quicksand', sans-serif; margin: 0; overflow-x: hidden; }
+        :root { --accent: #00ff96; --bg: #0a0a0a; --glow: 0 0 15px rgba(0, 255, 150, 0.4); }
+        body { background: var(--bg); color: #eee; font-family: 'Quicksand', sans-serif; margin: 0; }
+        
+        /* Navbar */
+        .navbar { display: flex; align-items: center; justify-content: space-between; padding: 15px 5%; background: #000; border-bottom: 1px solid var(--accent); position: sticky; top: 0; z-index: 100; }
+        .logo { font-family: 'Orbitron'; color: var(--accent); text-shadow: var(--glow); font-size: 1.2rem; }
+        
+        /* Search Box */
+        .search-container { display: flex; align-items: center; }
+        .search-input { width: 0; opacity: 0; transition: 0.4s; border: none; outline: none; background: #222; color: white; border-radius: 20px; }
+        .search-container.active .search-input { width: 180px; opacity: 1; padding: 5px 15px; border: 1px solid var(--accent); }
+        .search-btn { background: none; border: none; color: var(--accent); font-size: 1.3rem; cursor: pointer; }
 
-        /* Navbar & Controls */
-        .navbar { display: flex; align-items: center; justify-content: space-between; padding: 15px 5%; background: rgba(0,0,0,0.8); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(0,255,150,0.2); }
-        .logo { font-family: 'Orbitron'; color: var(--accent); font-size: 1.2rem; text-shadow: var(--glow); }
-
-        .nav-right { display: flex; align-items: center; gap: 15px; }
-
-        /* Search Box Animation */
-        .search-container { display: flex; align-items: center; position: relative; }
-        .search-input { 
-            width: 0; padding: 0; border: none; background: #222; color: white; 
-            border-radius: 20px; transition: all 0.4s ease; outline: none; opacity: 0;
-        }
-        .search-container.active .search-input { width: 200px; padding: 8px 15px; opacity: 1; border: 1px solid var(--accent); }
-        .search-btn { background: none; border: none; color: var(--accent); font-size: 1.5rem; cursor: pointer; }
-
-        /* Menu Tabs */
-        .menu-toggle { background: none; border: none; color: var(--accent); font-size: 1.5rem; cursor: pointer; }
-        .tabs-overlay { 
-            position: fixed; top: 60px; left: -100%; width: 250px; height: 100%; 
-            background: #111; transition: 0.3s; padding: 20px; z-index: 99; border-right: 1px solid var(--accent);
-        }
-        .tabs-overlay.open { left: 0; }
-        .tab-btn { 
-            display: block; width: 100%; padding: 12px; margin-bottom: 10px; background: none; 
-            border: 1px solid #333; color: white; text-align: left; border-radius: 8px; cursor: pointer; 
-        }
-        .tab-btn.active { border-color: var(--accent); color: var(--accent); box-shadow: var(--glow); }
+        /* Menu Overlay */
+        .menu-btn { background: none; border: none; color: var(--accent); font-size: 1.5rem; cursor: pointer; }
+        .tabs-overlay { position: fixed; top: 0; left: -100%; width: 250px; height: 100%; background: #111; z-index: 200; transition: 0.3s; padding: 20px; border-right: 1px solid var(--accent); }
+        .tabs-overlay.active { left: 0; }
+        .tab-item { display: block; width: 100%; padding: 10px; margin-bottom: 10px; background: #222; border: 1px solid #333; color: white; cursor: pointer; border-radius: 5px; }
+        .tab-item.active { border-color: var(--accent); color: var(--accent); }
 
         /* Grid & Cards */
-        .script-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; padding: 20px 5%; }
-        
-        /* Aspect Ratio Classes */
-        .script-card { background: rgba(255,255,255,0.05); border-radius: 12px; overflow: hidden; border: 1px solid rgba(0,255,150,0.1); cursor: pointer; transition: 0.3s; }
+        .script-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; padding: 20px; }
+        .script-card { background: #1a1a1a; border-radius: 10px; overflow: hidden; border: 1px solid #333; cursor: pointer; position: relative; }
         .ratio-1-1 { aspect-ratio: 1/1; }
         .ratio-16-9 { aspect-ratio: 16/9; }
         .ratio-9-16 { aspect-ratio: 9/16; }
-
         .card-img { width: 100%; height: 100%; object-fit: cover; }
-        .card-name { padding: 10px; text-align: center; background: rgba(0,0,0,0.6); font-size: 0.8rem; font-weight: bold; }
+        .card-name { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.7); padding: 5px; text-align: center; font-size: 0.8rem; }
 
         /* Modal */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: #111; width: 100%; max-width: 400px; padding: 20px; border-radius: 15px; border: 1px solid var(--accent); }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 300; justify-content: center; align-items: center; padding: 20px; }
+        .modal-content { background: #111; border: 1px solid var(--accent); padding: 20px; border-radius: 15px; width: 100%; max-width: 400px; text-align: center; }
     </style>
 </head>
 <body>
-
     <div class="navbar">
-        <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+        <button class="menu-btn" onclick="document.getElementById('sideMenu').classList.add('active')">☰</button>
         <div class="logo">AN HUB</div>
-        <div class="nav-right">
-            <div class="search-container" id="searchContainer">
-                <input type="text" class="search-input" id="searchInput" placeholder="Tìm script..." onblur="closeSearch()">
-                <button class="search-btn" onclick="toggleSearch()">🔍</button>
-            </div>
+        <div class="search-container" id="searchBox">
+            <input type="text" id="searchInput" class="search-input" placeholder="Tìm script..." oninput="applyFilter()">
+            <button class="search-btn" onclick="toggleSearch()">🔍</button>
         </div>
     </div>
 
-    <div class="tabs-overlay" id="tabsOverlay">
-        <h3 style="color:var(--accent)">CHUYÊN MỤC</h3>
+    <div id="sideMenu" class="tabs-overlay">
+        <button style="float:right; color:red; background:none; border:none;" onclick="document.getElementById('sideMenu').classList.remove('active')">X</button>
+        <h3>TABS</h3>
         <div id="tabList"></div>
     </div>
 
-    <div class="script-grid" id="grid"></div>
+    <div class="script-grid" id="mainGrid"></div>
 
-    <div id="infoModal" class="modal">
+    <div id="modal" class="modal">
         <div class="modal-content">
-            <img id="modalImg" style="width:100%; border-radius:10px">
-            <h2 id="modalTitle" style="color:var(--accent)"></h2>
-            <p id="modalDesc"></p>
-            <button onclick="copyScript()" style="width:100%; padding:10px; background:var(--accent); border:none; font-weight:bold">COPY SCRIPT</button>
-            <button onclick="closeModal()" style="width:100%; padding:10px; margin-top:10px; background:#222; color:white; border:none">ĐÓNG</button>
+            <img id="mImg" style="width:100%; border-radius:10px; margin-bottom:15px">
+            <h2 id="mTitle"></h2>
+            <p id="mDesc" style="font-size:0.8rem; color:#aaa; white-space:pre-line"></p>
+            <button onclick="copyCode()" style="width:100%; padding:10px; background:var(--accent); border:none; border-radius:5px; font-weight:bold; cursor:pointer">COPY SCRIPT</button>
+            <button onclick="document.getElementById('modal').style.display='none'" style="margin-top:10px; background:none; border:none; color:#777; cursor:pointer">Đóng</button>
         </div>
     </div>
 
     <script>
+        const API = window.location.origin;
         const DEFAULT_IMG = "https://media.discordapp.net/attachments/1472992341156434219/1472992415303340276/Picsart_26-02-16_14-27-25-185.jpg";
-        let allScripts = [], currentTab = "ALL", currentScriptText = "";
+        let allData = [], curTab = "ALL", curCode = "";
 
-        async function fetchData() {
-            const res = await fetch(`${window.location.origin}/get-hub`);
+        async function start() {
+            const res = await fetch(`${API}/get-hub`);
             const data = await res.json();
-            allScripts = data.scripts;
-            renderTabs(data.tabs);
-            renderCards(allScripts);
+            allData = data.scripts || [];
+            renderTabs(data.tabs || []);
+            renderCards(allData);
         }
-
-        function toggleSearch() { document.getElementById('searchContainer').classList.toggle('active'); document.getElementById('searchInput').focus(); }
-        function closeSearch() { if(!document.getElementById('searchInput').value) document.getElementById('searchContainer').classList.remove('active'); }
-        function toggleMenu() { document.getElementById('tabsOverlay').classList.toggle('open'); }
 
         function renderTabs(tabs) {
             const list = document.getElementById('tabList');
-            list.innerHTML = `<button class="tab-btn active" onclick="filterTab('ALL')">Tất cả</button>`;
-            tabs.forEach(t => {
-                list.innerHTML += `<button class="tab-btn" onclick="filterTab('${t.Name}')">${t.Name}</button>`;
-            });
+            list.innerHTML = `<div class="tab-item" onclick="setTab('ALL')">Tất cả</div>`;
+            tabs.forEach(t => list.innerHTML += `<div class="tab-item" onclick="setTab('${t.Name}')">${t.Name}</div>`);
         }
 
         function renderCards(scripts) {
-            const grid = document.getElementById('grid');
-            grid.innerHTML = "";
+            const grid = document.getElementById('mainGrid');
+            grid.innerHTML = scripts.length ? "" : "<p>Trống...</p>";
             scripts.forEach(s => {
-                const ratioClass = s.ratio || "ratio-9-16";
                 const img = s.img || DEFAULT_IMG;
+                const ratio = s.ratio || "ratio-1-1";
                 grid.innerHTML += `
-                    <div class="script-card ${ratioClass}" onclick="openInfo('${s.name}', '${img}', '${s.script}', '${s.describe}')">
+                    <div class="script-card ${ratio}" onclick="openModal('${s.name}','${img}','${s.script}','${s.describe}')">
                         <img src="${img}" class="card-img" onerror="this.src='${DEFAULT_IMG}'">
                         <div class="card-name">${s.name}</div>
-                    </div>
-                `;
+                    </div>`;
             });
+            VanillaTilt.init(document.querySelectorAll(".script-card"), { max: 15, speed: 400 });
         }
 
-        function filterTab(t) { currentTab = t; toggleMenu(); applyFilters(); }
-        document.getElementById('searchInput').oninput = applyFilters;
-
-        function applyFilters() {
+        function setTab(t) { curTab = t; document.getElementById('sideMenu').classList.remove('active'); applyFilter(); }
+        function toggleSearch() { document.getElementById('searchBox').classList.toggle('active'); }
+        function applyFilter() {
             const q = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = allScripts.filter(s => (currentTab === "ALL" || s.tab === currentTab) && s.name.toLowerCase().includes(q));
+            const filtered = allData.filter(s => (curTab === "ALL" || s.tab === curTab) && s.name.toLowerCase().includes(q));
             renderCards(filtered);
         }
-
-        function openInfo(name, img, code, desc) {
-            document.getElementById('modalTitle').innerText = name;
-            document.getElementById('modalImg').src = img;
-            document.getElementById('modalDesc').innerText = desc;
-            currentScriptText = code;
-            document.getElementById('infoModal').style.display = 'flex';
+        function openModal(n,i,c,d) {
+            document.getElementById('mTitle').innerText = n;
+            document.getElementById('mImg').src = i;
+            document.getElementById('mDesc').innerText = d;
+            curCode = c;
+            document.getElementById('modal').style.display = 'flex';
         }
-        function closeModal() { document.getElementById('infoModal').style.display = 'none'; }
-        function copyScript() { navigator.clipboard.writeText(currentScriptText); alert("Đã copy!"); }
-
-        fetchData();
+        function copyCode() { navigator.clipboard.writeText(curCode); alert("Đã copy!"); }
+        start();
     </script>
 </body>
 </html>
