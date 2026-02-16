@@ -180,4 +180,27 @@
                 let iv = document.getElementById('img').value.trim();
                 db.scripts[curI].img = iv === "" ? DEF : iv;
                 db.scripts[curI].script = document.getElementById('script').value;
-                db.scripts[curI].describe = document.getElementById('
+                db.scripts[curI].describe = document.getElementById('desc').value;
+            }
+            document.getElementById('saveB').innerText = "ĐANG LƯU...";
+            try {
+                const res = await fetch(`${API}/save-hub`, { 
+                    method: 'POST', 
+                    headers: {'Content-Type':'application/json'}, 
+                    body: JSON.stringify({newData: db}) 
+                });
+                if(res.ok) alert("✅ Đã lưu lên GitHub thành công!");
+                else alert("❌ Lỗi lưu file!");
+            } catch(e) { alert("Lỗi kết nối server!"); }
+            document.getElementById('saveB').innerText = "LƯU THAY ĐỔI";
+            render();
+        }
+
+        function getLS() {
+            const ls = `loadstring(game:HttpGet("${API}/get-hub"))()`;
+            navigator.clipboard.writeText(ls);
+            alert("Đã copy Loadstring chuẩn!");
+        }
+    </script>
+</body>
+</html>
