@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel - Anscript Hub</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="auth-overlay">
+        <div class="auth-box">
+            <h2>ADMIN ACCESS</h2>
+            <input type="password" id="pass-input" placeholder="Nhập mật khẩu (0904)...">
+            <button onclick="checkAuth()">XÁC NHẬN</button>
+        </div>
+    </div>
+
+    <div id="admin-dashboard" style="display: none;">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <span>FILE EXPLORER (TABS)</span>
+                <button class="add-btn" onclick="addNewTab()" title="Thêm Tab mới">+</button>
+            </div>
+            <div id="tab-list">
+                </div>
+        </div>
+
+        <div class="editor-area">
+            <div class="editor-header">
+                <span id="editing-filename">Vui lòng chọn hoặc tạo file...</span>
+                <button class="save-btn" onclick="saveData()">LƯU DỮ LIỆU (SAVE)</button>
+            </div>
+            <div class="edit-fields">
+                <input type="text" id="script-name" placeholder="Tên Script...">
+                <input type="text" id="script-img" placeholder="Link ảnh Discord (Bỏ trống sẽ dùng mặc định)...">
+                <textarea id="script-content" placeholder="Dán mã Script vào đây..."></textarea>
+                <textarea id="script-desc" placeholder="Mô tả script (Creator, Year, Description)..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
