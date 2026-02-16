@@ -1,25 +1,50 @@
 const express = require('express');
 const axios = require('axios');
+const cors = require('cors');
 const app = express();
 
-const GITHUB_USER = "minhnhatdepzai8-cloud"; // Thay bằng user của ông
-const GITHUB_REPO = "Farm-Kill-V2"; // Thay bằng repo của ông
+app.use(cors());
+
+// Thay đổi thông tin tại đây
+const GITHUB_USER = "minhnhatdepzai8-cloud"; 
+const GITHUB_REPO = "Farm-Kill-V2"; 
+const RAW_URL = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/public/`;
 
 app.get('/get-hub', async (req, res) => {
     try {
-        const rawUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/public/`;
-        const [tabs, scripts] = await Promise.all([
-            axios.get(rawUrl + 'tabs.json'),
-            axios.get(rawUrl + 'scripts.json')
-        ]);
+        console.log("Đang lấy dữ liệu từ GitHub...");
         
-        res.json({
-            tabs: tabs.data,
-            scripts: scripts.data
+        // Lấy dữ liệu đồng thời từ 2 file
+        const [tabsRes, scriptsRes] = await Promise.all([
+            axios.get(RAW_URL + 'tabs.json', { timeout: 5000 }),
+            axios.get(RAW_URL + 'scripts.json', { timeout: 5000 })
+        ]);
+
+        // Trả về kết quả cho Roblox
+        res.status(200).json({
+            tabs: tabsRes.data,
+            scripts: scriptsRes.data
         });
+        
+        console.log("Gửi dữ liệu thành công!");
     } catch (err) {
-        res.status(500).json({ error: "Không thể lấy dữ liệu từ GitHub" });
+        console.error("Lỗi GitHub:", err.message);
+        // Trả về dữ liệu mẫu để Hub không bị trống nếu GitHub lỗi
+        res.status(200).json({
+            tabs: [{ "Name": "Lỗi Kết Nối", "Game": "GitHub" }],
+            scripts: [{
+                "name": "Lỗi Server",
+                "describe": "Không thể lấy dữ liệu từ GitHub. Kiểm tra lại link Raw.",
+                "game": "Error",
+                "cre": "System",
+                "img": "rbxassetid://0",
+                "year": "2026"
+            }]
+        });
     }
 });
 
-app.listen(process.env.PORT || 3000);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server ANS Hub đang chạy tại cổng: ${PORT}`);
+});
