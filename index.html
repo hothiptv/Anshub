@@ -1,39 +1,370 @@
-// Thêm đoạn này vào phần <script> của index.html đã gửi trước đó
-async function loadData() {
-    const grid = document.getElementById('grid');
-    grid.innerHTML = "<p>Đang tải script...</p>";
-    
-    try {
-        const response = await fetch('https://anshub-production.up.railway.app/get-hub');
-        const data = await response.json();
-        
-        grid.innerHTML = ""; // Xóa dòng loading
-        
-        data.scripts.forEach(s => {
-            const card = document.createElement('div');
-            card.className = "script-card";
-            card.setAttribute('data-tilt', '');
-            
-            // Link ảnh dự phòng nếu ko có ảnh
-            const imgUrl = s.img || "https://media.discordapp.net/attachments/1472992341156434219/1472992415303340276/Picsart_26-02-16_14-27-25-185.jpg";
-            
-            card.innerHTML = `
-                <img src="${imgUrl}" class="card-img">
-                <div class="card-info">
-                    <h3>${s.name}</h3>
-                </div>
-            `;
-            
-            card.onclick = () => showModal(s.name, imgUrl, s.describe || "Không có mô tả");
-            grid.appendChild(card);
-        });
-        
-        // Kích hoạt lại hiệu ứng nghiêng cho card mới tạo
-        VanillaTilt.init(document.querySelectorAll(".script-card"));
-        
-    } catch (e) {
-        grid.innerHTML = "<p>Lỗi kết nối server!</p>";
-    }
-}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anscript Hub v0.1 - Trang Chủ</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.0/vanilla-tilt.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #00ff96;
+            --bg: #0a0a0a;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --glow: 0 0 15px rgba(0, 255, 150, 0.4);
+            --text: #e0e0e0;
+        }
 
-loadData(); // Gọi hàm khi trang web mở ra
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Quicksand', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #0a0a0a 100%);
+        }
+
+        /* Header */
+        header {
+            padding: 50px 20px;
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: var(--accent);
+            text-shadow: var(--glow);
+            margin: 0;
+            letter-spacing: 5px;
+        }
+
+        /* Bộ lọc và Tìm kiếm */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+
+        .search-box {
+            width: 90%;
+            max-width: 400px;
+            padding: 12px 25px;
+            border-radius: 25px;
+            border: 1px solid rgba(0, 255, 150, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            outline: none;
+            transition: 0.3s;
+            font-size: 1rem;
+        }
+
+        .search-box:focus {
+            border-color: var(--accent);
+            box-shadow: var(--glow);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            border: 1px solid var(--accent);
+            background: transparent;
+            color: var(--accent);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: bold;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+        }
+
+        .tab-btn.active, .tab-btn:hover {
+            background: var(--accent);
+            color: black;
+            box-shadow: var(--glow);
+        }
+
+        /* Danh sách Script */
+        .script-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 25px;
+            padding: 0 5% 50px 5%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Script Card - Tỉ lệ điện thoại */
+        .script-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 255, 150, 0.1);
+            cursor: pointer;
+            transform-style: preserve-3d;
+            aspect-ratio: 9 / 14; 
+            display: flex;
+            flex-direction: column;
+            transition: border 0.3s;
+        }
+
+        .script-card:hover {
+            border-color: var(--accent);
+            box-shadow: var(--glow);
+        }
+
+        .card-img {
+            width: 100%;
+            height: 75%;
+            object-fit: cover;
+            border-bottom: 1px solid rgba(0, 255, 150, 0.1);
+            transition: 0.5s;
+        }
+
+        .script-card:hover .card-img {
+            transform: scale(1.1) translateZ(20px);
+        }
+
+        .card-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .card-info h3 {
+            margin: 0;
+            font-size: 1rem;
+            color: #fff;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        /* UI INFO (Modal) */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            justify-content: center; align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: #111;
+            width: 100%;
+            max-width: 450px;
+            border-radius: 20px;
+            border: 2px solid var(--accent);
+            padding: 30px;
+            position: relative;
+            box-shadow: var(--glow);
+            animation: modalIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: translateY(30px) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-img {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+
+        .modal-title {
+            color: var(--accent);
+            margin: 0 0 10px 0;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .modal-desc {
+            color: #bbb;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            white-space: pre-line;
+            margin-bottom: 25px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: 'Orbitron', sans-serif;
+            transition: 0.3s;
+        }
+
+        .btn-copy { background: var(--accent); color: #000; }
+        .btn-copy:hover { transform: translateY(-3px); box-shadow: var(--glow); }
+
+        .btn-close { background: #222; color: #fff; border: 1px solid #444; }
+        .btn-close:hover { background: #333; }
+
+        /* Loading animation */
+        .loader { color: var(--accent); text-align: center; width: 100%; padding: 50px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>ANSCRIPT HUB</h1>
+    </header>
+
+    <div class="controls">
+        <input type="text" class="search-box" id="search" placeholder="Tìm kiếm tên script...">
+        <div class="tabs" id="tab-container">
+            <button class="tab-btn active" onclick="filterTab('ALL')">ALL</button>
+            </div>
+    </div>
+
+    <div class="script-grid" id="grid">
+        <div class="loader">Đang kết nối hệ thống...</div>
+    </div>
+
+    <div id="infoModal" class="modal">
+        <div class="modal-content">
+            <img id="modalImg" src="" class="modal-img">
+            <h2 id="modalTitle" class="modal-title"></h2>
+            <div id="modalDesc" class="modal-desc"></div>
+            <div class="btn-group">
+                <button class="btn btn-copy" id="copyBtn">COPY SCRIPT</button>
+                <button class="btn btn-close" onclick="closeModal()">ĐÓNG</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const RAILWAY_URL = "https://anshub-production.up.railway.app";
+        const DEFAULT_IMG = "https://media.discordapp.net/attachments/1472992341156434219/1472992415303340276/Picsart_26-02-16_14-27-25-185.jpg";
+        
+        let allScripts = [];
+        let currentTab = "ALL";
+
+        // 1. Tải dữ liệu từ Railway
+        async function fetchData() {
+            try {
+                const response = await fetch(`${RAILWAY_URL}/get-hub`);
+                const data = await response.json();
+                
+                allScripts = data.scripts;
+                renderTabs(data.tabs);
+                renderCards(allScripts);
+            } catch (err) {
+                document.getElementById('grid').innerHTML = `<p style="color:red">Lỗi kết nối server Railway!</p>`;
+            }
+        }
+
+        // 2. Hiển thị Tabs
+        function renderTabs(tabs) {
+            const container = document.getElementById('tab-container');
+            tabs.forEach(tab => {
+                const btn = document.createElement('button');
+                btn.className = 'tab-btn';
+                btn.innerText = tab.Name;
+                btn.onclick = () => filterTab(tab.Name);
+                container.appendChild(btn);
+            });
+        }
+
+        // 3. Hiển thị Cards
+        function renderCards(scripts) {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = "";
+
+            scripts.forEach(s => {
+                const img = s.img && s.img !== "" ? s.img.replace("cdn.discordapp.com", "media.discordapp.net") : DEFAULT_IMG;
+                
+                const card = document.createElement('div');
+                card.className = "script-card";
+                card.setAttribute('data-tilt', '');
+                card.setAttribute('data-tilt-max', '15');
+                card.setAttribute('data-tilt-speed', '400');
+                card.setAttribute('data-tilt-glare', 'true');
+                card.setAttribute('data-tilt-max-glare', '0.3');
+
+                card.innerHTML = `
+                    <img src="${img}" class="card-img" onerror="this.src='${DEFAULT_IMG}'">
+                    <div class="card-info">
+                        <h3>${s.name}</h3>
+                    </div>
+                `;
+
+                card.onclick = () => openInfo(s, img);
+                grid.appendChild(card);
+            });
+
+            // Khởi tạo hiệu ứng Tilt cho các phần tử mới
+            VanillaTilt.init(document.querySelectorAll(".script-card"));
+        }
+
+        // 4. Mở Info
+        function openInfo(s, img) {
+            document.getElementById('modalTitle').innerText = s.name;
+            document.getElementById('modalImg').src = img;
+            document.getElementById('modalDesc').innerText = `👤 Creator: ${s.cre || 'Unknown'}\n📅 Năm: ${s.year || '2024'}\n\n${s.describe || 'Không có mô tả.'}`;
+            
+            document.getElementById('copyBtn').onclick = () => {
+                navigator.clipboard.writeText(s.script);
+                const old = document.getElementById('copyBtn').innerText;
+                document.getElementById('copyBtn').innerText = "ĐÃ SAO CHÉP!";
+                setTimeout(() => document.getElementById('copyBtn').innerText = old, 1500);
+            };
+
+            document.getElementById('infoModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('infoModal').style.display = 'none';
+        }
+
+        // 5. Tìm kiếm & Lọc
+        function filterTab(tabName) {
+            currentTab = tabName;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.innerText === tabName || (tabName === 'ALL' && btn.innerText === 'ALL'));
+            });
+            applyFilters();
+        }
+
+        document.getElementById('search').oninput = applyFilters;
+
+        function applyFilters() {
+            const query = document.getElementById('search').value.toLowerCase();
+            const filtered = allScripts.filter(s => {
+                const matchTab = currentTab === "ALL" || s.tab === currentTab;
+                const matchSearch = s.name.toLowerCase().includes(query);
+                return matchTab && matchSearch;
+            });
+            renderCards(filtered);
+        }
+
+        // Khởi chạy
+        fetchData();
+    </script>
+</body>
+</html>
