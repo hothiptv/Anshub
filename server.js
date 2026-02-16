@@ -11,7 +11,7 @@ const GITHUB_REPO = "Anshub";       // Tên kho chứa của ông
 const GITHUB_BRANCH = "main";       // Nhánh chính của kho
 
 // Tự động tạo link Raw dựa trên thông tin trên
-const RAW_BASE_URL = ` https://raw.githubusercontent.com/hothiptv/Anshub/main/public/`;
+const RAW_BASE_URL = ‛https://raw.githubusercontent.com/hothiptv/Anshub/main/public/`;
 
 app.get('/get-hub', async (req, res) => {
     try {
