@@ -2,6 +2,9 @@
   "tabs": [
     {
       "Name": "script"
+    },
+    {
+      "Name": "hi"
     }
   ],
   "scripts": [
