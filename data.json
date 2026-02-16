@@ -15,6 +15,11 @@
       "script": "Địt",
       "describe": "Creator: Admin\nYear: 2026",
       "ratio": "ratio-1-1"
+    },
+    {
+      "name": "hi",
+      "tab": "hi",
+      "ratio": "ratio-1-1"
     }
   ]
 }
