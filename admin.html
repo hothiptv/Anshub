@@ -2,43 +2,111 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Panel - Anscript Hub</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Anscript Hub</title>
+    <style>
+        body { background: #111; color: white; font-family: sans-serif; display: flex; height: 100vh; margin: 0; }
+        .sidebar { width: 250px; background: #000; border-right: 1px solid #333; padding: 20px; overflow-y: auto; }
+        .editor { flex: 1; padding: 30px; background: #1a1a1a; display: none; }
+        input, textarea, select { width: 100%; padding: 10px; margin: 10px 0; background: #222; border: 1px solid #444; color: white; border-radius: 5px; }
+        .btn-save { background: #00ff96; color: black; font-weight: bold; border: none; padding: 15px; width: 100%; cursor: pointer; }
+        .btn-tl { background: #333; color: white; border: 1px solid #555; padding: 5px 10px; cursor: pointer; margin-left: 5px; }
+        .auth { position: fixed; inset: 0; background: black; z-index: 1000; display: flex; justify-content: center; align-items: center; }
+    </style>
 </head>
 <body>
-    <div id="auth-overlay">
-        <div class="auth-box">
-            <h2>ADMIN ACCESS</h2>
-            <input type="password" id="pass-input" placeholder="Nhập mật khẩu (0904)...">
-            <button onclick="checkAuth()">XÁC NHẬN</button>
-        </div>
+    <div id="auth" class="auth">
+        <input type="password" id="pass" placeholder="Mật khẩu" style="width: 200px">
+        <button onclick="login()">VÀO</button>
     </div>
 
-    <div id="admin-dashboard" style="display: none;">
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <span>FILE EXPLORER (TABS)</span>
-                <button class="add-btn" onclick="addNewTab()" title="Thêm Tab mới">+</button>
-            </div>
-            <div id="tab-list">
-                </div>
-        </div>
-
-        <div class="editor-area">
-            <div class="editor-header">
-                <span id="editing-filename">Vui lòng chọn hoặc tạo file...</span>
-                <button class="save-btn" onclick="saveData()">LƯU DỮ LIỆU (SAVE)</button>
-            </div>
-            <div class="edit-fields">
-                <input type="text" id="script-name" placeholder="Tên Script...">
-                <input type="text" id="script-img" placeholder="Link ảnh Discord (Bỏ trống sẽ dùng mặc định)...">
-                <textarea id="script-content" placeholder="Dán mã Script vào đây..."></textarea>
-                <textarea id="script-desc" placeholder="Mô tả script (Creator, Year, Description)..."></textarea>
-            </div>
-        </div>
+    <div class="sidebar">
+        <h3>FILE EXPLORER</h3>
+        <button onclick="addTab()">+ Thêm Tab</button>
+        <div id="sideList"></div>
     </div>
 
-    <script src="admin.js"></script>
+    <div class="editor" id="editor">
+        <h2 id="editTitle">Chỉnh sửa</h2>
+        <input type="text" id="name" placeholder="Tên Script">
+        <div style="display: flex; align-items: center;">
+            <input type="text" id="img" placeholder="Link ảnh" oninput="checkLink()">
+            <button id="tlBtn" class="btn-tl" onclick="setRatio()" disabled>TL</button>
+        </div>
+        <textarea id="script" rows="10" placeholder="Dán mã script vào đây"></textarea>
+        <textarea id="desc" rows="3" placeholder="Mô tả"></textarea>
+        <button class="btn-save" id="saveBtn" onclick="save()">LƯU LÊN GITHUB</button>
+    </div>
+
+    <script>
+        let db = { tabs: [], scripts: [] }, curIdx = null;
+        const API = window.location.origin;
+
+        async function login() {
+            if(document.getElementById('pass').value === "0904") {
+                document.getElementById('auth').style.display = 'none';
+                load();
+            }
+        }
+
+        async function load() {
+            const res = await fetch(`${API}/get-hub`);
+            db = await res.json();
+            render();
+        }
+
+        function render() {
+            const list = document.getElementById('sideList');
+            list.innerHTML = "";
+            db.tabs.forEach((t, ti) => {
+                list.innerHTML += `<div style="color:#00ff96; margin-top:15px">📁 ${t.Name} <small onclick="addScript('${t.Name}')" style="cursor:pointer">[+]</small></div>`;
+                db.scripts.forEach((s, si) => {
+                    if(s.tab === t.Name) list.innerHTML += `<div style="padding-left:15px; cursor:pointer" onclick="openE(${si})">📄 ${s.name}</div>`;
+                });
+            });
+        }
+
+        function openE(i) {
+            curIdx = i;
+            const s = db.scripts[i];
+            document.getElementById('editor').style.display = 'block';
+            document.getElementById('name').value = s.name;
+            document.getElementById('img').value = s.img || "";
+            document.getElementById('script').value = s.script || "";
+            document.getElementById('desc').value = s.describe || "";
+            checkLink();
+        }
+
+        function checkLink() {
+            document.getElementById('tlBtn').disabled = !document.getElementById('img').value.includes("http");
+        }
+
+        function setRatio() {
+            let r = prompt("Chọn tỉ lệ: 1.Vuông(1:1), 2.Ngang(16:9), 3.Dọc(9:16)", "1");
+            db.scripts[curIdx].ratio = r == "2" ? "ratio-16-9" : (r == "3" ? "ratio-9-16" : "ratio-1-1");
+            alert("Đã đổi sang: " + db.scripts[curIdx].ratio);
+        }
+
+        function addTab() { let n = prompt("Tên Tab:"); if(n) { db.tabs.push({Name:n}); render(); } }
+        function addScript(t) { let n = prompt("Tên Script:"); if(n) { db.scripts.push({name:n, tab:t, ratio:"ratio-1-1"}); render(); } }
+
+        async function save() {
+            if(curIdx !== null) {
+                db.scripts[curIdx].name = document.getElementById('name').value;
+                db.scripts[curIdx].img = document.getElementById('img').value;
+                db.scripts[curIdx].script = document.getElementById('script').value;
+                db.scripts[curIdx].describe = document.getElementById('desc').value;
+            }
+            document.getElementById('saveBtn').innerText = "ĐANG LƯU...";
+            const res = await fetch(`${API}/save-hub`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({newData: db})
+            });
+            alert(res.ok ? "Xong!" : "Lỗi!");
+            document.getElementById('saveBtn').innerText = "LƯU LÊN GITHUB";
+            render();
+        }
+    </script>
 </body>
 </html>
