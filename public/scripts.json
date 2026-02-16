@@ -1,12 +1,72 @@
 [
   {
-    "tab": "The Strongest",
-    "name": "Auto Farm V1",
-    "describe": "Tự động farm mượt mà.",
+    "tab": "THE STRONGEST BATTLEGROUND",
+    "name": "Boncuti v6",
+    "describe": "Auto farm lỏd, nhiều chức năng khác",
     "game": "The Strongest Battleground",
-    "script": "print('ANSCRIPT Loaded')",
-    "cre": "ANSCRIPT",
-    "img": "rbxassetid://94003577441798",
-    "year": "2026"
+    "cre": "Boncuti",
+    "img": "rbxassetid://105547964390399",
+    "year": "16.2.25",
+    "script": "https://gist.githubusercontent.com/binhvuong2424-ops/7cdfa11f807f39fc064a91f88d095181/raw/BONCUTITSBV6.lua"
+  },
+  {
+    "tab": "THE STRONGEST BATTLEGROUND",
+    "name": "VexonHub",
+    "describe": "Chức năng đầy đủ và op",
+    "game": "The Strongest Battleground",
+    "cre": "Vexon",
+    "img": "rbxassetid://89910958421017",
+    "year": "16.2.25",
+    "script": "https://raw.githubusercontent.com/DiosDi/VexonHub/main/VexonHub"
+  },
+  {
+    "tab": "THE STRONGEST BATTLEGROUND",
+    "name": "Phantasm",
+    "describe": "Chức năng tàn hình và op ngon",
+    "game": "The Strongest Battleground",
+    "cre": "Phantasm",
+    "img": "rbxassetid://89910958421017",
+    "year": "16.2.25",
+    "script": "print('Phantasm script link missing')"
+  },
+  {
+    "tab": "ANSCRIPT",
+    "name": "Console",
+    "describe": "Script hỗ trợ và thứ khác - Tác giả IMIMACODE",
+    "game": "All Game",
+    "cre": "IMIMACODE",
+    "img": "rbxassetid://89910958421017",
+    "year": "16.2.25",
+    "script": "https://raw.githubusercontent.com/hothiptv/Anscript/Script/Ans_console"
+  },
+  {
+    "tab": "ANSCRIPT",
+    "name": "Keyboard",
+    "describe": "Script hỗ trợ và thứ khác - Tác giả IMIMACODE",
+    "game": "All Game",
+    "cre": "IMIMACODE",
+    "img": "rbxassetid://89910958421017",
+    "year": "16.2.25",
+    "script": "https://raw.githubusercontent.com/hothiptv/Anscript/Script/AnsKB"
+  },
+  {
+    "tab": "ANSCRIPT",
+    "name": "Player",
+    "describe": "Script hỗ trợ và thứ khác - Tác giả IMIMACODE",
+    "game": "All Game",
+    "cre": "IMIMACODE",
+    "img": "rbxassetid://89910958421017",
+    "year": "16.2.25",
+    "script": "https://raw.githubusercontent.com/hothiptv/Anscript/Script/Ansplayer"
+  },
+  {
+    "tab": "ANSCRIPT",
+    "name": "Tpwalk",
+    "describe": "Ấn giữ nút tròn 3 giây để setup. Script hỗ trợ - Tác giả IMIMACODE",
+    "game": "All Game",
+    "cre": "IMIMACODE",
+    "img": "rbxassetid://89910958421017",
+    "year": "16.2.25",
+    "script": "https://raw.githubusercontent.com/hothiptv/Anscript/Script/TpwalkAns"
   }
 ]
