@@ -2,111 +2,182 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Anscript Hub</title>
+    <title>Admin Panel Premium - Anscript Hub</title>
     <style>
-        body { background: #111; color: white; font-family: sans-serif; display: flex; height: 100vh; margin: 0; }
-        .sidebar { width: 250px; background: #000; border-right: 1px solid #333; padding: 20px; overflow-y: auto; }
-        .editor { flex: 1; padding: 30px; background: #1a1a1a; display: none; }
-        input, textarea, select { width: 100%; padding: 10px; margin: 10px 0; background: #222; border: 1px solid #444; color: white; border-radius: 5px; }
-        .btn-save { background: #00ff96; color: black; font-weight: bold; border: none; padding: 15px; width: 100%; cursor: pointer; }
-        .btn-tl { background: #333; color: white; border: 1px solid #555; padding: 5px 10px; cursor: pointer; margin-left: 5px; }
-        .auth { position: fixed; inset: 0; background: black; z-index: 1000; display: flex; justify-content: center; align-items: center; }
+        body { background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; }
+        
+        /* Sidebar */
+        .sidebar { width: 300px; background: #0a0a0a; border-right: 1px solid #222; padding: 20px; overflow-y: auto; }
+        .tab-block { margin-bottom: 20px; border-bottom: 1px solid #1a1a1a; padding-bottom: 10px; }
+        .tab-header { display: flex; align-items: center; justify-content: space-between; color: #00ff96; font-weight: bold; margin-bottom: 8px; }
+        .tab-actions button { background: none; border: none; cursor: pointer; font-size: 14px; padding: 2px 5px; }
+        
+        /* File list */
+        .file-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; cursor: pointer; color: #ccc; border-radius: 4px; }
+        .file-item:hover { background: #1a1a1a; color: #fff; }
+        .file-item .del-file { color: #ff4d4d; opacity: 0; transition: 0.2s; }
+        .file-item:hover .del-file { opacity: 1; }
+
+        /* Main Editor */
+        .main { flex: 1; padding: 30px; background: #111; display: none; overflow-y: auto; }
+        input, textarea { width: 100%; padding: 12px; margin: 10px 0; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 6px; outline: none; }
+        input:focus, textarea:focus { border-color: #00ff96; }
+        
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        button { padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-save { background: #00ff96; color: #000; flex: 2; }
+        .btn-tl { background: #333; color: #fff; flex: 1; border: 1px solid #444; }
+        .btn-ls { background: #0084ff; color: #fff; margin-top: 15px; width: 100%; }
+        .btn-add { background: #222; color: #00ff96; width: 100%; border: 1px dashed #00ff96; margin-bottom: 20px; }
+        
+        .auth { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center; }
     </style>
 </head>
 <body>
     <div id="auth" class="auth">
-        <input type="password" id="pass" placeholder="Mật khẩu" style="width: 200px">
-        <button onclick="login()">VÀO</button>
+        <div style="text-align:center">
+            <h2 style="color:#00ff96">ADMIN ACCESS</h2>
+            <input type="password" id="pass" placeholder="Nhập mật khẩu..." style="width:250px; text-align:center">
+            <br><button onclick="login()" style="width:250px; background:#00ff96; color:000">UNLOCK</button>
+        </div>
     </div>
 
     <div class="sidebar">
-        <h3>FILE EXPLORER</h3>
-        <button onclick="addTab()">+ Thêm Tab</button>
-        <div id="sideList"></div>
+        <h3 style="color:#00ff96; border-left: 4px solid #00ff96; padding-left: 10px;">AN HUB EXPLORER</h3>
+        <button class="btn-add" onclick="addT()">+ THÊM CHUYÊN MỤC MỚI</button>
+        <div id="sList"></div>
     </div>
 
-    <div class="editor" id="editor">
-        <h2 id="editTitle">Chỉnh sửa</h2>
-        <input type="text" id="name" placeholder="Tên Script">
-        <div style="display: flex; align-items: center;">
-            <input type="text" id="img" placeholder="Link ảnh" oninput="checkLink()">
-            <button id="tlBtn" class="btn-tl" onclick="setRatio()" disabled>TL</button>
+    <div class="main" id="main">
+        <h2 id="eName" style="color:#00ff96; margin-top:0">EDITOR</h2>
+        <label>Tên Script:</label>
+        <input type="text" id="name" placeholder="Ví dụ: Auto Farm Blox Fruit">
+        
+        <label>Ảnh bìa (Tỉ lệ đã chọn):</label>
+        <div style="display:flex; gap:10px">
+            <input type="text" id="img" placeholder="Dán link ảnh vào đây..." oninput="checkTL()">
+            <button id="tlBtn" class="btn-tl" onclick="setRatio()">TỈ LỆ</button>
         </div>
-        <textarea id="script" rows="10" placeholder="Dán mã script vào đây"></textarea>
-        <textarea id="desc" rows="3" placeholder="Mô tả"></textarea>
-        <button class="btn-save" id="saveBtn" onclick="save()">LƯU LÊN GITHUB</button>
+        
+        <label>Mã Script (Loadstring hoặc Source):</label>
+        <textarea id="script" rows="12" placeholder="Dán mã code tại đây..."></textarea>
+        
+        <label>Mô tả & Thông tin:</label>
+        <textarea id="desc" rows="3" placeholder="Ví dụ: Creator: An | Version: 1.0..."></textarea>
+        
+        <div class="btn-group">
+            <button class="btn-save" id="saveB" onclick="save()">LƯU THAY ĐỔI</button>
+        </div>
+        <button class="btn-ls" onclick="getLS()">COPY LOADSTRING ĐỂ DÙNG TRONG GAME</button>
     </div>
 
     <script>
-        let db = { tabs: [], scripts: [] }, curIdx = null;
         const API = window.location.origin;
+        const DEF = "https://media.discordapp.net/attachments/1472992341156434219/1472992415303340276/Picsart_26-02-16_14-27-25-185.jpg";
+        let db = { tabs: [], scripts: [] }, curI = null;
 
-        async function login() {
-            if(document.getElementById('pass').value === "0904") {
-                document.getElementById('auth').style.display = 'none';
-                load();
-            }
-        }
-
+        function login() { if(document.getElementById('pass').value === "0904") { document.getElementById('auth').style.display='none'; load(); } else alert("Mật khẩu sai bét!"); }
+        
         async function load() {
-            const res = await fetch(`${API}/get-hub`);
-            db = await res.json();
-            render();
+            try {
+                const r = await fetch(`${API}/get-hub`);
+                db = await r.json();
+                render();
+            } catch(e) { alert("Lỗi kết nối server!"); }
         }
 
         function render() {
-            const list = document.getElementById('sideList');
-            list.innerHTML = "";
+            const l = document.getElementById('sList'); l.innerHTML = "";
             db.tabs.forEach((t, ti) => {
-                list.innerHTML += `<div style="color:#00ff96; margin-top:15px">📁 ${t.Name} <small onclick="addScript('${t.Name}')" style="cursor:pointer">[+]</small></div>`;
+                let tabHtml = `
+                <div class="tab-block">
+                    <div class="tab-header">
+                        <span>📁 ${t.Name}</span>
+                        <div class="tab-actions">
+                            <button onclick="editT(${ti})" title="Sửa tên">✏️</button>
+                            <button onclick="delT(${ti})" title="Xóa tab" style="color:red">🗑️</button>
+                            <button onclick="addS('${t.Name}')" title="Thêm script" style="color:#fff">➕</button>
+                        </div>
+                    </div>`;
+                
                 db.scripts.forEach((s, si) => {
-                    if(s.tab === t.Name) list.innerHTML += `<div style="padding-left:15px; cursor:pointer" onclick="openE(${si})">📄 ${s.name}</div>`;
+                    if(s.tab === t.Name) {
+                        tabHtml += `
+                        <div class="file-item" onclick="openE(${si})">
+                            <span>📄 ${s.name}</span>
+                            <span class="del-file" onclick="event.stopPropagation(); delS(${si})">✕</span>
+                        </div>`;
+                    }
                 });
+                tabHtml += `</div>`;
+                l.innerHTML += tabHtml;
             });
+        }
+
+        // --- HÀM XỬ LÝ TAB ---
+        function addT() { 
+            let n = prompt("Nhập tên Chuyên mục mới:"); 
+            if(n) { db.tabs.push({Name: n}); render(); } 
+        }
+        function editT(i) {
+            let n = prompt("Đổi tên chuyên mục thành:", db.tabs[i].Name);
+            if(n) {
+                let oldName = db.tabs[i].Name;
+                db.tabs[i].Name = n;
+                // Cập nhật lại các script thuộc tab này
+                db.scripts.forEach(s => { if(s.tab === oldName) s.tab = n; });
+                render();
+            }
+        }
+        function delT(i) {
+            if(confirm(`Bạn có chắc muốn xóa Tab [${db.tabs[i].Name}] và TẤT CẢ script bên trong không?`)) {
+                let name = db.tabs[i].Name;
+                db.tabs = db.tabs.filter((_, idx) => idx !== i);
+                db.scripts = db.scripts.filter(s => s.tab !== name);
+                document.getElementById('main').style.display = 'none';
+                render();
+            }
+        }
+
+        // --- HÀM XỬ LÝ SCRIPT ---
+        function addS(t) { 
+            let n = prompt(`Tên Script cho mục [${t}]:`); 
+            if(n) { 
+                db.scripts.push({name: n, tab: t, img: DEF, script: "", describe: "", ratio: "ratio-1-1"}); 
+                render(); 
+                openE(db.scripts.length - 1);
+            } 
+        }
+        function delS(i) {
+            if(confirm(`Xóa script [${db.scripts[i].name}]?`)) {
+                db.scripts.splice(i, 1);
+                document.getElementById('main').style.display = 'none';
+                render();
+            }
         }
 
         function openE(i) {
-            curIdx = i;
-            const s = db.scripts[i];
-            document.getElementById('editor').style.display = 'block';
+            curI = i; const s = db.scripts[i];
+            document.getElementById('main').style.display = 'block';
             document.getElementById('name').value = s.name;
-            document.getElementById('img').value = s.img || "";
+            document.getElementById('img').value = (s.img && s.img !== DEF) ? s.img : ""; 
             document.getElementById('script').value = s.script || "";
             document.getElementById('desc').value = s.describe || "";
-            checkLink();
+            checkTL();
         }
 
-        function checkLink() {
-            document.getElementById('tlBtn').disabled = !document.getElementById('img').value.includes("http");
-        }
+        function checkTL() { document.getElementById('tlBtn').disabled = false; }
 
         function setRatio() {
-            let r = prompt("Chọn tỉ lệ: 1.Vuông(1:1), 2.Ngang(16:9), 3.Dọc(9:16)", "1");
-            db.scripts[curIdx].ratio = r == "2" ? "ratio-16-9" : (r == "3" ? "ratio-9-16" : "ratio-1-1");
-            alert("Đã đổi sang: " + db.scripts[curIdx].ratio);
+            let r = prompt("Chọn tỉ lệ card:\n1. Vuông (1:1)\n2. Ngang (16:9)\n3. Dọc (9:16)", "1");
+            db.scripts[curI].ratio = r=="2"?"ratio-16-9":(r=="3"?"ratio-9-16":"ratio-1-1");
+            alert("Đã đổi tỉ lệ sang: " + db.scripts[curI].ratio);
         }
-
-        function addTab() { let n = prompt("Tên Tab:"); if(n) { db.tabs.push({Name:n}); render(); } }
-        function addScript(t) { let n = prompt("Tên Script:"); if(n) { db.scripts.push({name:n, tab:t, ratio:"ratio-1-1"}); render(); } }
 
         async function save() {
-            if(curIdx !== null) {
-                db.scripts[curIdx].name = document.getElementById('name').value;
-                db.scripts[curIdx].img = document.getElementById('img').value;
-                db.scripts[curIdx].script = document.getElementById('script').value;
-                db.scripts[curIdx].describe = document.getElementById('desc').value;
-            }
-            document.getElementById('saveBtn').innerText = "ĐANG LƯU...";
-            const res = await fetch(`${API}/save-hub`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({newData: db})
-            });
-            alert(res.ok ? "Xong!" : "Lỗi!");
-            document.getElementById('saveBtn').innerText = "LƯU LÊN GITHUB";
-            render();
-        }
-    </script>
-</body>
-</html>
+            if(curI !== null) {
+                db.scripts[curI].name = document.getElementById('name').value;
+                let iv = document.getElementById('img').value.trim();
+                db.scripts[curI].img = iv === "" ? DEF : iv;
+                db.scripts[curI].script = document.getElementById('script').value;
+                db.scripts[curI].describe = document.getElementById('
