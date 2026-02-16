@@ -2,73 +2,104 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Panel Premium - Anscript Hub</title>
+    <title>Admin Panel v2.0 - Optimization</title>
     <style>
-        body { background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; }
+        :root { --accent: #00ff96; --bg: #000; --sidebar-bg: #0a0a0a; }
+        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Sidebar */
-        .sidebar { width: 300px; background: #0a0a0a; border-right: 1px solid #222; padding: 20px; overflow-y: auto; }
-        .tab-block { margin-bottom: 20px; border-bottom: 1px solid #1a1a1a; padding-bottom: 10px; }
-        .tab-header { display: flex; align-items: center; justify-content: space-between; color: #00ff96; font-weight: bold; margin-bottom: 8px; }
-        .tab-actions button { background: none; border: none; cursor: pointer; font-size: 14px; padding: 2px 5px; }
+        /* Sidebar có thanh cuộn riêng */
+        .sidebar { 
+            width: 320px; background: var(--sidebar-bg); border-right: 1px solid #222; 
+            display: flex; flex-direction: column; height: 100vh;
+        }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid #222; }
+        .sidebar-content { flex: 1; overflow-y: auto; padding: 10px 20px; }
         
-        /* File list */
-        .file-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; cursor: pointer; color: #ccc; border-radius: 4px; }
-        .file-item:hover { background: #1a1a1a; color: #fff; }
-        .file-item .del-file { color: #ff4d4d; opacity: 0; transition: 0.2s; }
-        .file-item:hover .del-file { opacity: 1; }
+        /* Tab & Collapse */
+        .tab-block { margin-bottom: 10px; background: #111; border-radius: 8px; overflow: hidden; border: 1px solid #222; }
+        .tab-header { 
+            display: flex; align-items: center; justify-content: space-between; 
+            padding: 10px; background: #1a1a1a; cursor: pointer;
+        }
+        .tab-title { color: var(--accent); font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 5px; }
+        .tab-actions { display: flex; gap: 5px; }
+        .tab-actions button { background: none; border: none; cursor: pointer; font-size: 12px; color: #888; transition: 0.3s; }
+        .tab-actions button:hover { color: #fff; }
+
+        /* Nút thu gọn ^ */
+        .btn-collapse { transition: transform 0.3s; color: var(--accent) !important; font-weight: bold; }
+        .collapsed .btn-collapse { transform: rotate(180deg); }
+        .file-list { transition: max-height 0.3s ease-out; max-height: 1000px; overflow: hidden; }
+        .collapsed .file-list { max-height: 0; }
+
+        /* File items */
+        .file-item { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 8px 15px; font-size: 13px; color: #ccc; border-bottom: 1px solid #1a1a1a;
+        }
+        .file-item:hover { background: #222; color: var(--accent); }
+        .del-file { color: #ff4d4d; cursor: pointer; font-weight: bold; padding: 0 5px; }
 
         /* Main Editor */
-        .main { flex: 1; padding: 30px; background: #111; display: none; overflow-y: auto; }
-        input, textarea { width: 100%; padding: 12px; margin: 10px 0; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 6px; outline: none; }
-        input:focus, textarea:focus { border-color: #00ff96; }
-        
-        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
-        button { padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .btn-save { background: #00ff96; color: #000; flex: 2; }
-        .btn-tl { background: #333; color: #fff; flex: 1; border: 1px solid #444; }
-        .btn-ls { background: #0084ff; color: #fff; margin-top: 15px; width: 100%; }
-        .btn-add { background: #222; color: #00ff96; width: 100%; border: 1px dashed #00ff96; margin-bottom: 20px; }
-        
+        .main { flex: 1; padding: 30px; background: #0f0f0f; overflow-y: auto; display: none; }
+        label { color: var(--accent); font-size: 12px; text-transform: uppercase; font-weight: bold; }
+        input, textarea { 
+            width: 100%; padding: 12px; margin: 8px 0 20px 0; background: #161616; 
+            border: 1px solid #333; color: #fff; border-radius: 6px; outline: none; 
+        }
+        input:focus, textarea:focus { border-color: var(--accent); }
+
+        .btn-save { background: var(--accent); color: #000; width: 100%; padding: 15px; border: none; font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 16px; }
+        .btn-save:hover { box-shadow: 0 0 20px rgba(0, 255, 150, 0.4); }
+
         .auth { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
     </style>
 </head>
 <body>
+
     <div id="auth" class="auth">
         <div style="text-align:center">
-            <h2 style="color:#00ff96">ADMIN ACCESS</h2>
-            <input type="password" id="pass" placeholder="Nhập mật khẩu..." style="width:250px; text-align:center">
-            <br><button onclick="login()" style="width:250px; background:#00ff96; color:000">UNLOCK</button>
+            <h2 style="color:var(--accent)">SECURITY CHECK</h2>
+            <input type="password" id="pass" placeholder="Mật khẩu..." style="width:250px; text-align:center">
+            <br><button onclick="login()" style="width:250px; padding:12px; background:var(--accent); border:none; font-weight:bold; cursor:pointer">LOGIN</button>
         </div>
     </div>
 
     <div class="sidebar">
-        <h3 style="color:#00ff96; border-left: 4px solid #00ff96; padding-left: 10px;">AN HUB EXPLORER</h3>
-        <button class="btn-add" onclick="addT()">+ THÊM CHUYÊN MỤC MỚI</button>
-        <div id="sList"></div>
+        <div class="sidebar-header">
+            <h3 style="color:var(--accent); margin:0 0 15px 0">AN HUB ADMIN</h3>
+            <button onclick="addT()" style="width:100%; padding:8px; background:#1a1a1a; color:var(--accent); border:1px dashed var(--accent); border-radius:5px; cursor:pointer">+ NEW CATEGORY</button>
+        </div>
+        <div class="sidebar-content" id="sList"></div>
     </div>
 
     <div class="main" id="main">
-        <h2 id="eName" style="color:#00ff96; margin-top:0">EDITOR</h2>
-        <label>Tên Script:</label>
-        <input type="text" id="name" placeholder="Ví dụ: Auto Farm Blox Fruit">
+        <h2 id="eName" style="color:var(--accent); margin-top:0">SCRIPT EDITOR</h2>
         
-        <label>Ảnh bìa (Tỉ lệ đã chọn):</label>
+        <label>Tên hiển thị:</label>
+        <input type="text" id="name">
+        
+        <label>Link ảnh & Tỉ lệ:</label>
         <div style="display:flex; gap:10px">
-            <input type="text" id="img" placeholder="Dán link ảnh vào đây..." oninput="checkTL()">
-            <button id="tlBtn" class="btn-tl" onclick="setRatio()">TỈ LỆ</button>
+            <input type="text" id="img" placeholder="Bỏ trống để dùng ảnh mặc định..." style="margin-bottom:0">
+            <button onclick="setRatio()" style="height:43px; padding:0 20px; background:#222; color:#fff; border:1px solid #444; border-radius:6px; cursor:pointer">RATIO</button>
         </div>
+        <p style="font-size:11px; color:#555; margin-bottom:20px">Tỉ lệ giúp Card không bị méo trên trang chủ.</p>
         
-        <label>Mã Script (Loadstring hoặc Source):</label>
-        <textarea id="script" rows="12" placeholder="Dán mã code tại đây..."></textarea>
+        <label>Script Code:</label>
+        <textarea id="script" rows="15"></textarea>
         
-        <label>Mô tả & Thông tin:</label>
-        <textarea id="desc" rows="3" placeholder="Ví dụ: Creator: An | Version: 1.0..."></textarea>
+        <label>Mô tả chi tiết:</label>
+        <textarea id="desc" rows="3"></textarea>
         
-        <div class="btn-group">
-            <button class="btn-save" id="saveB" onclick="save()">LƯU THAY ĐỔI</button>
-        </div>
-        <button class="btn-ls" onclick="getLS()">COPY LOADSTRING ĐỂ DÙNG TRONG GAME</button>
+        <button class="btn-save" id="saveB" onclick="save()">SAVE TO DATABASE (GITHUB)</button>
+        <button onclick="getLS()" style="margin-top:10px; width:100%; background:none; border:none; color:#555; cursor:pointer; font-size:12px">Copy Loadstring Link</button>
     </div>
 
     <script>
@@ -76,102 +107,59 @@
         const DEF = "https://media.discordapp.net/attachments/1472992341156434219/1472992415303340276/Picsart_26-02-16_14-27-25-185.jpg";
         let db = { tabs: [], scripts: [] }, curI = null;
 
-        function login() { if(document.getElementById('pass').value === "0904") { document.getElementById('auth').style.display='none'; load(); } else alert("Mật khẩu sai bét!"); }
+        function login() { if(document.getElementById('pass').value === "0904") { document.getElementById('auth').style.display='none'; load(); } else alert("Wrong Pass!"); }
         
         async function load() {
-            try {
-                const r = await fetch(`${API}/get-hub`);
-                db = await r.json();
-                render();
-            } catch(e) { alert("Lỗi kết nối server!"); }
+            const r = await fetch(`${API}/get-hub`);
+            db = await r.json();
+            render();
         }
 
         function render() {
-            const l = document.getElementById('sList'); l.innerHTML = "";
+            const container = document.getElementById('sList');
+            container.innerHTML = "";
             db.tabs.forEach((t, ti) => {
-                let tabHtml = `
-                <div class="tab-block">
-                    <div class="tab-header">
-                        <span>📁 ${t.Name}</span>
-                        <div class="tab-actions">
-                            <button onclick="editT(${ti})" title="Sửa tên">✏️</button>
-                            <button onclick="delT(${ti})" title="Xóa tab" style="color:red">🗑️</button>
-                            <button onclick="addS('${t.Name}')" title="Thêm script" style="color:#fff">➕</button>
-                        </div>
-                    </div>`;
+                const block = document.createElement('div');
+                block.className = "tab-block";
+                block.id = `tab-${ti}`;
                 
-                db.scripts.forEach((s, si) => {
-                    if(s.tab === t.Name) {
-                        tabHtml += `
-                        <div class="file-item" onclick="openE(${si})">
-                            <span>📄 ${s.name}</span>
-                            <span class="del-file" onclick="event.stopPropagation(); delS(${si})">✕</span>
-                        </div>`;
-                    }
-                });
-                tabHtml += `</div>`;
-                l.innerHTML += tabHtml;
+                block.innerHTML = `
+                    <div class="tab-header" onclick="toggleTab(${ti})">
+                        <div class="tab-title"><span>📁</span> ${t.Name}</div>
+                        <div class="tab-actions">
+                            <button onclick="event.stopPropagation(); editT(${ti})">✏️</button>
+                            <button onclick="event.stopPropagation(); delT(${ti})">🗑️</button>
+                            <button onclick="event.stopPropagation(); addS('${t.Name}')">➕</button>
+                            <button class="btn-collapse">^</button>
+                        </div>
+                    </div>
+                    <div class="file-list">
+                        ${db.scripts.filter(s => s.tab === t.Name).map(s => {
+                            const realIdx = db.scripts.indexOf(s);
+                            return `
+                                <div class="file-item" onclick="openE(${realIdx})">
+                                    <span>📄 ${s.name}</span>
+                                    <span class="del-file" onclick="event.stopPropagation(); delS(${realIdx})">✕</span>
+                                </div>`;
+                        }).join('')}
+                    </div>
+                `;
+                container.appendChild(block);
             });
         }
 
-        // --- HÀM XỬ LÝ TAB ---
-        function addT() { 
-            let n = prompt("Nhập tên Chuyên mục mới:"); 
-            if(n) { db.tabs.push({Name: n}); render(); } 
-        }
-        function editT(i) {
-            let n = prompt("Đổi tên chuyên mục thành:", db.tabs[i].Name);
-            if(n) {
-                let oldName = db.tabs[i].Name;
-                db.tabs[i].Name = n;
-                // Cập nhật lại các script thuộc tab này
-                db.scripts.forEach(s => { if(s.tab === oldName) s.tab = n; });
-                render();
-            }
-        }
-        function delT(i) {
-            if(confirm(`Bạn có chắc muốn xóa Tab [${db.tabs[i].Name}] và TẤT CẢ script bên trong không?`)) {
-                let name = db.tabs[i].Name;
-                db.tabs = db.tabs.filter((_, idx) => idx !== i);
-                db.scripts = db.scripts.filter(s => s.tab !== name);
-                document.getElementById('main').style.display = 'none';
-                render();
-            }
-        }
-
-        // --- HÀM XỬ LÝ SCRIPT ---
-        function addS(t) { 
-            let n = prompt(`Tên Script cho mục [${t}]:`); 
-            if(n) { 
-                db.scripts.push({name: n, tab: t, img: DEF, script: "", describe: "", ratio: "ratio-1-1"}); 
-                render(); 
-                openE(db.scripts.length - 1);
-            } 
-        }
-        function delS(i) {
-            if(confirm(`Xóa script [${db.scripts[i].name}]?`)) {
-                db.scripts.splice(i, 1);
-                document.getElementById('main').style.display = 'none';
-                render();
-            }
+        // Hàm thu gọn Tab
+        function toggleTab(i) {
+            document.getElementById(`tab-${i}`).classList.toggle('collapsed');
         }
 
         function openE(i) {
             curI = i; const s = db.scripts[i];
             document.getElementById('main').style.display = 'block';
             document.getElementById('name').value = s.name;
-            document.getElementById('img').value = (s.img && s.img !== DEF) ? s.img : ""; 
-            document.getElementById('script').value = s.script || "";
+            document.getElementById('img').value = (s.img === DEF) ? "" : s.img;
+            document.getElementById('script').value = s.script;
             document.getElementById('desc').value = s.describe || "";
-            checkTL();
-        }
-
-        function checkTL() { document.getElementById('tlBtn').disabled = false; }
-
-        function setRatio() {
-            let r = prompt("Chọn tỉ lệ card:\n1. Vuông (1:1)\n2. Ngang (16:9)\n3. Dọc (9:16)", "1");
-            db.scripts[curI].ratio = r=="2"?"ratio-16-9":(r=="3"?"ratio-9-16":"ratio-1-1");
-            alert("Đã đổi tỉ lệ sang: " + db.scripts[curI].ratio);
         }
 
         async function save() {
@@ -182,25 +170,42 @@
                 db.scripts[curI].script = document.getElementById('script').value;
                 db.scripts[curI].describe = document.getElementById('desc').value;
             }
-            document.getElementById('saveB').innerText = "ĐANG LƯU...";
-            try {
-                const res = await fetch(`${API}/save-hub`, { 
-                    method: 'POST', 
-                    headers: {'Content-Type':'application/json'}, 
-                    body: JSON.stringify({newData: db}) 
-                });
-                if(res.ok) alert("✅ Đã lưu lên GitHub thành công!");
-                else alert("❌ Lỗi lưu file!");
-            } catch(e) { alert("Lỗi kết nối server!"); }
-            document.getElementById('saveB').innerText = "LƯU THAY ĐỔI";
+
+            const btn = document.getElementById('saveB');
+            btn.innerText = "MINIFYING & SAVING...";
+            
+            // LOGIC MINIFY: Nén dữ liệu thành 1 dòng để sạch data.json
+            const minifiedData = JSON.parse(JSON.stringify(db)); 
+
+            await fetch(`${API}/save-hub`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ newData: minifiedData }) 
+            });
+
+            alert("Dữ liệu đã được nén và lưu thành công!");
+            btn.innerText = "SAVE TO DATABASE (GITHUB)";
             render();
         }
 
-        function getLS() {
-            const ls = `loadstring(game:HttpGet("${API}/get-hub"))()`;
-            navigator.clipboard.writeText(ls);
-            alert("Đã copy Loadstring chuẩn!");
+        // Các hàm phụ trợ (Thêm/Xóa/Sửa)
+        function addT() { let n = prompt("Tên Tab:"); if(n) { db.tabs.push({Name: n}); render(); } }
+        function editT(i) { 
+            let n = prompt("Tên mới:", db.tabs[i].Name); 
+            if(n) { 
+                let old = db.tabs[i].Name; 
+                db.tabs[i].Name = n; 
+                db.scripts.forEach(s => { if(s.tab === old) s.tab = n; }); 
+                render(); 
+            } 
         }
+        function delT(i) { if(confirm("Xóa Tab này sẽ mất hết script bên trong?")) { let n = db.tabs[i].Name; db.tabs.splice(i,1); db.scripts = db.scripts.filter(s => s.tab !== n); render(); } }
+        function addS(t) { let n = prompt("Tên Script:"); if(n) { db.scripts.push({name:n, tab:t, img:DEF, script:"", ratio:"ratio-1-1"}); render(); } }
+        function delS(i) { if(confirm("Xóa script này?")) { db.scripts.splice(i,1); render(); document.getElementById('main').style.display='none'; } }
+        function setRatio() { let r = prompt("1:Vuông, 2:Ngang, 3:Dọc", "1"); db.scripts[curI].ratio = r=="2"?"ratio-16-9":(r=="3"?"ratio-9-16":"ratio-1-1"); }
+        function getLS() { alert(`Mã Loadstring:\nloadstring(game:HttpGet("${API}/get-hub"))()`); }
+
+        load();
     </script>
 </body>
 </html>
