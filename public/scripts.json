@@ -1,12 +1,22 @@
 [
-    {
-        "tab": "TSB Scripts",
-        "name": "Auto Farm V1",
-        "describe": "Xoay quanh đối thủ và farm cực mượt, không giật lag.",
-        "game": "The Strongest Battleground",
-        "script": "https://raw.githubusercontent.com/minhnhatdepzai8-cloud/Farm-Kill-V2/refs/heads/main/TSB",
-        "cre": "An Minh Nhật",
-        "img": "rbxassetid://10874130095",
-        "year": "16/02/2026"
-    }
+  {
+    "tab": "The Strongest",
+    "name": "Auto Farm V1",
+    "describe": "Tự động xoay quanh đối thủ, khóa mục tiêu và hỗ trợ farm kill mượt mà.",
+    "game": "The Strongest Battleground",
+    "script": "https://raw.githubusercontent.com/minhnhatdepzai8-cloud/Farm-Kill-V2/refs/heads/main/TSB",
+    "cre": "An Minh Nhật",
+    "img": "rbxassetid://10874130095",
+    "year": "16/02/2026"
+  },
+  {
+    "tab": "The Strongest",
+    "name": "ESP Manager",
+    "describe": "Soi vị trí người chơi, lượng máu và khoảng cách cực chuẩn.",
+    "game": "The Strongest Battleground",
+    "script": "https://raw.githubusercontent.com/minhnhatdepzai8-cloud/Farm-Kill-V2/refs/heads/main/TSB",
+    "cre": "An Minh Nhật",
+    "img": "rbxassetid://11433543135",
+    "year": "16/02/2026"
+  }
 ]
