@@ -1,5 +1,16 @@
 {
-  "tabs": [],
-  "scripts": []
+  "tabs": [
+    {
+      "Name": "script"
+    }
+  ],
+  "scripts": [
+    {
+      "name": "script chó",
+      "tab": "script",
+      "img": "",
+      "script": "Địt",
+      "describe": "Creator: Admin\nYear: 2026"
+    }
+  ]
 }
-
