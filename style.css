@@ -1,0 +1,44 @@
+:root {
+    --accent: #00ff96;
+    --bg-dark: #0d0d0d;
+    --sidebar-bg: #151515;
+    --text-color: #e0e0e0;
+}
+
+body {
+    margin: 0;
+    background-color: var(--bg-dark);
+    color: var(--text-color);
+    font-family: 'JetBrains Mono', monospace;
+    height: 100vh;
+}
+
+/* Auth Overlay */
+#auth-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
+    display: flex; justify-content: center; align-items: center; z-index: 9999;
+}
+.auth-box { text-align: center; border: 1px solid var(--accent); padding: 40px; border-radius: 15px; box-shadow: 0 0 20px var(--accent); }
+.auth-box input { background: transparent; border: 1px solid #444; color: white; padding: 10px; margin-bottom: 20px; text-align: center; }
+
+/* Admin Dashboard Layout */
+#admin-dashboard { display: flex; height: 100vh; }
+
+.sidebar { width: 250px; background: var(--sidebar-bg); border-right: 1px solid #333; padding: 15px; }
+.sidebar-header { display: flex; justify-content: space-between; font-size: 12px; color: #888; margin-bottom: 20px; }
+
+.tab-item { margin-bottom: 10px; cursor: pointer; }
+.tab-name { color: var(--accent); font-weight: bold; display: block; margin-bottom: 5px; }
+.file-item { padding-left: 20px; color: #bbb; font-size: 14px; margin: 3px 0; transition: 0.2s; }
+.file-item:hover { color: var(--accent); background: rgba(0, 255, 150, 0.1); }
+
+.editor-area { flex: 1; display: flex; flex-direction: column; padding: 20px; }
+.editor-header { display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+
+.edit-fields input, .edit-fields textarea {
+    width: 100%; background: #1a1a1a; border: 1px solid #333; color: white; 
+    padding: 15px; margin-bottom: 15px; border-radius: 5px; outline: none;
+}
+.edit-fields textarea { height: 200px; resize: none; }
+.save-btn { background: var(--accent); border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; border-radius: 5px; box-shadow: 0 0 10px var(--accent); }
