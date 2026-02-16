@@ -8,7 +8,7 @@ app.use(cors());
 app.use(express.json());
 
 // --- CẤU HÌNH GITHUB (THAY THÔNG TIN CỦA ÔNG VÀO ĐÂY) ---
-const GITHUB_TOKEN = "ghp_xxxxxxxxxxxxxxxxxxxx"; // Token ông lấy từ GitHub Settings
+const GITHUB_TOKEN = "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"; // Token ông lấy từ GitHub Settings
 const REPO_OWNER = "hothiptv";           // Ví dụ: TrongAn2026
 const REPO_NAME = "Anshub";            // Ví dụ: Anscript-Data
 const FILE_PATH = "data.json";                 // File lưu trữ dữ liệu
