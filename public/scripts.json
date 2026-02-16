@@ -1,10 +1,12 @@
-{
-    "tab": "The Strongest",
+[
+  {
+    "tab": "TSB Scripts",
     "name": "Auto Farm V1",
     "describe": "Tự động farm mượt mà.",
     "game": "The Strongest Battleground",
-    "script": "https://raw.githubusercontent.com/...",
-    "cre": "ANSCRIPT", 
+    "script": "print('ANSCRIPT Loaded')",
+    "cre": "ANSCRIPT",
     "img": "rbxassetid://10874130095",
     "year": "2026"
-}
+  }
+]
