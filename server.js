@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const axios = require('axios');
 const cors = require('cors');
 const app = express();
@@ -6,28 +7,52 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Cấu hình GitHub của ông
-const GITHUB_TOKEN = "TOKEN_CUA_ONG"; // Lấy trong Settings > Developer Settings > Personal Access Tokens
-const REPO_OWNER = "TEN_USER_GITHUB";
-const REPO_NAME = "TEN_KHO_LƯU_TRỮ";
-const FILE_PATH = "data.json"; 
+// --- PHẦN CẤU HÌNH GITHUB ---
+const GITHUB_TOKEN = "TOKEN_CỦA_ÔNG"; 
+const REPO_OWNER = "TÊN_USER";
+const REPO_NAME = "TÊN_REPO";
+const FILE_PATH = "data.json";
 
-// API lấy dữ liệu từ GitHub trả về cho Web/Roblox
+// --- QUAN TRỌNG: ĐOẠN NÀY ĐỂ HIỆN GIAO DIỆN WEB ---
+// Nó sẽ biến thư mục hiện tại thành kho chứa web
+app.use(express.static(path.join(__currentDirname || __dirname, '/')));
+
+// Khi vào trang gốc (/) thì hiện index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Khi vào /admin thì hiện admin.html
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+// --- CÁC API XỬ LÝ DỮ LIỆU ---
 app.get('/get-hub', async (req, res) => {
     try {
-        const response = await axios.get(`https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${FILE_PATH}`);
-        res.json(response.data);
+        const response = await axios.get(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
+            headers: { Authorization: `token ${GITHUB_TOKEN}` }
+        });
+        // Giải mã base64 từ GitHub
+        const content = Buffer.from(response.data.content, 'base64').toString();
+        res.json(JSON.parse(content));
     } catch (error) {
-        res.status(500).json({ error: "Không lấy được dữ liệu" });
+        res.status(500).json({ error: "Không lấy được dữ liệu từ GitHub" });
     }
 });
 
-// API lưu dữ liệu từ trang Admin lên GitHub
 app.post('/save-hub', async (req, res) => {
-    const { newData, sha } = req.body; // Cần mã SHA của file cũ để ghi đè
+    const { newData } = req.body;
     try {
+        // 1. Lấy mã SHA (mã định danh phiên bản) của file cũ
+        const oldFile = await axios.get(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
+            headers: { Authorization: `token ${GITHUB_TOKEN}` }
+        });
+        const sha = oldFile.data.sha;
+
+        // 2. Ghi đè file mới lên GitHub
         await axios.put(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
-            message: "Update từ Anscript Admin",
+            message: "Update from Anscript Admin Panel",
             content: Buffer.from(JSON.stringify(newData, null, 2)).toString('base64'),
             sha: sha
         }, {
@@ -35,9 +60,9 @@ app.post('/save-hub', async (req, res) => {
         });
         res.json({ success: true });
     } catch (error) {
-        res.status(500).json({ error: "Lưu thất bại" });
+        res.status(500).json({ error: "Lưu thất bại!", detail: error.message });
     }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server chạy tại cổng ${PORT}`));
+app.listen(PORT, () => console.log(`Server Anscript đang chạy tại cổng ${PORT}`));
