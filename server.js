@@ -5,58 +5,42 @@ const app = express();
 
 app.use(cors());
 
-// --- KHAI BÁO THÔNG TIN CỦA ÔNG AN ---
-const GITHUB_USER = "hothiptv";      // Tên tài khoản GitHub của ông
-const GITHUB_REPO = "Anshub";       // Tên kho chứa của ông
-const GITHUB_BRANCH = "main";       // Nhánh chính của kho
-
-// Tự động tạo link Raw dựa trên thông tin trên
-const RAW_BASE_URL = ‛https://raw.githubusercontent.com/hothiptv/Anshub/main/public/`;
+// --- CẤU HÌNH GITHUB ---
+const RAW_URL = "https://raw.githubusercontent.com/hothiptv/Anshub/main/public/";
 
 app.get('/get-hub', async (req, res) => {
     try {
-        console.log("-----------------------------------------");
-        console.log("Đang lấy dữ liệu từ: " + RAW_BASE_URL);
+        console.log("Đang gọi GitHub: " + RAW_URL);
 
-        // Gọi đồng thời cả 2 file tabs.json và scripts.json từ GitHub
-        const [tabsRes, scriptsRes] = await Promise.all([
-            axios.get(`${RAW_BASE_URL}tabs.json`),
-            axios.get(`${RAW_BASE_URL}scripts.json`)
-        ]);
+        // Gọi dữ liệu với thời gian chờ 3 giây (tránh treo server)
+        const tRes = await axios.get(`${RAW_URL}tabs.json`, { timeout: 3000 });
+        const sRes = await axios.get(`${RAW_URL}scripts.json`, { timeout: 3000 });
 
-        // Trả kết quả về cho Roblox dạng JSON
-        res.status(200).json({
-            tabs: tabsRes.data,
-            scripts: scriptsRes.data
+        res.json({
+            tabs: tRes.data,
+            scripts: sRes.data
         });
-
-        console.log("Trạng thái: Lấy dữ liệu THÀNH CÔNG!");
-        console.log("-----------------------------------------");
+        console.log("Thành công!");
     } catch (err) {
-        console.error("LỖI KẾT NỐI GITHUB: ", err.message);
-
-        // Trả về lỗi chi tiết để ông nhìn phát biết sai ở đâu luôn
-        res.status(500).json({
-            status: "error",
-            message: "Không tìm thấy dữ liệu trên GitHub",
-            debug_info: {
-                error_message: err.message,
-                tried_url: RAW_BASE_URL,
-                check_list: [
-                    "Đã tạo thư mục 'public' chưa?",
-                    "File 'tabs.json' và 'scripts.json' có viết thường chưa?",
-                    "Cấu trúc JSON có bị dư dấu phẩy không?"
-                ]
-            }
+        console.log("GitHub lỗi, đang dùng dữ liệu dự phòng...");
+        
+        // TRẢ VỀ DỮ LIỆU DỰ PHÒNG KHI GITHUB LỖI
+        res.json({
+            tabs: [{ "Name": "TSB Scripts", "Game": "TSB" }],
+            scripts: [{
+                "tab": "lỗi",
+                "name": "Checking System...",
+                "describe": "lỗi",
+                "game": "lỗi",
+                "script": "lỗi",
+                "cre": "lỗi",
+                "img": "lỗi",
+                "yearlooix": "lỗi"
+            }]
         });
     }
 });
 
-// Cấu hình cổng cho Railway (Tự động nhận cổng từ hệ thống)
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log("=========================================");
-    console.log(` SERVER ANS HUB ĐANG CHẠY `);
-    console.log(` Link API: http://localhost:${PORT}/get-hub `);
-    console.log("=========================================");
+app.listen(process.env.PORT || 3000, () => {
+    console.log("Server ANS Hub đã Online!");
 });
