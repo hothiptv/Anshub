@@ -1,86 +1,39 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <style>
-        * { box-sizing: border-box; touch-action: none; -webkit-user-select: none; }
-        body { margin: 0; background: #0a0a0f; color: #00ffcc; font-family: sans-serif; overflow: hidden; height: 100vh; }
+// Thêm đoạn này vào phần <script> của index.html đã gửi trước đó
+async function loadData() {
+    const grid = document.getElementById('grid');
+    grid.innerHTML = "<p>Đang tải script...</p>";
+    
+    try {
+        const response = await fetch('https://anshub-production.up.railway.app/get-hub');
+        const data = await response.json();
         
-        /* Màn hình nhập tên */
-        #login { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 20px; }
-        input { padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; background: #111; color: #fff; width: 250px; text-align: center; }
+        grid.innerHTML = ""; // Xóa dòng loading
         
-        /* Màn hình điều khiển */
-        #controller { display: none; height: 100%; position: relative; }
-        .joy-zone { position: absolute; width: 150px; height: 150px; background: rgba(255,255,255,0.05); border-radius: 50%; border: 2px solid #00ffcc; bottom: 40px; }
-        #move-zone { left: 30px; }
-        #cam-zone { right: 30px; }
-        .stick { position: absolute; width: 60px; height: 60px; background: #00ffcc; border-radius: 50%; top: 45px; left: 45px; box-shadow: 0 0 15px #00ffcc; }
+        data.scripts.forEach(s => {
+            const card = document.createElement('div');
+            card.className = "script-card";
+            card.setAttribute('data-tilt', '');
+            
+            // Link ảnh dự phòng nếu ko có ảnh
+            const imgUrl = s.img || "https://media.discordapp.net/attachments/1472992341156434219/1472992415303340276/Picsart_26-02-16_14-27-25-185.jpg";
+            
+            card.innerHTML = `
+                <img src="${imgUrl}" class="card-img">
+                <div class="card-info">
+                    <h3>${s.name}</h3>
+                </div>
+            `;
+            
+            card.onclick = () => showModal(s.name, imgUrl, s.describe || "Không có mô tả");
+            grid.appendChild(card);
+        });
+        
+        // Kích hoạt lại hiệu ứng nghiêng cho card mới tạo
+        VanillaTilt.init(document.querySelectorAll(".script-card"));
+        
+    } catch (e) {
+        grid.innerHTML = "<p>Lỗi kết nối server!</p>";
+    }
+}
 
-        /* Nút Jump ở trên Joystick Cam */
-        .jump-btn { position: absolute; right: 65px; bottom: 210px; width: 80px; height: 80px; background: #ff0055; border-radius: 50%; border: none; color: white; font-weight: bold; box-shadow: 0 0 20px #ff0055; }
-
-        /* Nhóm phím chức năng */
-        .skills { position: absolute; bottom: 200px; left: 30px; display: flex; gap: 15px; }
-        .top-btns { position: absolute; top: 20px; width: 100%; display: flex; justify-content: center; gap: 10px; }
-        .btn { background: #1a1a1a; color: #00ffcc; border: 1px solid #00ffcc; padding: 10px 20px; border-radius: 8px; font-weight: bold; min-width: 60px; }
-    </style>
-</head>
-<body>
-    <div id="login">
-        <h1>ANSRIPT REMOTE</h1>
-        <input type="text" id="username" placeholder="Nhập tên nhân vật...">
-        <button class="btn" style="width: 150px; background: #00ffcc; color: #000;" onclick="start()">KẾT NỐI</button>
-    </div>
-
-    <div id="controller">
-        <div class="top-btns">
-            <button class="btn" onclick="send('esc')">ESC</button>
-            <button class="btn" onclick="send('tab')">TAB</button>
-        </div>
-
-        <div class="skills">
-            <button class="btn" style="background: #5500ff; color: white; width: 70px; height: 70px;" onclick="send('q')">Q</button>
-            <button class="btn" style="background: #0088ff; color: white; width: 70px; height: 70px;" onclick="send('e')">E</button>
-        </div>
-
-        <button class="jump-btn" onclick="send('jump')">JUMP</button>
-
-        <div id="move-zone" class="joy-zone"><div id="move-stick" class="stick"></div></div>
-        <div id="cam-zone" class="joy-zone"><div id="cam-stick" class="stick"></div></div>
-    </div>
-
-    <script>
-        let targetUser = "";
-        function start() {
-            targetUser = document.getElementById('username').value;
-            if(targetUser) {
-                document.getElementById('login').style.display = 'none';
-                document.getElementById('controller').style.display = 'block';
-            }
-        }
-
-        function send(cmd, x=0, y=0) {
-            fetch(`/api/send?user=${targetUser}&cmd=${cmd}&x=${x}&y=${y}`);
-        }
-
-        function setupJoy(zoneId, stickId, type) {
-            const zone = document.getElementById(zoneId);
-            const stick = document.getElementById(stickId);
-            zone.addEventListener('touchmove', (e) => {
-                const rect = zone.getBoundingClientRect();
-                let x = e.touches[0].clientX - rect.left - 75;
-                let y = e.touches[0].clientY - rect.top - 75;
-                stick.style.transform = `translate(${x}px, ${y}px)`;
-                send(type, x, y);
-            });
-            zone.addEventListener('touchend', () => {
-                stick.style.transform = `translate(0px, 0px)`;
-                send(type, 0, 0);
-            });
-        }
-        setupJoy('move-zone', 'move-stick', 'move');
-        setupJoy('cam-zone', 'cam-stick', 'camera');
-    </script>
-</body>
-</html>
+loadData(); // Gọi hàm khi trang web mở ra
