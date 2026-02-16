@@ -5,42 +5,48 @@ const app = express();
 
 app.use(cors());
 
-// --- CẤU HÌNH GITHUB ---
-const RAW_URL = "https://raw.githubusercontent.com/hothiptv/Anshub/main/public/";
+const GITHUB_URL = "https://raw.githubusercontent.com/hothiptv/Anshub/main/public/";
 
 app.get('/get-hub', async (req, res) => {
+    let finalTabs = [{ "Name": "Hệ Thống" }];
+    let finalScripts = [];
+
     try {
-        console.log("Đang gọi GitHub: " + RAW_URL);
+        // Lấy dữ liệu với cấu hình ép kiểu JSON
+        const [tRes, sRes] = await Promise.allSettled([
+            axios.get(GITHUB_URL + 'tabs.json', { responseType: 'json' }),
+            axios.get(GITHUB_URL + 'scripts.json', { responseType: 'json' })
+        ]);
 
-        // Gọi dữ liệu với thời gian chờ 3 giây (tránh treo server)
-        const tRes = await axios.get(`${RAW_URL}tabs.json`, { timeout: 3000 });
-        const sRes = await axios.get(`${RAW_URL}scripts.json`, { timeout: 3000 });
+        if (tRes.status === 'fulfilled') {
+            finalTabs = tRes.value.data;
+        } else {
+            console.log("Lỗi tabs.json:", tRes.reason.message);
+        }
 
-        res.json({
-            tabs: tRes.data,
-            scripts: sRes.data
-        });
-        console.log("Thành công!");
+        if (sRes.status === 'fulfilled') {
+            finalScripts = sRes.value.data;
+        } else {
+            console.log("Lỗi scripts.json:", sRes.reason.message);
+            finalScripts = [{
+                "tab": "Hệ Thống",
+                "name": "LỖI FILE SCRIPTS.JSON",
+                "describe": "Railway không đọc được file trên GitHub. Lỗi: " + sRes.reason.message,
+                "script": "print('Lỗi kết nối')",
+                "img": "rbxassetid://0"
+            }];
+        }
+
+        res.json({ tabs: finalTabs, scripts: finalScripts });
+
     } catch (err) {
-        console.log("GitHub lỗi, đang dùng dữ liệu dự phòng...");
-        
-        // TRẢ VỀ DỮ LIỆU DỰ PHÒNG KHI GITHUB LỖI
-        res.json({
-            tabs: [{ "Name": "TSB Scripts", "Game": "TSB" }],
-            scripts: [{
-                "tab": "lỗi",
-                "name": "Checking System...",
-                "describe": "lỗi",
-                "game": "lỗi",
-                "script": "lỗi",
-                "cre": "lỗi",
-                "img": "lỗi",
-                "yearlooix": "lỗi"
-            }]
+        res.json({ 
+            tabs: [{ "Name": "Lỗi Tổng" }], 
+            scripts: [{ "tab": "Lỗi Tổng", "name": "Server Error", "script": "" }] 
         });
     }
 });
 
 app.listen(process.env.PORT || 3000, () => {
-    console.log("Server ANS Hub đã Online!");
+    console.log("ANSCRIPT Server Online!");
 });
