@@ -4,49 +4,40 @@ const cors = require('cors');
 const app = express();
 
 app.use(cors());
+app.use(express.json());
 
-const GITHUB_URL = "https://raw.githubusercontent.com/hothiptv/Anshub/main/public/";
+// Cấu hình GitHub của ông
+const GITHUB_TOKEN = "TOKEN_CUA_ONG"; // Lấy trong Settings > Developer Settings > Personal Access Tokens
+const REPO_OWNER = "TEN_USER_GITHUB";
+const REPO_NAME = "TEN_KHO_LƯU_TRỮ";
+const FILE_PATH = "data.json"; 
 
+// API lấy dữ liệu từ GitHub trả về cho Web/Roblox
 app.get('/get-hub', async (req, res) => {
-    let finalTabs = [{ "Name": "Hệ Thống" }];
-    let finalScripts = [];
-
     try {
-        // Lấy dữ liệu với cấu hình ép kiểu JSON
-        const [tRes, sRes] = await Promise.allSettled([
-            axios.get(GITHUB_URL + 'tabs.json', { responseType: 'json' }),
-            axios.get(GITHUB_URL + 'scripts.json', { responseType: 'json' })
-        ]);
-
-        if (tRes.status === 'fulfilled') {
-            finalTabs = tRes.value.data;
-        } else {
-            console.log("Lỗi tabs.json:", tRes.reason.message);
-        }
-
-        if (sRes.status === 'fulfilled') {
-            finalScripts = sRes.value.data;
-        } else {
-            console.log("Lỗi scripts.json:", sRes.reason.message);
-            finalScripts = [{
-                "tab": "Hệ Thống",
-                "name": "LỖI FILE SCRIPTS.JSON",
-                "describe": "Railway không đọc được file trên GitHub. Lỗi: " + sRes.reason.message,
-                "script": "print('Lỗi kết nối')",
-                "img": "rbxassetid://0"
-            }];
-        }
-
-        res.json({ tabs: finalTabs, scripts: finalScripts });
-
-    } catch (err) {
-        res.json({ 
-            tabs: [{ "Name": "Lỗi Tổng" }], 
-            scripts: [{ "tab": "Lỗi Tổng", "name": "Server Error", "script": "" }] 
-        });
+        const response = await axios.get(`https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${FILE_PATH}`);
+        res.json(response.data);
+    } catch (error) {
+        res.status(500).json({ error: "Không lấy được dữ liệu" });
     }
 });
 
-app.listen(process.env.PORT || 3000, () => {
-    console.log("ANSCRIPT Server Online!");
+// API lưu dữ liệu từ trang Admin lên GitHub
+app.post('/save-hub', async (req, res) => {
+    const { newData, sha } = req.body; // Cần mã SHA của file cũ để ghi đè
+    try {
+        await axios.put(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
+            message: "Update từ Anscript Admin",
+            content: Buffer.from(JSON.stringify(newData, null, 2)).toString('base64'),
+            sha: sha
+        }, {
+            headers: { Authorization: `token ${GITHUB_TOKEN}` }
+        });
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: "Lưu thất bại" });
+    }
 });
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server chạy tại cổng ${PORT}`));
