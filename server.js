@@ -9,8 +9,8 @@ app.use(express.json());
 
 // --- CẤU HÌNH GITHUB (THAY THÔNG TIN CỦA ÔNG VÀO ĐÂY) ---
 const GITHUB_TOKEN = "ghp_xxxxxxxxxxxxxxxxxxxx"; // Token ông lấy từ GitHub Settings
-const REPO_OWNER = "Tên_User_GitHub";           // Ví dụ: TrongAn2026
-const REPO_NAME = "Tên_Repository";            // Ví dụ: Anscript-Data
+const REPO_OWNER = "hothiptv";           // Ví dụ: TrongAn2026
+const REPO_NAME = "Anshub";            // Ví dụ: Anscript-Data
 const FILE_PATH = "data.json";                 // File lưu trữ dữ liệu
 
 // Cấp quyền truy cập các file tĩnh (html, css, js trong cùng thư mục)
