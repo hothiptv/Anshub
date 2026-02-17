@@ -74,7 +74,7 @@
     {
       "name": "Player",
       "tab": "ANSCRIPT",
-      "img": "https://cdn.discordapp.com/attachments/1472992341156434219/1472992415303340276/Picsart_26-02-16_14-27-25-185.jpg?ex=69949696&is=69934516&hm=67c31316f28cd9797f85a81657b2a6dbfa4d26325af3d5973c9d4eeb868c3545&",
+      "img": "https://cdn.discordapp.com/attachments/1472992341156434219/1473160957130965186/Screenshot_2026-02-17-10-35-28-873_com.roblox.client.vnggames.jpg?ex=6995338e&is=6993e20e&hm=894d4ad6dddc70c8cb4c0a182349f76198a8c7c5891cd7eba661a6c9d2782526&",
       "script": "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/hothiptv/Anscript/Script/Ansplayer\"))()",
       "describe": "Script generated via Quick Load",
       "ratio": "ratio-1-1"
