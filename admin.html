@@ -2,68 +2,79 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Panel - Anti-Expand Mode</title>
+    <title>Admin Panel - Pro Sidebar Mode</title>
     <style>
         :root { --accent: #00ff96; --warn: #ffae00; --bg: #000; --sidebar-bg: #0a0a0a; --panel: #161616; }
         body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Sidebar */
-        .sidebar { width: 340px; background: var(--sidebar-bg); border-right: 1px solid #222; display: flex; flex-direction: column; }
-        .sidebar-header { padding: 20px; border-bottom: 1px solid #222; }
-        .sidebar-content { flex: 1; overflow-y: auto; padding: 10px; }
+        /* Sidebar - Tối ưu cuộn */
+        .sidebar { width: 340px; background: var(--sidebar-bg); border-right: 1px solid #222; display: flex; flex-direction: column; height: 100vh; }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid #222; flex-shrink: 0; }
+        .sidebar-content { flex: 1; overflow-y: auto; padding: 10px; scrollbar-width: thin; scrollbar-color: #333 transparent; }
+        .sidebar-content::-webkit-scrollbar { width: 5px; }
+        .sidebar-content::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
         
-        /* Tab Styles */
-        .tab-block { margin-bottom: 10px; background: #111; border-radius: 8px; border: 1px solid #222; overflow: hidden; }
-        .tab-header { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #181818; cursor: pointer; }
-        .tab-title { color: var(--accent); font-weight: bold; font-size: 13px; }
-        .tab-actions { display: flex; gap: 5px; }
-        .tab-actions button { background: #222; border: 1px solid #333; cursor: pointer; font-size: 11px; color: #aaa; padding: 5px 8px; border-radius: 4px; }
-        .btn-kh { color: var(--warn) !important; font-weight: bold; border: 1px solid var(--warn) !important; }
+        /* Tab Block */
+        .tab-block { margin-bottom: 10px; background: #111; border-radius: 8px; border: 1px solid #222; transition: 0.2s; position: relative; }
+        
+        /* TRẠNG THÁI ẨN (CÁI QUE) */
+        .tab-block.is-hidden { 
+            height: 6px; padding: 0; background: var(--accent); border: none; overflow: visible; opacity: 0.6; margin: 15px 5px; cursor: default;
+        }
+        .tab-block.is-hidden:hover { opacity: 1; height: 8px; }
+        .tab-block.is-hidden .tab-header, .tab-block.is-hidden .file-list { display: none; }
+        
+        /* Nút hiện khi ở trạng thái que */
+        .btn-unhide { 
+            display: none; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+            background: #fff; color: #000; border: none; font-size: 9px; font-weight: bold; 
+            padding: 2px 8px; border-radius: 10px; cursor: pointer; white-space: nowrap; z-index: 10;
+        }
+        .tab-block.is-hidden .btn-unhide { display: block; }
 
-        /* Collapse logic */
+        /* Header & Actions */
+        .tab-header { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #181818; cursor: pointer; }
+        .tab-title { color: var(--accent); font-weight: bold; font-size: 13px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+        .tab-actions { display: flex; gap: 4px; }
+        .tab-actions button { background: #222; border: 1px solid #333; cursor: pointer; font-size: 11px; color: #aaa; padding: 5px 6px; border-radius: 4px; }
+        
+        .btn-kh { color: var(--warn) !important; font-weight: bold; border: 1px solid var(--warn) !important; }
+        .btn-hide-tab { color: #555 !important; }
+
+        /* File List */
         .file-list { max-height: 2000px; overflow: hidden; transition: max-height 0.3s ease; background: #0c0c0c; }
         .tab-block.collapsed .file-list { max-height: 0; }
-        .tab-block.collapsed .btn-collapse { transform: rotate(180deg); }
-
         .file-item { display: flex; justify-content: space-between; padding: 12px 15px; font-size: 13px; color: #ccc; border-bottom: 1px solid #1a1a1a; cursor: pointer; }
+        .file-item:hover { background: #111; }
         .file-item.active { background: #1a2e25; color: var(--accent); border-left: 4px solid var(--accent); }
 
-        /* Main Editor */
+        /* Editor */
         .main { flex: 1; padding: 30px; background: #050505; overflow-y: auto; display: none; padding-bottom: 100px; }
         label { color: var(--accent); font-size: 11px; text-transform: uppercase; font-weight: bold; margin-top: 20px; display: block; }
         input, textarea, select { width: 100%; padding: 12px; margin-top: 8px; background: #111; border: 1px solid #333; color: #fff; border-radius: 6px; outline: none; box-sizing: border-box; }
-        input:focus, textarea:focus, select:focus { border-color: var(--accent); }
-
-        /* Custom Modal */
+        
+        /* Modal & Toast */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 10000; }
         .modal { background: var(--panel); border: 1px solid var(--accent); padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; }
-        .modal h3 { margin: 0 0 20px 0; color: var(--accent); font-size: 18px; text-align: center; }
-        .modal-btns { display: flex; gap: 10px; margin-top: 25px; }
-        .modal-btns button { flex: 1; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .btn-confirm { background: var(--accent); color: #000; }
-        .btn-cancel { background: #333; color: #fff; }
-
-        /* Toast */
-        #toast { position: fixed; bottom: 30px; right: -350px; background: var(--accent); color: #000; padding: 15px 30px; border-radius: 8px; font-weight: bold; transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 11000; }
+        #toast { position: fixed; bottom: 30px; right: -350px; background: var(--accent); color: #000; padding: 15px 30px; border-radius: 8px; font-weight: bold; transition: 0.6s; z-index: 11000; }
         #toast.show { right: 30px; }
 
         .input-group { position: relative; display: flex; align-items: center; }
         .btn-paste { position: absolute; right: 8px; background: var(--warn); color: #000; border: none; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; top: 12px; }
-
         .auth { position: fixed; inset: 0; background: #000; z-index: 99999; display: flex; justify-content: center; align-items: center; }
     </style>
 </head>
 <body>
 
-    <div id="toast">✅ Đã Auto Save dữ liệu!</div>
+    <div id="toast">✅ Đã Auto Save!</div>
 
     <div id="modal" class="modal-overlay">
         <div class="modal">
-            <h3 id="modalTitle">THÔNG BÁO</h3>
+            <h3 id="modalTitle" style="color:var(--accent); text-align:center; margin-top:0">THÔNG BÁO</h3>
             <div id="modalFields"></div>
-            <div class="modal-btns">
-                <button class="btn-cancel" onclick="closeModal()">HỦY</button>
-                <button class="btn-confirm" id="modalOk">XÁC NHẬN</button>
+            <div style="display:flex; gap:10px; margin-top:20px">
+                <button onclick="closeModal()" style="flex:1; padding:12px; background:#333; color:#fff; border:none; border-radius:6px; cursor:pointer">HỦY</button>
+                <button id="modalOk" style="flex:1; padding:12px; background:var(--accent); color:#000; border:none; border-radius:6px; font-weight:bold; cursor:pointer">XÁC NHẬN</button>
             </div>
         </div>
     </div>
@@ -78,7 +89,7 @@
 
     <div class="sidebar">
         <div class="sidebar-header">
-            <h3 style="color:var(--accent); margin:0 0 10px 0; letter-spacing: 1px;">DATABASE MANAGER</h3>
+            <h3 style="color:var(--accent); margin:0 0 10px 0;">DATABASE MANAGER</h3>
             <button onclick="askAddT()" style="width:100%; padding:12px; background:#222; color:var(--accent); border:1px dashed var(--accent); border-radius:6px; cursor:pointer; font-weight:bold">+ THÊM TAB MỚI</button>
         </div>
         <div class="sidebar-content" id="sList"></div>
@@ -92,19 +103,19 @@
         
         <label>Link Ảnh (Để trống dùng mặc định):</label>
         <div class="input-group">
-            <input type="text" id="img_i" placeholder="Dán link ảnh Picsart/Discord..." oninput="triggerAutoSave()">
+            <input type="text" id="img_i" placeholder="Dán link ảnh..." oninput="triggerAutoSave()">
             <button class="btn-paste" onclick="pasteTo('img_i')">DÁN</button>
         </div>
 
         <label>Tỉ lệ hiển thị (Ratio):</label>
         <select id="ratio_i" onchange="triggerAutoSave()">
-            <option value="ratio-1-1">Tỉ lệ 1:1 (Vuông)</option>
-            <option value="ratio-16-9">Tỉ lệ 16:9 (Ngang)</option>
-            <option value="ratio-4-3">Tỉ lệ 4:3 (Cơ bản)</option>
-            <option value="ratio-2-3">Tỉ lệ 2:3 (Dọc)</option>
+            <option value="ratio-1-1">1:1 (Vuông)</option>
+            <option value="ratio-16-9">16:9 (Ngang)</option>
+            <option value="ratio-4-3">4:3 (Cơ bản)</option>
+            <option value="ratio-2-3">2:3 (Dọc)</option>
         </select>
         
-        <label>Nội dung Script (Lua Source):</label>
+        <label>Nội dung Script (Lua):</label>
         <textarea id="script_i" rows="16" oninput="triggerAutoSave()" style="font-family: monospace;"></textarea>
         
         <label>Mô tả / Creator:</label>
@@ -116,10 +127,10 @@
         const DEF_IMG = "https://cdn.discordapp.com/attachments/1472992341156434219/1472992415303340276/Picsart_26-02-16_14-27-25-185.jpg?ex=69949696&is=69934516&hm=67c31316f28cd9797f85a81657b2a6dbfa4d26325af3d5973c9d4eeb868c3545&";
         let db = { tabs: [], scripts: [] }, curI = null, saveTimer;
         
-        // BIẾN QUAN TRỌNG: Lưu index của các tab đang BỊ ĐÓNG
-        let collapsedTabs = new Set();
+        let collapsedTabs = new Set(); // Đóng/Mở script list
+        let hiddenTabs = new Set();    // Ẩn tab thành "que"
 
-        function login() { if(document.getElementById('pass').value === "0904") { document.getElementById('auth').style.display='none'; load(); } else alert("Sai mật khẩu!"); }
+        function login() { if(document.getElementById('pass').value === "0904") { document.getElementById('auth').style.display='none'; load(); } else alert("Sai!"); }
         
         async function load() {
             try {
@@ -136,15 +147,18 @@
                 const scripts = db.scripts.map((s, idx) => ({...s, originIdx: idx})).filter(s => s.tab === t.Name);
                 const block = document.createElement('div');
                 
-                // Kiểm tra xem tab này có nằm trong danh sách "Bị đóng" không
                 const isCollapsed = collapsedTabs.has(ti);
+                const isHidden = hiddenTabs.has(ti);
                 
-                block.className = `tab-block ${isCollapsed ? 'collapsed' : ''}`;
+                block.className = `tab-block ${isCollapsed ? 'collapsed' : ''} ${isHidden ? 'is-hidden' : ''}`;
                 block.id = `tab-block-${ti}`;
+                
                 block.innerHTML = `
+                    <button class="btn-unhide" onclick="toggleHide(${ti})">HIỆN TAB: ${t.Name.toUpperCase()}</button>
                     <div class="tab-header" onclick="toggleTab(${ti})">
                         <div class="tab-title">📁 ${t.Name}</div>
                         <div class="tab-actions">
+                            <button class="btn-hide-tab" onclick="event.stopPropagation(); toggleHide(${ti})" title="Ẩn tab">👁️</button>
                             <button onclick="event.stopPropagation(); askEditT(${ti})">✏️</button>
                             <button onclick="event.stopPropagation(); askDelT(${ti})">🗑️</button>
                             <button class="btn-kh" onclick="event.stopPropagation(); askKH('${t.Name}', ${ti})">KH</button>
@@ -163,13 +177,21 @@
             });
         }
 
+        // Toggle trạng thái ẨN thành QUE
+        function toggleHide(i) {
+            if (hiddenTabs.has(i)) hiddenTabs.delete(i);
+            else hiddenTabs.add(i);
+            render();
+        }
+
+        // Toggle Đóng/Mở list script
         function toggleTab(i) {
             const block = document.getElementById(`tab-block-${i}`);
             if (collapsedTabs.has(i)) {
-                collapsedTabs.delete(i); // Mở ra
+                collapsedTabs.delete(i);
                 block.classList.remove('collapsed');
             } else {
-                collapsedTabs.add(i); // Đóng lại
+                collapsedTabs.add(i);
                 block.classList.add('collapsed');
             }
         }
@@ -191,17 +213,16 @@
                 const text = await navigator.clipboard.readText();
                 const target = document.getElementById(id);
                 if(target) { target.value = text; triggerAutoSave(true); }
-            } catch(e) { showToast("⚠️ Không có quyền dán!"); }
+            } catch(e) { showToast("⚠️ Lỗi Clipboard!"); }
         }
 
-        // TÍNH NĂNG KH
         function askKH(tabName, tabIdx) {
             const html = `
                 <label>Tên Script:</label>
-                <input type="text" id="kh_name" placeholder="Tên script...">
+                <input type="text" id="kh_name" placeholder="Tên...">
                 <label>Link Script (Raw):</label>
                 <div class="input-group">
-                    <input type="text" id="kh_link" placeholder="Dán link raw...">
+                    <input type="text" id="kh_link" placeholder="Dán link...">
                     <button class="btn-paste" onclick="pasteTo('kh_link')">DÁN</button>
                 </div>
             `;
@@ -209,14 +230,11 @@
                 const name = document.getElementById('kh_name').value;
                 const link = document.getElementById('kh_link').value;
                 if(!name || !link) return;
-
-                // Nếu tab đang đóng, tự động mở nó ra để thấy script mới
                 collapsedTabs.delete(tabIdx);
-
                 db.scripts.push({
                     name: name, tab: tabName, img: DEF_IMG,
                     script: `loadstring(game:HttpGet("${link.trim()}"))()`,
-                    describe: "Tạo nhanh bởi KH", ratio: "ratio-1-1"
+                    describe: "Tạo bởi KH", ratio: "ratio-1-1"
                 });
                 render();
                 openE(db.scripts.length - 1);
@@ -224,15 +242,15 @@
             });
         }
 
-        // QUẢN LÝ TAB & SCRIPT
         function askAddT() {
-            showModal("TẠO TAB MỚI", `<input type="text" id="t_name" placeholder="Nhập tên tab...">`, () => {
+            showModal("TẠO TAB MỚI", `<input type="text" id="t_name" placeholder="Nhập tên...">`, () => {
                 const n = document.getElementById('t_name').value;
                 if(n) { db.tabs.push({Name: n}); render(); triggerAutoSave(true); }
             });
         }
+
         function askEditT(i) {
-            showModal("SỬA TÊN TAB", `<input type="text" id="t_edit" value="${db.tabs[i].Name}">`, () => {
+            showModal("SỬA TAB", `<input type="text" id="t_edit" value="${db.tabs[i].Name}">`, () => {
                 const n = document.getElementById('t_edit').value;
                 if(n) { 
                     const old = db.tabs[i].Name; db.tabs[i].Name = n;
@@ -241,21 +259,22 @@
                 }
             });
         }
+
         function askDelT(i) {
-            showModal("XÁC NHẬN XÓA", `<p style="text-align:center">Xóa tab <b>${db.tabs[i].Name}</b>?</p>`, () => {
+            showModal("XÓA TAB", `<p style="text-align:center">Xóa tab <b>${db.tabs[i].Name}</b>?</p>`, () => {
                 const n = db.tabs[i].Name; db.tabs.splice(i,1);
                 db.scripts = db.scripts.filter(s => s.tab !== n);
                 render(); triggerAutoSave(true);
             });
         }
+
         function askDelS(i) {
-            showModal("XÓA SCRIPT", `<p style="text-align:center">Xóa script <b>${db.scripts[i].name}</b>?</p>`, () => {
+            showModal("XÓA SCRIPT", `<p style="text-align:center">Xóa <b>${db.scripts[i].name}</b>?</p>`, () => {
                 db.scripts.splice(i,1); document.getElementById('editor').style.display='none';
                 curI = null; render(); triggerAutoSave(true);
             });
         }
 
-        // EDITOR & AUTO SAVE
         function openE(i) {
             curI = i; const s = db.scripts[i];
             document.getElementById('editor').style.display = 'block';
@@ -265,7 +284,6 @@
             document.getElementById('script_i').value = s.script || "";
             document.getElementById('desc_i').value = s.describe || "";
             render();
-            document.getElementById('editor').scrollTop = 0;
         }
 
         function triggerAutoSave(now = false) {
