@@ -2,54 +2,66 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Panel - Pro KH & Auto Save</title>
+    <title>Admin Panel - Pro Mode</title>
     <style>
-        :root { --accent: #00ff96; --warn: #ffae00; --bg: #000; --sidebar-bg: #0a0a0a; --panel: #111; }
+        :root { --accent: #00ff96; --warn: #ffae00; --bg: #000; --sidebar-bg: #0a0a0a; --panel: #161616; }
         body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Sidebar & Editor */
+        /* Sidebar */
         .sidebar { width: 340px; background: var(--sidebar-bg); border-right: 1px solid #222; display: flex; flex-direction: column; }
-        .sidebar-header { padding: 15px; border-bottom: 1px solid #222; }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid #222; }
         .sidebar-content { flex: 1; overflow-y: auto; padding: 10px; }
-        .main { flex: 1; padding: 25px; background: #050505; overflow-y: auto; display: none; }
+        
+        /* Tab Styles */
+        .tab-block { margin-bottom: 10px; background: #111; border-radius: 8px; border: 1px solid #222; overflow: hidden; }
+        .tab-header { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #181818; cursor: pointer; }
+        .tab-title { color: var(--accent); font-weight: bold; font-size: 13px; }
+        .tab-actions { display: flex; gap: 5px; }
+        .tab-actions button { background: #222; border: 1px solid #333; cursor: pointer; font-size: 11px; color: #aaa; padding: 5px 8px; border-radius: 4px; }
+        .btn-kh { color: var(--warn) !important; font-weight: bold; border: 1px solid var(--warn) !important; }
 
-        /* Tab & File UI */
-        .tab-block { margin-bottom: 8px; background: var(--panel); border-radius: 6px; border: 1px solid #222; }
-        .tab-header { display: flex; align-items: center; justify-content: space-between; padding: 10px; cursor: pointer; }
-        .tab-actions { display: flex; gap: 4px; }
-        .tab-actions button { background: #222; border: 1px solid #333; color: #aaa; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; }
-        .btn-kh { color: var(--warn) !important; font-weight: bold; }
-        .file-item { display: flex; justify-content: space-between; padding: 12px; font-size: 13px; color: #ccc; border-bottom: 1px solid #1a1a1a; cursor: pointer; }
-        .file-item.active { background: #1a2e25; color: var(--accent); border-left: 3px solid var(--accent); }
+        .file-list { max-height: 2000px; overflow: hidden; transition: 0.3s; background: #0c0c0c; }
+        .tab-block.collapsed .file-list { max-height: 0; }
+        .file-item { display: flex; justify-content: space-between; padding: 12px 15px; font-size: 13px; color: #ccc; border-bottom: 1px solid #1a1a1a; cursor: pointer; }
+        .file-item.active { background: #1a2e25; color: var(--accent); border-left: 4px solid var(--accent); }
 
-        /* Form UI */
-        label { color: var(--accent); font-size: 11px; font-weight: bold; display: block; margin-top: 15px; }
-        input, textarea { width: 100%; padding: 12px; margin-top: 5px; background: #111; border: 1px solid #333; color: #fff; border-radius: 6px; outline: none; box-sizing: border-box; }
+        /* Main Editor */
+        .main { flex: 1; padding: 30px; background: #050505; overflow-y: auto; display: none; }
+        label { color: var(--accent); font-size: 11px; text-transform: uppercase; font-weight: bold; margin-top: 20px; display: block; }
+        input, textarea { width: 100%; padding: 12px; margin-top: 8px; background: #111; border: 1px solid #333; color: #fff; border-radius: 6px; outline: none; box-sizing: border-box; }
+        input:focus, textarea:focus { border-color: var(--accent); }
 
-        /* Custom Popup (Thay thế prompt Android) */
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 10000; }
-        .modal-box { background: #111; border: 1px solid var(--accent); padding: 20px; border-radius: 10px; width: 300px; }
-        .modal-box h3 { margin-top: 0; color: var(--accent); font-size: 16px; }
-        .btn-confirm { background: var(--accent); color: #000; border: none; width: 100%; padding: 10px; font-weight: bold; margin-top: 10px; cursor: pointer; }
+        /* Custom Modal (Cửa sổ tự tạo) */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 10000; }
+        .modal { background: var(--panel); border: 1px solid var(--accent); padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; }
+        .modal h3 { margin-top: 0; color: var(--accent); font-size: 16px; }
+        .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
+        .modal-btns button { flex: 1; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-confirm { background: var(--accent); color: #000; }
+        .btn-cancel { background: #333; color: #fff; }
 
-        /* Toast Thông báo trượt */
-        #toast { position: fixed; top: 20px; right: -300px; background: var(--accent); color: #000; padding: 12px 25px; border-radius: 5px; font-weight: bold; transition: 0.5s ease; z-index: 10001; box-shadow: 0 0 20px rgba(0,255,150,0.4); }
+        /* Toast (Thông báo trượt) */
+        #toast { position: fixed; top: 20px; right: -300px; background: var(--accent); color: #000; padding: 12px 25px; border-radius: 4px; font-weight: bold; transition: 0.5s; z-index: 11000; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         #toast.show { right: 20px; }
 
-        .auth { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center; }
+        .input-group { position: relative; display: flex; align-items: center; }
+        .btn-paste { position: absolute; right: 8px; background: var(--warn); color: #000; border: none; padding: 5px 10px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; top: 13px; }
+
+        .auth { position: fixed; inset: 0; background: #000; z-index: 99999; display: flex; justify-content: center; align-items: center; }
     </style>
 </head>
 <body>
 
     <div id="toast">✅ Đã Auto Save!</div>
 
-    <div id="customModal" class="modal">
-        <div class="modal-box">
+    <div id="modal" class="modal-overlay">
+        <div class="modal">
             <h3 id="modalTitle">Nhập thông tin</h3>
-            <input type="text" id="modalInput1" placeholder="Nhập tên script...">
-            <input type="text" id="modalInput2" placeholder="Dán link script vô đây...">
-            <button class="btn-confirm" onclick="modalConfirm()">XÁC NHẬN</button>
-            <button class="btn-confirm" onclick="closeModal()" style="background:#333; color:#fff">HỦY</button>
+            <div id="modalFields"></div>
+            <div class="modal-btns">
+                <button class="btn-cancel" onclick="closeModal()">HỦY</button>
+                <button class="btn-confirm" id="modalOk">XÁC NHẬN</button>
+            </div>
         </div>
     </div>
 
@@ -57,34 +69,34 @@
         <div style="text-align:center">
             <h2 style="color:var(--accent)">SYSTEM ACCESS</h2>
             <input type="password" id="pass" placeholder="Password..." style="text-align:center">
-            <br><button onclick="login()" style="width:250px; padding:12px; background:var(--accent); border:none; font-weight:bold; margin-top:10px">UNLOCK</button>
+            <br><button onclick="login()" style="width:100%; padding:12px; background:var(--accent); border:none; font-weight:bold; cursor:pointer; margin-top:10px">UNLOCK</button>
         </div>
     </div>
 
     <div class="sidebar">
         <div class="sidebar-header">
             <h3 style="color:var(--accent); margin:0 0 10px 0">FILE MANAGER</h3>
-            <button onclick="addT()" style="width:100%; padding:10px; background:#222; color:var(--accent); border:1px dashed var(--accent); border-radius:5px; cursor:pointer">+ NEW CATEGORY</button>
+            <button onclick="askAddT()" style="width:100%; padding:10px; background:#222; color:var(--accent); border:1px dashed var(--accent); border-radius:5px; cursor:pointer; font-weight:bold">+ NEW CATEGORY</button>
         </div>
         <div class="sidebar-content" id="sList"></div>
     </div>
 
     <div class="main" id="editor">
-        <h2 style="color:var(--accent); margin:0; font-size: 18px">EDITING...</h2>
+        <h2 style="color:var(--accent); margin:0; font-size: 18px;">EDITING MODE</h2>
         <label>Tên Script:</label>
-        <input type="text" id="name_i" oninput="triggerSave()">
+        <input type="text" id="name_i" oninput="triggerAutoSave()">
         <label>Link Ảnh:</label>
-        <input type="text" id="img_i" oninput="triggerSave()">
-        <label>Nội dung Script:</label>
-        <textarea id="script_i" rows="18" oninput="triggerSave()"></textarea>
+        <input type="text" id="img_i" oninput="triggerAutoSave()">
+        <label>Nội dung Script (Lua):</label>
+        <textarea id="script_i" rows="15" oninput="triggerAutoSave()"></textarea>
         <label>Mô tả:</label>
-        <textarea id="desc_i" rows="3" oninput="triggerSave()"></textarea>
+        <textarea id="desc_i" rows="3" oninput="triggerAutoSave()"></textarea>
     </div>
 
     <script>
         const API = window.location.origin;
-        const DEF = "https://cdn.discordapp.com/attachments/1472992341156434219/1472992415303340276/Picsart_26-02-16_14-27-25-185.jpg?ex=69949696&is=69934516&hm=67c31316f28cd9797f85a81657b2a6dbfa4d26325af3d5973c9d4eeb868c3545&";
-        let db = { tabs: [], scripts: [] }, curI = null, saveTimer, activeTabKH = "";
+        const DEF = "https://cdn.discordapp.com/attachments/1472992341156434219/1472992415303340276/Picsart_26-02-16_14-27-25-185.jpg";
+        let db = { tabs: [], scripts: [] }, curI = null, saveTimer;
 
         function login() { if(document.getElementById('pass').value === "0904") { document.getElementById('auth').style.display='none'; load(); } else alert("Sai!"); }
         
@@ -99,105 +111,84 @@
             container.innerHTML = "";
             db.tabs.forEach((t, ti) => {
                 const scripts = db.scripts.map((s, idx) => ({...s, originIdx: idx})).filter(s => s.tab === t.Name);
-                container.innerHTML += `
-                    <div class="tab-block" id="tab-${ti}">
-                        <div class="tab-header" onclick="this.parentElement.classList.toggle('collapsed')">
-                            <div class="tab-title">📁 ${t.Name}</div>
-                            <div class="tab-actions">
-                                <button onclick="event.stopPropagation(); editT(${ti})">✏️</button>
-                                <button onclick="event.stopPropagation(); delT(${ti})">🗑️</button>
-                                <button class="btn-kh" onclick="event.stopPropagation(); openKH('${t.Name}')">KH</button>
-                            </div>
-                        </div>
-                        <div class="file-list">
-                            ${scripts.map(s => `
-                                <div class="file-item ${curI === s.originIdx ? 'active' : ''}" onclick="openE(${s.originIdx})">
-                                    <span>📄 ${s.name}</span>
-                                    <span onclick="event.stopPropagation(); delS(${s.originIdx})" style="color:red">✕</span>
-                                </div>
-                            `).join('')}
+                const block = document.createElement('div');
+                block.className = "tab-block";
+                block.id = `tab-block-${ti}`;
+                block.innerHTML = `
+                    <div class="tab-header" onclick="toggleTab(${ti})">
+                        <div class="tab-title">📁 ${t.Name}</div>
+                        <div class="tab-actions">
+                            <button onclick="event.stopPropagation(); askEditT(${ti})">✏️</button>
+                            <button onclick="event.stopPropagation(); askDelT(${ti})">🗑️</button>
+                            <button class="btn-kh" onclick="event.stopPropagation(); askKH('${t.Name}')">KH</button>
                         </div>
                     </div>
+                    <div class="file-list">
+                        ${scripts.map(s => `
+                            <div class="file-item ${curI === s.originIdx ? 'active' : ''}" onclick="openE(${s.originIdx})">
+                                <span>📄 ${s.name}</span>
+                                <span onclick="event.stopPropagation(); askDelS(${s.originIdx})" style="color:red">✕</span>
+                            </div>
+                        `).join('')}
+                    </div>
                 `;
+                container.appendChild(block);
             });
         }
 
-        // TÍNH NĂNG KH MỚI
-        async function openKH(tabName) {
-            activeTabKH = tabName;
-            const m = document.getElementById('customModal');
-            const in1 = document.getElementById('modalInput1');
-            const in2 = document.getElementById('modalInput2');
-            
+        // --- HỆ THỐNG MODAL TỰ TẠO ---
+        function showModal(title, fieldsHTML, onOk) {
+            const m = document.getElementById('modal');
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalFields').innerHTML = fieldsHTML;
             m.style.display = 'flex';
-            in1.value = ""; in2.value = "";
-            in1.focus(); // Tự bật bàn phím
+            // Auto focus vào input đầu tiên
+            const firstInp = document.getElementById('modalFields').querySelector('input');
+            if(firstInp) setTimeout(() => firstInp.focus(), 100);
+            
+            document.getElementById('modalOk').onclick = () => { onOk(); closeModal(); };
+        }
+        function closeModal() { document.getElementById('modal').style.display = 'none'; }
 
-            // Thử tự dán link
+        async function pasteTo(id) {
             try {
                 const text = await navigator.clipboard.readText();
-                if(text.includes("http")) in2.value = text;
-            } catch(e) {}
+                document.getElementById(id).value = text;
+            } catch(e) { showToast("Vui lòng cấp quyền dán!"); }
         }
 
-        function modalConfirm() {
-            const n = document.getElementById('modalInput1').value;
-            const l = document.getElementById('modalInput2').value;
-            if(!n || !l) return alert("Nhập đủ tên và link!");
-
-            db.scripts.push({
-                name: n, tab: activeTabKH, img: DEF,
-                script: `loadstring(game:HttpGet("${l.trim()}"))()`,
-                describe: "Quick Load", ratio: "ratio-1-1"
-            });
-            closeModal();
-            render();
-            openE(db.scripts.length - 1);
-            triggerSave(true);
-        }
-
-        function closeModal() { document.getElementById('customModal').style.display = 'none'; }
-
-        function openE(i) {
-            curI = i; const s = db.scripts[i];
-            document.getElementById('editor').style.display = 'block';
-            document.getElementById('name_i').value = s.name;
-            document.getElementById('img_i').value = (s.img === DEF) ? "" : s.img;
-            document.getElementById('script_i').value = s.script;
-            document.getElementById('desc_i').value = s.describe;
-            render();
-        }
-
-        function triggerSave(now = false) {
-            if(curI !== null) {
-                db.scripts[curI].name = document.getElementById('name_i').value;
-                let iv = document.getElementById('img_i').value.trim();
-                db.scripts[curI].img = iv === "" ? DEF : iv;
-                db.scripts[curI].script = document.getElementById('script_i').value;
-                db.scripts[curI].describe = document.getElementById('desc_i').value;
-            }
-            clearTimeout(saveTimer);
-            saveTimer = setTimeout(async () => {
-                await fetch(`${API}/save-hub`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ newData: db })
+        // --- TÍNH NĂNG KH ---
+        function askKH(tabName) {
+            const html = `
+                <label>Tên Script:</label>
+                <input type="text" id="kh_name" placeholder="Nhập tên...">
+                <label>Link Script:</label>
+                <div class="input-group">
+                    <input type="text" id="kh_link" placeholder="Dán link raw...">
+                    <button class="btn-paste" onclick="pasteTo('kh_link')">DÁN</button>
+                </div>
+            `;
+            showModal("KHỞI TẠO LOADSTRING", html, () => {
+                const name = document.getElementById('kh_name').value;
+                const link = document.getElementById('kh_link').value;
+                if(!name || !link) return;
+                db.scripts.push({
+                    name: name, tab: tabName, img: DEF,
+                    script: `loadstring(game:HttpGet("${link.trim()}"))()`,
+                    describe: "Quick Load", ratio: "ratio-1-1"
                 });
-                showToast();
-            }, now ? 100 : 1500);
+                render();
+                openE(db.scripts.length - 1);
+                triggerAutoSave(true);
+            });
         }
 
-        function showToast() {
-            const t = document.getElementById('toast');
-            t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2000);
+        // --- CÁC HÀM QUẢN LÝ ---
+        function askAddT() {
+            showModal("THÊM TAB MỚI", `<input type="text" id="t_name" placeholder="Tên tab...">`, () => {
+                const n = document.getElementById('t_name').value;
+                if(n) { db.tabs.push({Name: n}); render(); triggerAutoSave(true); }
+            });
         }
-
-        function addT() { let n = prompt("Tên Tab:"); if(n) { db.tabs.push({Name: n}); render(); triggerSave(true); } }
-        function editT(i) { let n = prompt("Tên mới:", db.tabs[i].Name); if(n) { let old = db.tabs[i].Name; db.tabs[i].Name = n; db.scripts.forEach(s => { if(s.tab === old) s.tab = n; }); render(); triggerSave(true); } }
-        function delT(i) { if(confirm("Xóa Tab?")) { let n = db.tabs[i].Name; db.tabs.splice(i,1); db.scripts = db.scripts.filter(s => s.tab !== n); render(); triggerSave(true); } }
-        function delS(i) { if(confirm("Xóa Script?")) { db.scripts.splice(i,1); document.getElementById('editor').style.display='none'; curI=null; render(); triggerSave(true); } }
-
-    </script>
-</body>
-</html>
+        function askEditT(i) {
+            showModal("SỬA TÊN TAB", `<input type="text" id="t_edit" value="${db.tabs
