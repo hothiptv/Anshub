@@ -2,82 +2,49 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Panel - Auto Loadstring</title>
+    <title>Admin Panel - Smart KH</title>
     <style>
         :root { --accent: #00ff96; --warn: #ffae00; --bg: #000; --sidebar-bg: #0a0a0a; }
         body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Sidebar Styles */
-        .sidebar { 
-            width: 340px; background: var(--sidebar-bg); border-right: 1px solid #222; 
-            display: flex; flex-direction: column; height: 100vh;
-        }
+        /* Sidebar */
+        .sidebar { width: 340px; background: var(--sidebar-bg); border-right: 1px solid #222; display: flex; flex-direction: column; }
         .sidebar-header { padding: 20px; border-bottom: 1px solid #222; background: #111; }
         .sidebar-content { flex: 1; overflow-y: auto; padding: 10px; }
         
-        /* Tab Styles */
-        .tab-block { margin-bottom: 8px; background: #111; border-radius: 6px; overflow: hidden; border: 1px solid #222; }
-        .tab-header { 
-            display: flex; align-items: center; justify-content: space-between; 
-            padding: 10px; background: #181818; cursor: pointer; user-select: none;
-        }
+        /* Tab & File */
+        .tab-block { margin-bottom: 8px; background: #111; border-radius: 6px; border: 1px solid #222; }
+        .tab-header { display: flex; align-items: center; justify-content: space-between; padding: 10px; background: #181818; cursor: pointer; }
         .tab-title { color: var(--accent); font-weight: bold; font-size: 13px; display: flex; align-items: center; gap: 8px; }
         
-        /* Buttons in Sidebar */
-        .tab-actions { display: flex; gap: 4px; align-items: center; }
-        .tab-actions button { 
-            background: #222; border: 1px solid #333; cursor: pointer; 
-            font-size: 11px; color: #aaa; padding: 4px 8px; border-radius: 4px; transition: 0.2s;
-        }
-        .tab-actions button:hover { background: #333; color: #fff; border-color: #555; }
+        .tab-actions { display: flex; gap: 4px; }
+        .tab-actions button { background: #222; border: 1px solid #333; cursor: pointer; font-size: 11px; color: #aaa; padding: 4px 8px; border-radius: 4px; }
+        .btn-kh { color: var(--warn) !important; font-weight: bold; border-color: #553300 !important; }
         
-        /* Nút KH (Khởi tạo nhanh) */
-        .btn-kh { color: var(--warn) !important; font-weight: 900; border-color: #553300 !important; }
-        .btn-kh:hover { background: var(--warn) !important; color: #000 !important; }
-
-        /* Collapse Animation */
-        .btn-collapse { font-weight: bold; color: var(--accent) !important; width: 25px; }
+        /* Chỉ thu gọn file-list khi có class .collapsed */
+        .file-list { max-height: 2000px; overflow: hidden; transition: max-height 0.3s; background: #0e0e0e; }
         .tab-block.collapsed .file-list { max-height: 0; }
+        .btn-collapse { transition: 0.3s; }
         .tab-block.collapsed .btn-collapse { transform: rotate(180deg); }
-        .file-list { transition: max-height 0.3s ease-out; max-height: 2000px; overflow: hidden; background: #0e0e0e; }
 
-        /* File Items */
-        .file-item { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 8px 15px; font-size: 13px; color: #ccc; border-bottom: 1px solid #1a1a1a; cursor: pointer;
-        }
-        .file-item:hover { background: #222; color: var(--accent); padding-left: 20px; transition: 0.2s; }
-        .file-item.active { background: #1a2e25; color: var(--accent); border-left: 3px solid var(--accent); }
-        .del-file { color: #ff4d4d; font-weight: bold; opacity: 0.5; }
-        .del-file:hover { opacity: 1; }
+        .file-item { display: flex; justify-content: space-between; padding: 10px 15px; font-size: 13px; color: #ccc; border-bottom: 1px solid #1a1a1a; cursor: pointer; }
+        .file-item:hover, .file-item.active { background: #222; color: var(--accent); }
 
         /* Main Editor */
         .main { flex: 1; padding: 30px; background: #050505; overflow-y: auto; display: none; }
-        label { color: var(--accent); font-size: 11px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
-        input, textarea { 
-            width: 100%; padding: 12px; margin: 8px 0 20px 0; background: #111; 
-            border: 1px solid #333; color: #fff; border-radius: 6px; outline: none; font-family: monospace;
-        }
-        input:focus, textarea:focus { border-color: var(--accent); background: #161616; }
-
-        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
-        .btn-save { background: var(--accent); color: #000; flex: 1; padding: 15px; border: none; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 14px; text-transform: uppercase; }
-        .btn-ratio { background: #222; color: #fff; border: 1px solid #444; padding: 0 20px; border-radius: 6px; cursor: pointer; }
+        label { color: var(--accent); font-size: 11px; text-transform: uppercase; font-weight: bold; }
+        input, textarea { width: 100%; padding: 12px; margin: 8px 0 20px 0; background: #111; border: 1px solid #333; color: #fff; border-radius: 6px; outline: none; }
+        .btn-save { background: var(--accent); color: #000; width: 100%; padding: 15px; border: none; font-weight: bold; border-radius: 6px; cursor: pointer; }
         
         .auth { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center; }
-        
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #050505; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
     </style>
 </head>
 <body>
 
     <div id="auth" class="auth">
         <div style="text-align:center">
-            <h2 style="color:var(--accent); font-family:sans-serif; letter-spacing:2px">SYSTEM ACCESS</h2>
-            <input type="password" id="pass" placeholder="Password..." style="width:250px; text-align:center">
+            <h2 style="color:var(--accent)">SYSTEM ACCESS</h2>
+            <input type="password" id="pass" placeholder="Password...">
             <br><button onclick="login()" style="width:250px; padding:12px; background:var(--accent); border:none; font-weight:bold; cursor:pointer">UNLOCK</button>
         </div>
     </div>
@@ -85,80 +52,61 @@
     <div class="sidebar">
         <div class="sidebar-header">
             <h3 style="color:var(--accent); margin:0 0 10px 0">FILE MANAGER</h3>
-            <button onclick="addT()" style="width:100%; padding:10px; background:#222; color:var(--accent); border:1px dashed var(--accent); border-radius:5px; cursor:pointer; font-weight:bold">+ NEW CATEGORY</button>
+            <button onclick="addT()" style="width:100%; padding:10px; background:#222; color:var(--accent); border:1px dashed var(--accent); border-radius:5px; cursor:pointer">+ NEW CATEGORY</button>
         </div>
         <div class="sidebar-content" id="sList"></div>
     </div>
 
     <div class="main" id="main">
-        <h2 id="eName" style="color:var(--accent); margin-top:0; border-bottom:1px solid #333; padding-bottom:15px">EDITOR</h2>
-        
-        <label>Tên Script Hiển Thị:</label>
+        <h2 id="eName" style="color:var(--accent); margin-top:0">EDITOR</h2>
+        <label>Tên Script:</label>
         <input type="text" id="name">
-        
-        <label>Link Ảnh Bìa (Picsart/Discord):</label>
-        <div style="display:flex; gap:10px">
-            <input type="text" id="img" placeholder="Để trống = Tự dùng ảnh mặc định" style="margin-bottom:0">
-            <button class="btn-ratio" onclick="setRatio()">TỈ LỆ</button>
-        </div>
-        <p style="font-size:11px; color:#666; margin:5px 0 20px 0">Mẹo: Bấm nút TỈ LỆ để chỉnh khung (Vuông/Ngang/Dọc)</p>
-        
-        <label>Script Source (Lua/Loadstring):</label>
-        <textarea id="script" rows="12" placeholder="-- Dán code vào đây"></textarea>
-        
-        <label>Mô tả / Credits:</label>
-        <textarea id="desc" rows="3"></textarea>
-        
-        <div class="btn-group">
-            <button class="btn-save" id="saveB" onclick="save()">LƯU DỮ LIỆU (GITHUB)</button>
-        </div>
-        <button onclick="getLS()" style="margin-top:15px; width:100%; background:none; border:none; color:#555; cursor:pointer; font-size:11px; text-decoration:underline">Lấy mã Loadstring của Script này</button>
+        <label>Link Ảnh (Picsart/Discord):</label>
+        <input type="text" id="img" placeholder="Để trống = Ảnh mặc định">
+        <label>Script Source (Lua):</label>
+        <textarea id="script" rows="12"></textarea>
+        <label>Mô tả:</label>
+        <textarea id="desc" rows="2"></textarea>
+        <button class="btn-save" id="saveB" onclick="save()">SAVE TO GITHUB</button>
     </div>
 
     <script>
         const API = window.location.origin;
-        // Ảnh mặc định của bạn
         const DEF = "https://cdn.discordapp.com/attachments/1472992341156434219/1472992415303340276/Picsart_26-02-16_14-27-25-185.jpg?ex=69949696&is=69934516&hm=67c31316f28cd9797f85a81657b2a6dbfa4d26325af3d5973c9d4eeb868c3545&";
         let db = { tabs: [], scripts: [] }, curI = null;
 
-        function login() { if(document.getElementById('pass').value === "0904") { document.getElementById('auth').style.display='none'; load(); } else alert("Mật khẩu sai!"); }
+        function login() { if(document.getElementById('pass').value === "0904") { document.getElementById('auth').style.display='none'; load(); } else alert("Sai pass!"); }
         
         async function load() {
-            try {
-                const r = await fetch(`${API}/get-hub`);
-                db = await r.json();
-                render();
-            } catch(e) { alert("Lỗi kết nối Server!"); }
+            const r = await fetch(`${API}/get-hub`);
+            db = await r.json();
+            render();
         }
 
         function render() {
             const container = document.getElementById('sList');
             container.innerHTML = "";
-            
             db.tabs.forEach((t, ti) => {
                 const block = document.createElement('div');
                 block.className = "tab-block";
-                block.id = `tab-block-${ti}`; // ID để collapse hoạt động
-                
-                // Lọc script thuộc tab này
-                const scriptsInTab = db.scripts.map((s, idx) => ({...s, originIdx: idx})).filter(s => s.tab === t.Name);
+                block.id = `tab-block-${ti}`;
+                const scripts = db.scripts.map((s, idx) => ({...s, originIdx: idx})).filter(s => s.tab === t.Name);
 
                 block.innerHTML = `
                     <div class="tab-header" onclick="toggleTab(${ti})">
-                        <div class="tab-title"><span>📁</span> ${t.Name}</div>
+                        <div class="tab-title">📁 ${t.Name}</div>
                         <div class="tab-actions">
-                            <button onclick="event.stopPropagation(); editT(${ti})" title="Sửa tên">✏️</button>
-                            <button onclick="event.stopPropagation(); delT(${ti})" title="Xóa Tab">🗑️</button>
-                            <button onclick="event.stopPropagation(); addS('${t.Name}')" title="Thêm thủ công">➕</button>
-                            <button class="btn-kh" onclick="event.stopPropagation(); quickInit('${t.Name}')" title="Nhập Link -> Tạo Loadstring">KH</button>
-                            <button class="btn-collapse" id="btn-col-${ti}">^</button>
+                            <button onclick="event.stopPropagation(); editT(${ti})">✏️</button>
+                            <button onclick="event.stopPropagation(); delT(${ti})">🗑️</button>
+                            <button class="btn-kh" onclick="event.stopPropagation(); quickKH('${t.Name}', ${ti})">KH</button>
+                            <button class="btn-collapse">^</button>
                         </div>
                     </div>
                     <div class="file-list">
-                        ${scriptsInTab.map(s => `
+                        ${scripts.map(s => `
                             <div class="file-item ${curI === s.originIdx ? 'active' : ''}" onclick="openE(${s.originIdx})">
                                 <span>📄 ${s.name}</span>
-                                <span class="del-file" onclick="event.stopPropagation(); delS(${s.originIdx})">✕</span>
+                                <span onclick="event.stopPropagation(); delS(${s.originIdx})" style="color:red">✕</span>
                             </div>
                         `).join('')}
                     </div>
@@ -167,67 +115,64 @@
             });
         }
 
-        // --- TÍNH NĂNG MỚI: KH (Quick Init) ---
-        function quickInit(tabName) {
-            let name = prompt(`[${tabName}] Nhập tên Script mới:`);
+        // TÍNH NĂNG KH NÂNG CẤP
+        async function quickKH(tabName, tabIdx) {
+            // 1. Tự động mở bàn phím bằng prompt
+            let name = prompt(`[${tabName}] Nhập tên Script:`);
             if(!name) return;
 
-            let link = prompt("Dán Link Script (Raw) vào đây:\nHệ thống sẽ tự tạo Loadstring.");
+            let link = "";
+            try {
+                // 2. Cố gắng lấy link từ bộ nhớ tạm (Clipboard)
+                if (navigator.clipboard && navigator.clipboard.readText) {
+                    link = await navigator.clipboard.readText();
+                    // Nếu link trong máy không phải URL, bắt nhập tay
+                    if(!link.includes("http")) {
+                        link = prompt("Link trong máy không hợp lệ, hãy dán link raw vào đây:");
+                    }
+                } else {
+                    link = prompt("Dán Link Script (Raw) vô đây:");
+                }
+            } catch (err) {
+                link = prompt("Không thể tự dán, hãy nhập link thủ công:");
+            }
+
             if(!link) return;
 
-            // Tự động tạo mã Loadstring chuẩn
             let autoCode = `loadstring(game:HttpGet("${link.trim()}"))()`;
 
-            // Thêm vào dữ liệu
             db.scripts.push({
                 name: name,
                 tab: tabName,
-                img: DEF, // Tự động dùng ảnh mặc định
+                img: DEF,
                 script: autoCode,
-                describe: "Script generated via Quick Load",
+                describe: "Quick Load",
                 ratio: "ratio-1-1"
             });
 
-            alert("✅ Đã tạo Loadstring thành công!");
+            // 3. Render lại nhưng giữ nguyên trạng thái đóng mở của Tab
             render();
-            // Mở ngay script vừa tạo để xem
+            
+            // 4. Mở trình soạn thảo và focus
             openE(db.scripts.length - 1);
+            alert("Đã tự động lấy link từ máy và tạo loadstring!");
         }
 
-        // --- CÁC TÍNH NĂNG CŨ (Thu gọn, Sửa, Xóa...) ---
         function toggleTab(i) {
             document.getElementById(`tab-block-${i}`).classList.toggle('collapsed');
         }
 
         function openE(i) {
             curI = i; const s = db.scripts[i];
-            render(); // Re-render để highlight item đang chọn
             document.getElementById('main').style.display = 'block';
             document.getElementById('name').value = s.name;
             document.getElementById('img').value = (s.img === DEF) ? "" : s.img;
             document.getElementById('script').value = s.script || "";
             document.getElementById('desc').value = s.describe || "";
+            document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
+            // Cuộn khung editor lên đầu
+            document.getElementById('main').scrollTop = 0;
         }
-
-        function setRatio() {
-            if(curI === null) return;
-            let r = prompt("Chọn khung ảnh:\n1. Vuông (1:1)\n2. Ngang (16:9)\n3. Dọc (9:16)", "1");
-            db.scripts[curI].ratio = r=="2"?"ratio-16-9":(r=="3"?"ratio-9-16":"ratio-1-1");
-            alert("Đã đặt tỉ lệ: " + db.scripts[curI].ratio);
-        }
-
-        function addT() { let n = prompt("Tên Tab mới:"); if(n) { db.tabs.push({Name: n}); render(); } }
-        function editT(i) { 
-            let n = prompt("Đổi tên Tab:", db.tabs[i].Name); 
-            if(n) { 
-                let old = db.tabs[i].Name; db.tabs[i].Name = n; 
-                db.scripts.forEach(s => { if(s.tab === old) s.tab = n; }); 
-                render(); 
-            } 
-        }
-        function delT(i) { if(confirm("Xóa Tab này sẽ mất hết script bên trong?")) { let n = db.tabs[i].Name; db.tabs.splice(i,1); db.scripts = db.scripts.filter(s => s.tab !== n); render(); } }
-        function addS(t) { let n = prompt("Tên Script:"); if(n) { db.scripts.push({name:n, tab:t, img:DEF, script:"", ratio:"ratio-1-1"}); render(); openE(db.scripts.length-1); } }
-        function delS(i) { if(confirm("Xóa script này?")) { db.scripts.splice(i,1); document.getElementById('main').style.display='none'; curI=null; render(); } }
 
         async function save() {
             if(curI !== null) {
@@ -237,29 +182,24 @@
                 db.scripts[curI].script = document.getElementById('script').value;
                 db.scripts[curI].describe = document.getElementById('desc').value;
             }
-
             const btn = document.getElementById('saveB');
-            btn.innerText = "ĐANG NÉN & LƯU...";
-            
-            // Minify JSON (Nén 1 dòng)
+            btn.innerText = "SAVING...";
             await fetch(`${API}/save-hub`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ newData: db })
             });
-
-            alert("✅ Đã lưu thành công!");
-            btn.innerText = "LƯU DỮ LIỆU (GITHUB)";
+            btn.innerText = "SAVE TO GITHUB";
+            alert("Lưu xong!");
             render();
         }
 
-        function getLS() {
-            const ls = `loadstring(game:HttpGet("${API}/get-hub"))()`;
-            navigator.clipboard.writeText(ls);
-            alert("Đã copy Loadstring Admin!");
-        }
+        function addT() { let n = prompt("Tên Tab:"); if(n) { db.tabs.push({Name: n}); render(); } }
+        function editT(i) { let n = prompt("Tên mới:", db.tabs[i].Name); if(n) { let old = db.tabs[i].Name; db.tabs[i].Name = n; db.scripts.forEach(s => { if(s.tab === old) s.tab = n; }); render(); } }
+        function delT(i) { if(confirm("Xóa sạch?")) { let n = db.tabs[i].Name; db.tabs.splice(i,1); db.scripts = db.scripts.filter(s => s.tab !== n); render(); } }
+        function delS(i) { if(confirm("Xóa?")) { db.scripts.splice(i,1); document.getElementById('main').style.display='none'; render(); } }
 
-        load(); // Chạy khi mở trang
+        load();
     </script>
 </body>
 </html>
