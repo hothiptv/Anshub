@@ -2,165 +2,232 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Panel v2.0 - Optimization</title>
+    <title>Admin Panel - Auto Loadstring</title>
     <style>
-        :root { --accent: #00ff96; --bg: #000; --sidebar-bg: #0a0a0a; }
+        :root { --accent: #00ff96; --warn: #ffae00; --bg: #000; --sidebar-bg: #0a0a0a; }
         body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Sidebar có thanh cuộn riêng */
+        /* Sidebar Styles */
         .sidebar { 
-            width: 320px; background: var(--sidebar-bg); border-right: 1px solid #222; 
+            width: 340px; background: var(--sidebar-bg); border-right: 1px solid #222; 
             display: flex; flex-direction: column; height: 100vh;
         }
-        .sidebar-header { padding: 20px; border-bottom: 1px solid #222; }
-        .sidebar-content { flex: 1; overflow-y: auto; padding: 10px 20px; }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid #222; background: #111; }
+        .sidebar-content { flex: 1; overflow-y: auto; padding: 10px; }
         
-        /* Tab & Collapse */
-        .tab-block { margin-bottom: 10px; background: #111; border-radius: 8px; overflow: hidden; border: 1px solid #222; }
+        /* Tab Styles */
+        .tab-block { margin-bottom: 8px; background: #111; border-radius: 6px; overflow: hidden; border: 1px solid #222; }
         .tab-header { 
             display: flex; align-items: center; justify-content: space-between; 
-            padding: 10px; background: #1a1a1a; cursor: pointer;
+            padding: 10px; background: #181818; cursor: pointer; user-select: none;
         }
-        .tab-title { color: var(--accent); font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 5px; }
-        .tab-actions { display: flex; gap: 5px; }
-        .tab-actions button { background: none; border: none; cursor: pointer; font-size: 12px; color: #888; transition: 0.3s; }
-        .tab-actions button:hover { color: #fff; }
+        .tab-title { color: var(--accent); font-weight: bold; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+        
+        /* Buttons in Sidebar */
+        .tab-actions { display: flex; gap: 4px; align-items: center; }
+        .tab-actions button { 
+            background: #222; border: 1px solid #333; cursor: pointer; 
+            font-size: 11px; color: #aaa; padding: 4px 8px; border-radius: 4px; transition: 0.2s;
+        }
+        .tab-actions button:hover { background: #333; color: #fff; border-color: #555; }
+        
+        /* Nút KH (Khởi tạo nhanh) */
+        .btn-kh { color: var(--warn) !important; font-weight: 900; border-color: #553300 !important; }
+        .btn-kh:hover { background: var(--warn) !important; color: #000 !important; }
 
-        /* Nút thu gọn ^ */
-        .btn-collapse { transition: transform 0.3s; color: var(--accent) !important; font-weight: bold; }
-        .collapsed .btn-collapse { transform: rotate(180deg); }
-        .file-list { transition: max-height 0.3s ease-out; max-height: 1000px; overflow: hidden; }
-        .collapsed .file-list { max-height: 0; }
+        /* Collapse Animation */
+        .btn-collapse { font-weight: bold; color: var(--accent) !important; width: 25px; }
+        .tab-block.collapsed .file-list { max-height: 0; }
+        .tab-block.collapsed .btn-collapse { transform: rotate(180deg); }
+        .file-list { transition: max-height 0.3s ease-out; max-height: 2000px; overflow: hidden; background: #0e0e0e; }
 
-        /* File items */
+        /* File Items */
         .file-item { 
             display: flex; justify-content: space-between; align-items: center; 
-            padding: 8px 15px; font-size: 13px; color: #ccc; border-bottom: 1px solid #1a1a1a;
+            padding: 8px 15px; font-size: 13px; color: #ccc; border-bottom: 1px solid #1a1a1a; cursor: pointer;
         }
-        .file-item:hover { background: #222; color: var(--accent); }
-        .del-file { color: #ff4d4d; cursor: pointer; font-weight: bold; padding: 0 5px; }
+        .file-item:hover { background: #222; color: var(--accent); padding-left: 20px; transition: 0.2s; }
+        .file-item.active { background: #1a2e25; color: var(--accent); border-left: 3px solid var(--accent); }
+        .del-file { color: #ff4d4d; font-weight: bold; opacity: 0.5; }
+        .del-file:hover { opacity: 1; }
 
         /* Main Editor */
-        .main { flex: 1; padding: 30px; background: #0f0f0f; overflow-y: auto; display: none; }
-        label { color: var(--accent); font-size: 12px; text-transform: uppercase; font-weight: bold; }
+        .main { flex: 1; padding: 30px; background: #050505; overflow-y: auto; display: none; }
+        label { color: var(--accent); font-size: 11px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
         input, textarea { 
-            width: 100%; padding: 12px; margin: 8px 0 20px 0; background: #161616; 
-            border: 1px solid #333; color: #fff; border-radius: 6px; outline: none; 
+            width: 100%; padding: 12px; margin: 8px 0 20px 0; background: #111; 
+            border: 1px solid #333; color: #fff; border-radius: 6px; outline: none; font-family: monospace;
         }
-        input:focus, textarea:focus { border-color: var(--accent); }
+        input:focus, textarea:focus { border-color: var(--accent); background: #161616; }
 
-        .btn-save { background: var(--accent); color: #000; width: 100%; padding: 15px; border: none; font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 16px; }
-        .btn-save:hover { box-shadow: 0 0 20px rgba(0, 255, 150, 0.4); }
-
+        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
+        .btn-save { background: var(--accent); color: #000; flex: 1; padding: 15px; border: none; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 14px; text-transform: uppercase; }
+        .btn-ratio { background: #222; color: #fff; border: 1px solid #444; padding: 0 20px; border-radius: 6px; cursor: pointer; }
+        
         .auth { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center; }
         
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
     </style>
 </head>
 <body>
 
     <div id="auth" class="auth">
         <div style="text-align:center">
-            <h2 style="color:var(--accent)">SECURITY CHECK</h2>
-            <input type="password" id="pass" placeholder="Mật khẩu..." style="width:250px; text-align:center">
-            <br><button onclick="login()" style="width:250px; padding:12px; background:var(--accent); border:none; font-weight:bold; cursor:pointer">LOGIN</button>
+            <h2 style="color:var(--accent); font-family:sans-serif; letter-spacing:2px">SYSTEM ACCESS</h2>
+            <input type="password" id="pass" placeholder="Password..." style="width:250px; text-align:center">
+            <br><button onclick="login()" style="width:250px; padding:12px; background:var(--accent); border:none; font-weight:bold; cursor:pointer">UNLOCK</button>
         </div>
     </div>
 
     <div class="sidebar">
         <div class="sidebar-header">
-            <h3 style="color:var(--accent); margin:0 0 15px 0">AN HUB ADMIN</h3>
-            <button onclick="addT()" style="width:100%; padding:8px; background:#1a1a1a; color:var(--accent); border:1px dashed var(--accent); border-radius:5px; cursor:pointer">+ NEW CATEGORY</button>
+            <h3 style="color:var(--accent); margin:0 0 10px 0">FILE MANAGER</h3>
+            <button onclick="addT()" style="width:100%; padding:10px; background:#222; color:var(--accent); border:1px dashed var(--accent); border-radius:5px; cursor:pointer; font-weight:bold">+ NEW CATEGORY</button>
         </div>
         <div class="sidebar-content" id="sList"></div>
     </div>
 
     <div class="main" id="main">
-        <h2 id="eName" style="color:var(--accent); margin-top:0">SCRIPT EDITOR</h2>
+        <h2 id="eName" style="color:var(--accent); margin-top:0; border-bottom:1px solid #333; padding-bottom:15px">EDITOR</h2>
         
-        <label>Tên hiển thị:</label>
+        <label>Tên Script Hiển Thị:</label>
         <input type="text" id="name">
         
-        <label>Link ảnh & Tỉ lệ:</label>
+        <label>Link Ảnh Bìa (Picsart/Discord):</label>
         <div style="display:flex; gap:10px">
-            <input type="text" id="img" placeholder="Bỏ trống để dùng ảnh mặc định..." style="margin-bottom:0">
-            <button onclick="setRatio()" style="height:43px; padding:0 20px; background:#222; color:#fff; border:1px solid #444; border-radius:6px; cursor:pointer">RATIO</button>
+            <input type="text" id="img" placeholder="Để trống = Tự dùng ảnh mặc định" style="margin-bottom:0">
+            <button class="btn-ratio" onclick="setRatio()">TỈ LỆ</button>
         </div>
-        <p style="font-size:11px; color:#555; margin-bottom:20px">Tỉ lệ giúp Card không bị méo trên trang chủ.</p>
+        <p style="font-size:11px; color:#666; margin:5px 0 20px 0">Mẹo: Bấm nút TỈ LỆ để chỉnh khung (Vuông/Ngang/Dọc)</p>
         
-        <label>Script Code:</label>
-        <textarea id="script" rows="15"></textarea>
+        <label>Script Source (Lua/Loadstring):</label>
+        <textarea id="script" rows="12" placeholder="-- Dán code vào đây"></textarea>
         
-        <label>Mô tả chi tiết:</label>
+        <label>Mô tả / Credits:</label>
         <textarea id="desc" rows="3"></textarea>
         
-        <button class="btn-save" id="saveB" onclick="save()">SAVE TO DATABASE (GITHUB)</button>
-        <button onclick="getLS()" style="margin-top:10px; width:100%; background:none; border:none; color:#555; cursor:pointer; font-size:12px">Copy Loadstring Link</button>
+        <div class="btn-group">
+            <button class="btn-save" id="saveB" onclick="save()">LƯU DỮ LIỆU (GITHUB)</button>
+        </div>
+        <button onclick="getLS()" style="margin-top:15px; width:100%; background:none; border:none; color:#555; cursor:pointer; font-size:11px; text-decoration:underline">Lấy mã Loadstring của Script này</button>
     </div>
 
     <script>
         const API = window.location.origin;
+        // Ảnh mặc định của bạn
         const DEF = "https://cdn.discordapp.com/attachments/1472992341156434219/1472992415303340276/Picsart_26-02-16_14-27-25-185.jpg?ex=69949696&is=69934516&hm=67c31316f28cd9797f85a81657b2a6dbfa4d26325af3d5973c9d4eeb868c3545&";
         let db = { tabs: [], scripts: [] }, curI = null;
 
-        function login() { if(document.getElementById('pass').value === "0904") { document.getElementById('auth').style.display='none'; load(); } else alert("Wrong Pass!"); }
+        function login() { if(document.getElementById('pass').value === "0904") { document.getElementById('auth').style.display='none'; load(); } else alert("Mật khẩu sai!"); }
         
         async function load() {
-            const r = await fetch(`${API}/get-hub`);
-            db = await r.json();
-            render();
+            try {
+                const r = await fetch(`${API}/get-hub`);
+                db = await r.json();
+                render();
+            } catch(e) { alert("Lỗi kết nối Server!"); }
         }
 
         function render() {
             const container = document.getElementById('sList');
             container.innerHTML = "";
+            
             db.tabs.forEach((t, ti) => {
                 const block = document.createElement('div');
                 block.className = "tab-block";
-                block.id = `tab-${ti}`;
+                block.id = `tab-block-${ti}`; // ID để collapse hoạt động
                 
+                // Lọc script thuộc tab này
+                const scriptsInTab = db.scripts.map((s, idx) => ({...s, originIdx: idx})).filter(s => s.tab === t.Name);
+
                 block.innerHTML = `
                     <div class="tab-header" onclick="toggleTab(${ti})">
                         <div class="tab-title"><span>📁</span> ${t.Name}</div>
                         <div class="tab-actions">
-                            <button onclick="event.stopPropagation(); editT(${ti})">✏️</button>
-                            <button onclick="event.stopPropagation(); delT(${ti})">🗑️</button>
-                            <button onclick="event.stopPropagation(); addS('${t.Name}')">➕</button>
-                            <button class="btn-collapse">^</button>
+                            <button onclick="event.stopPropagation(); editT(${ti})" title="Sửa tên">✏️</button>
+                            <button onclick="event.stopPropagation(); delT(${ti})" title="Xóa Tab">🗑️</button>
+                            <button onclick="event.stopPropagation(); addS('${t.Name}')" title="Thêm thủ công">➕</button>
+                            <button class="btn-kh" onclick="event.stopPropagation(); quickInit('${t.Name}')" title="Nhập Link -> Tạo Loadstring">KH</button>
+                            <button class="btn-collapse" id="btn-col-${ti}">^</button>
                         </div>
                     </div>
                     <div class="file-list">
-                        ${db.scripts.filter(s => s.tab === t.Name).map(s => {
-                            const realIdx = db.scripts.indexOf(s);
-                            return `
-                                <div class="file-item" onclick="openE(${realIdx})">
-                                    <span>📄 ${s.name}</span>
-                                    <span class="del-file" onclick="event.stopPropagation(); delS(${realIdx})">✕</span>
-                                </div>`;
-                        }).join('')}
+                        ${scriptsInTab.map(s => `
+                            <div class="file-item ${curI === s.originIdx ? 'active' : ''}" onclick="openE(${s.originIdx})">
+                                <span>📄 ${s.name}</span>
+                                <span class="del-file" onclick="event.stopPropagation(); delS(${s.originIdx})">✕</span>
+                            </div>
+                        `).join('')}
                     </div>
                 `;
                 container.appendChild(block);
             });
         }
 
-        // Hàm thu gọn Tab
+        // --- TÍNH NĂNG MỚI: KH (Quick Init) ---
+        function quickInit(tabName) {
+            let name = prompt(`[${tabName}] Nhập tên Script mới:`);
+            if(!name) return;
+
+            let link = prompt("Dán Link Script (Raw) vào đây:\nHệ thống sẽ tự tạo Loadstring.");
+            if(!link) return;
+
+            // Tự động tạo mã Loadstring chuẩn
+            let autoCode = `loadstring(game:HttpGet("${link.trim()}"))()`;
+
+            // Thêm vào dữ liệu
+            db.scripts.push({
+                name: name,
+                tab: tabName,
+                img: DEF, // Tự động dùng ảnh mặc định
+                script: autoCode,
+                describe: "Script generated via Quick Load",
+                ratio: "ratio-1-1"
+            });
+
+            alert("✅ Đã tạo Loadstring thành công!");
+            render();
+            // Mở ngay script vừa tạo để xem
+            openE(db.scripts.length - 1);
+        }
+
+        // --- CÁC TÍNH NĂNG CŨ (Thu gọn, Sửa, Xóa...) ---
         function toggleTab(i) {
-            document.getElementById(`tab-${i}`).classList.toggle('collapsed');
+            document.getElementById(`tab-block-${i}`).classList.toggle('collapsed');
         }
 
         function openE(i) {
             curI = i; const s = db.scripts[i];
+            render(); // Re-render để highlight item đang chọn
             document.getElementById('main').style.display = 'block';
             document.getElementById('name').value = s.name;
             document.getElementById('img').value = (s.img === DEF) ? "" : s.img;
-            document.getElementById('script').value = s.script;
+            document.getElementById('script').value = s.script || "";
             document.getElementById('desc').value = s.describe || "";
         }
+
+        function setRatio() {
+            if(curI === null) return;
+            let r = prompt("Chọn khung ảnh:\n1. Vuông (1:1)\n2. Ngang (16:9)\n3. Dọc (9:16)", "1");
+            db.scripts[curI].ratio = r=="2"?"ratio-16-9":(r=="3"?"ratio-9-16":"ratio-1-1");
+            alert("Đã đặt tỉ lệ: " + db.scripts[curI].ratio);
+        }
+
+        function addT() { let n = prompt("Tên Tab mới:"); if(n) { db.tabs.push({Name: n}); render(); } }
+        function editT(i) { 
+            let n = prompt("Đổi tên Tab:", db.tabs[i].Name); 
+            if(n) { 
+                let old = db.tabs[i].Name; db.tabs[i].Name = n; 
+                db.scripts.forEach(s => { if(s.tab === old) s.tab = n; }); 
+                render(); 
+            } 
+        }
+        function delT(i) { if(confirm("Xóa Tab này sẽ mất hết script bên trong?")) { let n = db.tabs[i].Name; db.tabs.splice(i,1); db.scripts = db.scripts.filter(s => s.tab !== n); render(); } }
+        function addS(t) { let n = prompt("Tên Script:"); if(n) { db.scripts.push({name:n, tab:t, img:DEF, script:"", ratio:"ratio-1-1"}); render(); openE(db.scripts.length-1); } }
+        function delS(i) { if(confirm("Xóa script này?")) { db.scripts.splice(i,1); document.getElementById('main').style.display='none'; curI=null; render(); } }
 
         async function save() {
             if(curI !== null) {
@@ -172,40 +239,27 @@
             }
 
             const btn = document.getElementById('saveB');
-            btn.innerText = "MINIFYING & SAVING...";
+            btn.innerText = "ĐANG NÉN & LƯU...";
             
-            // LOGIC MINIFY: Nén dữ liệu thành 1 dòng để sạch data.json
-            const minifiedData = JSON.parse(JSON.stringify(db)); 
-
+            // Minify JSON (Nén 1 dòng)
             await fetch(`${API}/save-hub`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ newData: minifiedData }) 
+                body: JSON.stringify({ newData: db })
             });
 
-            alert("Dữ liệu đã được nén và lưu thành công!");
-            btn.innerText = "SAVE TO DATABASE (GITHUB)";
+            alert("✅ Đã lưu thành công!");
+            btn.innerText = "LƯU DỮ LIỆU (GITHUB)";
             render();
         }
 
-        // Các hàm phụ trợ (Thêm/Xóa/Sửa)
-        function addT() { let n = prompt("Tên Tab:"); if(n) { db.tabs.push({Name: n}); render(); } }
-        function editT(i) { 
-            let n = prompt("Tên mới:", db.tabs[i].Name); 
-            if(n) { 
-                let old = db.tabs[i].Name; 
-                db.tabs[i].Name = n; 
-                db.scripts.forEach(s => { if(s.tab === old) s.tab = n; }); 
-                render(); 
-            } 
+        function getLS() {
+            const ls = `loadstring(game:HttpGet("${API}/get-hub"))()`;
+            navigator.clipboard.writeText(ls);
+            alert("Đã copy Loadstring Admin!");
         }
-        function delT(i) { if(confirm("Xóa Tab này sẽ mất hết script bên trong?")) { let n = db.tabs[i].Name; db.tabs.splice(i,1); db.scripts = db.scripts.filter(s => s.tab !== n); render(); } }
-        function addS(t) { let n = prompt("Tên Script:"); if(n) { db.scripts.push({name:n, tab:t, img:DEF, script:"", ratio:"ratio-1-1"}); render(); } }
-        function delS(i) { if(confirm("Xóa script này?")) { db.scripts.splice(i,1); render(); document.getElementById('main').style.display='none'; } }
-        function setRatio() { let r = prompt("1:Vuông, 2:Ngang, 3:Dọc", "1"); db.scripts[curI].ratio = r=="2"?"ratio-16-9":(r=="3"?"ratio-9-16":"ratio-1-1"); }
-        function getLS() { alert(`Mã Loadstring:\nloadstring(game:HttpGet("${API}/get-hub"))()`); }
 
-        load();
+        load(); // Chạy khi mở trang
     </script>
 </body>
 </html>
