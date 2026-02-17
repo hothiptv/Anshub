@@ -341,7 +341,7 @@
     {
       "name": "Tora Isme",
       "tab": "Evade",
-      "img": "https://cheater.fun/uploads/posts/2026-02/1739589993_evade-script-valentine.jpg",
+      "img": "https://cheater.fun/uploads/posts/2026-02/valentines-2026.webp",
       "script": "loadstring(game:HttpGet(\"loadstring(game:HttpGet(\"https://raw.githubusercontent.com/gumanba/Scripts/main/EvadeEvent\"))()\"))()",
       "describe": "Creator: An Hub",
       "ratio": "ratio-1-1"
