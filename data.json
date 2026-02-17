@@ -55,6 +55,14 @@
       "script": "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/DiosDi/VexonHub/refs/heads/main/VexonHub\"))()",
       "describe": "Script generated via Quick Load",
       "ratio": "ratio-1-1"
+    },
+    {
+      "name": "Phantasm",
+      "tab": "The Strongest Battleground",
+      "img": "https://cdn.discordapp.com/attachments/1472992341156434219/1472992415303340276/Picsart_26-02-16_14-27-25-185.jpg",
+      "script": "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/ATrainz/Phantasm/refs/heads/main/Games/TSB.lua\"))()",
+      "describe": "Quick Load",
+      "ratio": "ratio-1-1"
     }
   ]
 }
