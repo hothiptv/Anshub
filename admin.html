@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Panel - Siêu Cấp Đầy Đủ</title>
+    <title>Admin Panel - Anti-Expand Mode</title>
     <style>
         :root { --accent: #00ff96; --warn: #ffae00; --bg: #000; --sidebar-bg: #0a0a0a; --panel: #161616; }
         body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
@@ -20,8 +20,11 @@
         .tab-actions button { background: #222; border: 1px solid #333; cursor: pointer; font-size: 11px; color: #aaa; padding: 5px 8px; border-radius: 4px; }
         .btn-kh { color: var(--warn) !important; font-weight: bold; border: 1px solid var(--warn) !important; }
 
-        .file-list { max-height: 2000px; overflow: hidden; transition: 0.3s; background: #0c0c0c; }
+        /* Collapse logic */
+        .file-list { max-height: 2000px; overflow: hidden; transition: max-height 0.3s ease; background: #0c0c0c; }
         .tab-block.collapsed .file-list { max-height: 0; }
+        .tab-block.collapsed .btn-collapse { transform: rotate(180deg); }
+
         .file-item { display: flex; justify-content: space-between; padding: 12px 15px; font-size: 13px; color: #ccc; border-bottom: 1px solid #1a1a1a; cursor: pointer; }
         .file-item.active { background: #1a2e25; color: var(--accent); border-left: 4px solid var(--accent); }
 
@@ -33,7 +36,7 @@
 
         /* Custom Modal */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 10000; }
-        .modal { background: var(--panel); border: 1px solid var(--accent); padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 0 30px rgba(0,255,150,0.1); }
+        .modal { background: var(--panel); border: 1px solid var(--accent); padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; }
         .modal h3 { margin: 0 0 20px 0; color: var(--accent); font-size: 18px; text-align: center; }
         .modal-btns { display: flex; gap: 10px; margin-top: 25px; }
         .modal-btns button { flex: 1; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
@@ -41,7 +44,7 @@
         .btn-cancel { background: #333; color: #fff; }
 
         /* Toast */
-        #toast { position: fixed; bottom: 30px; right: -350px; background: var(--accent); color: #000; padding: 15px 30px; border-radius: 8px; font-weight: bold; transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 11000; box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
+        #toast { position: fixed; bottom: 30px; right: -350px; background: var(--accent); color: #000; padding: 15px 30px; border-radius: 8px; font-weight: bold; transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 11000; }
         #toast.show { right: 30px; }
 
         .input-group { position: relative; display: flex; align-items: center; }
@@ -112,6 +115,9 @@
         const API = window.location.origin;
         const DEF_IMG = "https://cdn.discordapp.com/attachments/1472992341156434219/1472992415303340276/Picsart_26-02-16_14-27-25-185.jpg?ex=69949696&is=69934516&hm=67c31316f28cd9797f85a81657b2a6dbfa4d26325af3d5973c9d4eeb868c3545&";
         let db = { tabs: [], scripts: [] }, curI = null, saveTimer;
+        
+        // BIẾN QUAN TRỌNG: Lưu index của các tab đang BỊ ĐÓNG
+        let collapsedTabs = new Set();
 
         function login() { if(document.getElementById('pass').value === "0904") { document.getElementById('auth').style.display='none'; load(); } else alert("Sai mật khẩu!"); }
         
@@ -129,7 +135,11 @@
             db.tabs.forEach((t, ti) => {
                 const scripts = db.scripts.map((s, idx) => ({...s, originIdx: idx})).filter(s => s.tab === t.Name);
                 const block = document.createElement('div');
-                block.className = "tab-block";
+                
+                // Kiểm tra xem tab này có nằm trong danh sách "Bị đóng" không
+                const isCollapsed = collapsedTabs.has(ti);
+                
+                block.className = `tab-block ${isCollapsed ? 'collapsed' : ''}`;
                 block.id = `tab-block-${ti}`;
                 block.innerHTML = `
                     <div class="tab-header" onclick="toggleTab(${ti})">
@@ -137,7 +147,7 @@
                         <div class="tab-actions">
                             <button onclick="event.stopPropagation(); askEditT(${ti})">✏️</button>
                             <button onclick="event.stopPropagation(); askDelT(${ti})">🗑️</button>
-                            <button class="btn-kh" onclick="event.stopPropagation(); askKH('${t.Name}')">KH</button>
+                            <button class="btn-kh" onclick="event.stopPropagation(); askKH('${t.Name}', ${ti})">KH</button>
                         </div>
                     </div>
                     <div class="file-list">
@@ -151,6 +161,17 @@
                 `;
                 container.appendChild(block);
             });
+        }
+
+        function toggleTab(i) {
+            const block = document.getElementById(`tab-block-${i}`);
+            if (collapsedTabs.has(i)) {
+                collapsedTabs.delete(i); // Mở ra
+                block.classList.remove('collapsed');
+            } else {
+                collapsedTabs.add(i); // Đóng lại
+                block.classList.add('collapsed');
+            }
         }
 
         // MODAL SYSTEM
@@ -168,19 +189,19 @@
         async function pasteTo(id) {
             try {
                 const text = await navigator.clipboard.readText();
-                document.getElementById(id).value = text;
-                triggerAutoSave(true);
-            } catch(e) { showToast("⚠️ Không có quyền truy cập Clipboard!"); }
+                const target = document.getElementById(id);
+                if(target) { target.value = text; triggerAutoSave(true); }
+            } catch(e) { showToast("⚠️ Không có quyền dán!"); }
         }
 
         // TÍNH NĂNG KH
-        function askKH(tabName) {
+        function askKH(tabName, tabIdx) {
             const html = `
                 <label>Tên Script:</label>
-                <input type="text" id="kh_name" placeholder="Ví dụ: Auto Farm...">
+                <input type="text" id="kh_name" placeholder="Tên script...">
                 <label>Link Script (Raw):</label>
                 <div class="input-group">
-                    <input type="text" id="kh_link" placeholder="https://raw.githubusercontent...">
+                    <input type="text" id="kh_link" placeholder="Dán link raw...">
                     <button class="btn-paste" onclick="pasteTo('kh_link')">DÁN</button>
                 </div>
             `;
@@ -188,6 +209,10 @@
                 const name = document.getElementById('kh_name').value;
                 const link = document.getElementById('kh_link').value;
                 if(!name || !link) return;
+
+                // Nếu tab đang đóng, tự động mở nó ra để thấy script mới
+                collapsedTabs.delete(tabIdx);
+
                 db.scripts.push({
                     name: name, tab: tabName, img: DEF_IMG,
                     script: `loadstring(game:HttpGet("${link.trim()}"))()`,
@@ -217,7 +242,7 @@
             });
         }
         function askDelT(i) {
-            showModal("XÁC NHẬN XÓA", `<p style="text-align:center">Xóa tab <b>${db.tabs[i].Name}</b> và toàn bộ script bên trong?</p>`, () => {
+            showModal("XÁC NHẬN XÓA", `<p style="text-align:center">Xóa tab <b>${db.tabs[i].Name}</b>?</p>`, () => {
                 const n = db.tabs[i].Name; db.tabs.splice(i,1);
                 db.scripts = db.scripts.filter(s => s.tab !== n);
                 render(); triggerAutoSave(true);
@@ -269,7 +294,6 @@
             setTimeout(() => t.classList.remove('show'), 2500);
         }
 
-        function toggleTab(i) { document.getElementById(`tab-block-${i}`).classList.toggle('collapsed'); }
         load();
     </script>
 </body>
