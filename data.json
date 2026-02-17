@@ -38,6 +38,9 @@
     },
     {
       "Name": "Admin"
+    },
+    {
+      "Name": "Hỗ Trợ"
     }
   ],
   "scripts": [
