@@ -3,82 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anscript Hub | Final Fixed</title>
+    <title>Anscript Hub | Luxury Edition</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.0/vanilla-tilt.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
-        :root { --accent: #00ff96; --bg: #050505; --glow: 0 0 15px rgba(0, 255, 150, 0.3); }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: #fff; font-family: 'Quicksand', sans-serif; margin: 0; overflow-x: hidden; }
-
-        .navbar { display: flex; align-items: center; justify-content: space-between; padding: 15px 5%; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,255,150,0.2); position: sticky; top: 0; z-index: 1000; }
-        .logo { font-family: 'Orbitron'; color: var(--accent); font-size: 1.4rem; text-shadow: var(--glow); letter-spacing: 2px; }
-
-        .nav-btns { display: flex; gap: 10px; align-items: center; }
-        .icon-btn { background: none; border: none; color: var(--accent); font-size: 1.5rem; cursor: pointer; padding: 5px; }
-
-        .sidebar { position: fixed; top: 0; left: -100%; width: 280px; height: 100%; background: #0a0a0a; z-index: 2000; padding: 30px 20px; transition: 0.5s cubic-bezier(0.77, 0, 0.175, 1); border-right: 2px solid var(--accent); }
-        .sidebar.active { left: 0; }
-        
-        .tab-item { padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #222; cursor: pointer; text-align: center; color: #888; font-weight: bold; transition: 0.3s; }
-        .tab-item.active { background: var(--accent); color: #000; box-shadow: var(--glow); transform: scale(1.05); }
-
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px; padding: 25px 5%; min-height: 200px; }
-        
-        /* Hiệu ứng thu phóng */
-        .card { background: #111; border-radius: 15px; overflow: hidden; border: 1px solid #222; cursor: pointer; position: relative; transition: 0.4s; animation: zoomIn 0.5s forwards; }
-        .card.exit { transform: scale(0); opacity: 0; }
-        
-        @keyframes zoomIn {
-            from { transform: scale(0); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+        :root { 
+            --accent: #00ff96; 
+            --accent-rgb: 0, 255, 150;
+            --bg: #030303; 
+            --card-bg: rgba(20, 20, 20, 0.6);
+            --glow: 0 0 20px rgba(0, 255, 150, 0.4); 
         }
 
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            background: var(--bg); 
+            color: #fff; 
+            font-family: 'Montserrat', sans-serif; 
+            margin: 0; 
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Hiệu ứng nền lấp lánh */
+        #star-canvas {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at center, #0a1a12 0%, #030303 100%);
+        }
+
+        /* Navbar */
+        .navbar { 
+            display: flex; align-items: center; justify-content: space-between; 
+            padding: 15px 5%; 
+            background: rgba(0,0,0,0.8); 
+            backdrop-filter: blur(15px); 
+            border-bottom: 1px solid rgba(var(--accent-rgb), 0.2); 
+            position: sticky; top: 0; z-index: 1000;
+        }
+        .logo { 
+            font-family: 'Orbitron'; 
+            color: var(--accent); 
+            font-size: 1.5rem; 
+            text-shadow: var(--glow); 
+            letter-spacing: 3px;
+            font-weight: 700;
+        }
+
+        /* Sidebar - Có thể kéo */
+        .sidebar { 
+            position: fixed; top: 0; left: -100%; width: 300px; height: 100%; 
+            background: rgba(5, 5, 5, 0.95); 
+            z-index: 2000; padding: 30px 20px; 
+            transition: 0.6s cubic-bezier(0.85, 0, 0.15, 1); 
+            border-right: 1px solid var(--accent);
+            display: flex; flex-direction: column;
+        }
+        .sidebar.active { left: 0; }
+        
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto; /* Kéo được tab */
+            margin-top: 20px;
+            padding-right: 5px;
+        }
+        .sidebar-content::-webkit-scrollbar { width: 4px; }
+        .sidebar-content::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+
+        .tab-item { 
+            padding: 15px; margin-bottom: 12px; border-radius: 12px; 
+            border: 1px solid rgba(255,255,255,0.05); 
+            cursor: pointer; text-align: left; color: #aaa; 
+            font-weight: 600; transition: 0.4s;
+            background: rgba(255,255,255,0.02);
+            text-transform: uppercase; font-size: 0.8rem;
+        }
+        .tab-item:hover { color: #fff; border-color: var(--accent); background: rgba(var(--accent-rgb), 0.05); }
+        .tab-item.active { 
+            background: var(--accent); color: #000; 
+            box-shadow: var(--glow); transform: translateX(10px);
+        }
+
+        /* Grid & Cards */
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
+            gap: 25px; padding: 30px 5%; 
+        }
+        
+        .card { 
+            background: var(--card-bg); 
+            border-radius: 20px; overflow: hidden; 
+            border: 1px solid rgba(255,255,255,0.1); 
+            cursor: pointer; position: relative; 
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            backdrop-filter: blur(10px);
+            animation: cardSpawn 0.6s backwards;
+        }
+        
+        .card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 30px rgba(var(--accent-rgb), 0.2);
+            transform: translateY(-10px) scale(1.02);
+        }
+
+        @keyframes cardSpawn {
+            0% { opacity: 0; transform: translateY(30px) scale(0.9); filter: blur(10px); }
+            100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+
+        .card.exit { opacity: 0; transform: scale(0.8); filter: blur(10px); transition: 0.4s; }
+
+        .card-img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+        .card:hover .card-img { transform: scale(1.1); }
+
+        .card-info {
+            position: absolute; bottom: 0; width: 100%; padding: 15px 10px;
+            background: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.8) 50%, transparent 100%);
+            text-align: center;
+        }
+        .card-name { 
+            color: var(--accent); font-family: 'Orbitron'; 
+            font-size: 0.75rem; font-weight: 700; letter-spacing: 1px;
+        }
+
+        /* Search Box Luxury */
+        .search-box { 
+            display: flex; align-items: center; 
+            background: rgba(255,255,255,0.05); 
+            border-radius: 30px; padding: 5px 15px; 
+            border: 1px solid rgba(255,255,255,0.1); transition: 0.4s; 
+        }
+        .search-box.active { border-color: var(--accent); background: rgba(0,0,0,0.5); box-shadow: var(--glow); }
+        .search-input { 
+            width: 0; opacity: 0; border: none; outline: none; background: none; 
+            color: #fff; transition: 0.4s; font-family: 'Montserrat'; font-weight: 500;
+        }
+        .search-box.active .search-input { width: 150px; opacity: 1; margin-left: 10px; }
+
+        /* Modal */
+        .modal { 
+            display: none; position: fixed; inset: 0; 
+            background: rgba(0,0,0,0.95); z-index: 3000; 
+            justify-content: center; align-items: center; padding: 20px; 
+        }
+        .modal-content { 
+            background: #0d0d0d; border: 1px solid var(--accent); 
+            padding: 30px; border-radius: 25px; width: 100%; max-width: 420px; 
+            box-shadow: 0 0 50px rgba(var(--accent-rgb), 0.15);
+            text-align: center; animation: modalIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes modalIn { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .btn-copy { 
+            background: var(--accent); color: #000; padding: 15px; 
+            border: none; border-radius: 12px; width: 100%; 
+            font-weight: 800; font-family: 'Orbitron'; cursor: pointer; 
+            margin-top: 20px; transition: 0.3s; box-shadow: var(--glow);
+        }
+        .btn-copy:hover { transform: scale(1.02); filter: brightness(1.1); }
+
+        .icon-btn { background: none; border: none; color: var(--accent); font-size: 1.5rem; cursor: pointer; transition: 0.3s; }
+        .icon-btn:hover { transform: scale(1.2); text-shadow: var(--glow); }
+
         .ratio-1-1 { aspect-ratio: 1/1; }
-        .card-img { width: 100%; height: 100%; object-fit: cover; }
-        .card-name { position: absolute; bottom: 0; width: 100%; padding: 10px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); text-align: center; color: var(--accent); font-family: 'Orbitron'; font-size: 0.7rem; text-transform: uppercase; }
-
-        .search-box { display: flex; align-items: center; background: #1a1a1a; border-radius: 20px; padding: 0 10px; border: 1px solid #333; transition: 0.3s; }
-        .search-box.active { border-color: var(--accent); box-shadow: var(--glow); }
-        .search-input { width: 0; opacity: 0; border: none; outline: none; background: none; color: #fff; transition: 0.3s; font-family: 'Quicksand'; }
-        .search-box.active .search-input { width: 120px; opacity: 1; padding: 5px; }
-
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(10px); }
-        .modal-content { background: #0a0a0a; border: 1px solid var(--accent); padding: 25px; border-radius: 20px; width: 100%; max-width: 400px; box-shadow: var(--glow); animation: zoomIn 0.3s; }
-        .btn-copy { background: var(--accent); color: #000; padding: 12px; border: none; border-radius: 10px; width: 100%; font-weight: bold; font-family: 'Orbitron'; cursor: pointer; margin-top: 20px; transition: 0.3s; }
-        .btn-copy:active { transform: scale(0.95); }
+        .ratio-16-9 { aspect-ratio: 16/9; }
+        .ratio-4-3 { aspect-ratio: 4/3; }
+        .ratio-2-3 { aspect-ratio: 2/3; }
     </style>
 </head>
 <body>
 
+    <canvas id="star-canvas"></canvas>
+
     <div class="navbar">
         <button class="icon-btn" onclick="toggleMenu(true)">☰</button>
-        <div class="logo">AN HUB</div>
+        <div class="logo">ANSCRIPT HUB</div>
         <div class="nav-btns">
             <div class="search-box" id="sBox">
-                <input type="text" id="sInp" class="search-input" placeholder="Tìm script..." oninput="handleSearch()">
-                <button class="icon-btn" onclick="toggleSearch()" style="font-size: 1rem;">🔍</button>
+                <input type="text" id="sInp" class="search-input" placeholder="Search script..." oninput="handleSearch()">
+                <button class="icon-btn" onclick="toggleSearch()" style="font-size: 1.2rem;">🔍</button>
             </div>
         </div>
     </div>
 
     <div id="side" class="sidebar">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px">
-            <h2 style="color:var(--accent); font-family:'Orbitron'; margin:0">MENU</h2>
-            <button class="icon-btn" onclick="toggleMenu(false)" style="color:red; font-size:2rem">×</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+            <h2 style="color:var(--accent); font-family:'Orbitron'; margin:0; font-size: 1.2rem;">CATEGORIES</h2>
+            <button class="icon-btn" onclick="toggleMenu(false)" style="color:#ff4d4d; font-size:2rem">×</button>
         </div>
-        <div id="tList"></div>
+        <div class="sidebar-content" id="tList"></div>
     </div>
 
     <div class="grid" id="g"></div>
 
     <div id="m" class="modal">
         <div class="modal-content">
-            <img id="mI" style="width:100%; border-radius:12px; margin-bottom:15px; border:1px solid #222">
-            <h2 id="mT" style="color:var(--accent); margin:0; font-family:'Orbitron'; font-size:1.2rem"></h2>
-            <p id="mD" style="color:#888; font-size:0.85rem; margin:15px 0; max-height:80px; overflow-y:auto"></p>
-            <button class="btn-copy" onclick="copyCode()">SAO CHÉP SCRIPT</button>
-            <button onclick="closeModal()" style="background:none; border:none; color:#555; width:100%; margin-top:15px; cursor:pointer; font-weight:bold">ĐÓNG</button>
+            <img id="mI" style="width:100%; border-radius:15px; margin-bottom:20px; border:1px solid rgba(255,255,255,0.1)">
+            <h2 id="mT" style="color:var(--accent); margin:0; font-family:'Orbitron'; font-size:1.3rem"></h2>
+            <div style="height:2px; background:var(--accent); width:50px; margin:15px auto; opacity:0.5"></div>
+            <p id="mD" style="color:#aaa; font-size:0.9rem; margin-bottom:20px; line-height:1.6"></p>
+            <button class="btn-copy" onclick="copyCode()">COPY SCRIPT</button>
+            <button onclick="closeModal()" style="background:none; border:none; color:#555; width:100%; margin-top:20px; cursor:pointer; font-weight:600; font-size:0.8rem">CLOSE WINDOW</button>
         </div>
     </div>
 
@@ -88,16 +216,57 @@
         
         let db = [], curT = "ALL", curC = "";
 
-        // Khởi tạo
+        // Hiệu ứng nền Starfield
+        function initStars() {
+            const canvas = document.getElementById('star-canvas');
+            const ctx = canvas.getContext('2d');
+            let stars = [];
+            
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            for(let i=0; i<150; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 1.5,
+                    speed: Math.random() * 0.5,
+                    opacity: Math.random()
+                });
+            }
+
+            function animate() {
+                ctx.clearRect(0,0,canvas.width, canvas.height);
+                stars.forEach(s => {
+                    ctx.fillStyle = `rgba(0, 255, 150, ${s.opacity})`;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.size, 0, Math.PI*2);
+                    ctx.fill();
+                    s.y -= s.speed;
+                    if(s.y < 0) s.y = canvas.height;
+                    s.opacity += (Math.random() - 0.5) * 0.05;
+                    if(s.opacity > 1) s.opacity = 1;
+                    if(s.opacity < 0.1) s.opacity = 0.1;
+                });
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
         async function init() {
+            initStars();
             try {
                 const r = await fetch(`${API}/get-hub`);
                 const data = await r.json();
                 db = data.scripts || [];
                 renderTabs(data.tabs || []);
-                renderCards(db); // Mặc định hiện ALL
+                renderCards(db);
             } catch (e) {
-                document.getElementById('g').innerHTML = "Lỗi kết nối Server!";
+                document.getElementById('g').innerHTML = "Server connection lost!";
             }
         }
 
@@ -111,8 +280,7 @@
 
         function renderTabs(ts) {
             const list = document.getElementById('tList');
-            // Reset tab list
-            list.innerHTML = `<div class="tab-item active" onclick="switchTab('ALL', this)">TẤT CẢ SCRIPT</div>`;
+            list.innerHTML = `<div class="tab-item active" onclick="switchTab('ALL', this)">ALL SCRIPTS</div>`;
             ts.forEach(t => {
                 list.innerHTML += `<div class="tab-item" onclick="switchTab('${t.Name}', this)">${t.Name}</div>`;
             });
@@ -120,91 +288,65 @@
 
         async function switchTab(tabName, el) {
             if(curT === tabName) { toggleMenu(false); return; }
-
-            // Hiệu ứng thu nhỏ các card cũ
             const cards = document.querySelectorAll('.card');
             cards.forEach(c => c.classList.add('exit'));
-            
             toggleMenu(false);
-            await new Promise(r => setTimeout(r, 400)); // Đợi hiệu ứng xong
-
+            await new Promise(r => setTimeout(r, 400));
             curT = tabName;
-            
-            // Cập nhật UI Tab
             document.querySelectorAll('.tab-item').forEach(item => item.classList.remove('active'));
             el.classList.add('active');
-            
-            // Xóa nội dung tìm kiếm khi chuyển tab để tránh nhầm lẫn
             document.getElementById('sInp').value = "";
-            
             filter();
         }
 
         function filter() {
             const keyword = document.getElementById('sInp').value.toLowerCase();
-            
-            // LOGIC LỌC CHUẨN:
-            // 1. Nếu tab là ALL -> Lấy hết
-            // 2. Nếu tab cụ thể -> Chỉ lấy script thuộc tab đó
-            // 3. Sau đó mới lọc theo từ khóa tìm kiếm
             const filtered = db.filter(s => {
                 const matchTab = (curT === "ALL" || s.tab === curT);
                 const matchKey = s.name.toLowerCase().includes(keyword);
                 return matchTab && matchKey;
             });
-
             renderCards(filtered);
         }
 
-        function handleSearch() {
-            // Khi gõ tìm kiếm, nó sẽ tự gọi hàm lọc dựa trên curT hiện tại
-            filter();
-        }
+        function handleSearch() { filter(); }
 
         function renderCards(scripts) {
             const g = document.getElementById('g');
             g.innerHTML = "";
-            
             if(scripts.length === 0) {
-                g.innerHTML = "<p style='grid-column:1/-1; text-align:center; color:#555; margin-top:50px'>Không tìm thấy script nào...</p>";
+                g.innerHTML = "<p style='grid-column:1/-1; text-align:center; color:#444; margin-top:100px; font-weight:700'>NO SCRIPTS FOUND</p>";
                 return;
             }
-
             scripts.forEach((s, i) => {
                 const img = (s.img && s.img.trim() !== "") ? s.img : DEF_IMG;
                 const card = document.createElement('div');
                 card.className = `card ${s.ratio || 'ratio-1-1'}`;
-                card.style.animationDelay = `${i * 0.05}s`; // Hiệu ứng nảy từng cái
-
+                card.style.animationDelay = `${i * 0.05}s`;
                 card.innerHTML = `
                     <img src="${img}" class="card-img" onerror="this.src='${DEF_IMG}'">
-                    <div class="card-name">${s.name}</div>
+                    <div class="card-info"><div class="card-name">${s.name}</div></div>
                 `;
-                
                 card.onclick = () => {
                     document.getElementById('mT').innerText = s.name;
                     document.getElementById('mI').src = img;
-                    document.getElementById('mD').innerText = s.describe || "Creator: An Hub";
+                    document.getElementById('mD').innerText = s.describe || "High-quality script provided by Anscript Hub.";
                     curC = s.script;
                     document.getElementById('m').style.display = 'flex';
                 };
-                
                 g.appendChild(card);
             });
-
-            if(window.VanillaTilt) VanillaTilt.init(document.querySelectorAll(".card"), { max: 15, speed: 400 });
+            if(window.VanillaTilt) VanillaTilt.init(document.querySelectorAll(".card"), { max: 10, speed: 800, glare: true, "max-glare": 0.3 });
         }
 
         function closeModal() { document.getElementById('m').style.display = 'none'; }
-        
         function copyCode() {
             navigator.clipboard.writeText(curC);
             const btn = document.querySelector('.btn-copy');
-            btn.innerText = "ĐÃ COPY!";
-            setTimeout(() => btn.innerText = "SAO CHÉP SCRIPT", 1500);
+            btn.innerText = "COPIED SUCCESS!";
+            setTimeout(() => btn.innerText = "COPY SCRIPT", 1500);
         }
 
-        // Chạy ứng dụng
         init();
     </script>
 </body>
