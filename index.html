@@ -3,9 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anscript Hub | Luxury Edition</title>
+    
+    <title>Anscript Hub | TỔNG HỢP SCRIPT</title>
+    <meta name="description" content="Anscript Hub (Anshub) - Trang web tổng hợp Script chất lượng cao do AnsHub phát triển. Giao diện mượt mà, cập nhật liên tục.">
+    <meta name="keywords" content="Anscript Hub, Anshub, Roblox Script, Script Hub, Script Hack, roblox script, hack roblox">
+    
+    <meta property="og:title" content="Anscript Hub | Luxury Edition">
+    <meta property="og:description" content="Nơi tổng hợp các Script Roblox đẳng cấp nhất từ AnsHub.">
+    <meta property="og:image" content="https://cdn.discordapp.com/attachments/1118105705353084990/1341088734269177967/evade_valentine.jpg">
+    <meta property="og:url" content="https://anscript-hub.up.railway.app">
+    <meta property="og:type" content="website">
+    
+    <link rel="icon" href="https://www.roblox.com/favicon.ico" type="image/x-icon">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.0/vanilla-tilt.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
+    
     <style>
         :root { 
             --accent: #00ff96; 
@@ -65,7 +78,7 @@
         
         .sidebar-content {
             flex: 1;
-            overflow-y: auto; /* Kéo được tab */
+            overflow-y: auto;
             margin-top: 20px;
             padding-right: 5px;
         }
@@ -129,7 +142,7 @@
             font-size: 0.75rem; font-weight: 700; letter-spacing: 1px;
         }
 
-        /* Search Box Luxury */
+        /* Search Box */
         .search-box { 
             display: flex; align-items: center; 
             background: rgba(255,255,255,0.05); 
@@ -148,6 +161,7 @@
             display: none; position: fixed; inset: 0; 
             background: rgba(0,0,0,0.95); z-index: 3000; 
             justify-content: center; align-items: center; padding: 20px; 
+            backdrop-filter: blur(10px);
         }
         .modal-content { 
             background: #0d0d0d; border: 1px solid var(--accent); 
@@ -168,10 +182,12 @@
         .icon-btn { background: none; border: none; color: var(--accent); font-size: 1.5rem; cursor: pointer; transition: 0.3s; }
         .icon-btn:hover { transform: scale(1.2); text-shadow: var(--glow); }
 
+        /* Tỉ lệ ảnh Card */
         .ratio-1-1 { aspect-ratio: 1/1; }
         .ratio-16-9 { aspect-ratio: 16/9; }
         .ratio-4-3 { aspect-ratio: 4/3; }
         .ratio-2-3 { aspect-ratio: 2/3; }
+        .ratio-9-16 { aspect-ratio: 9/16; }
     </style>
 </head>
 <body>
@@ -180,7 +196,7 @@
 
     <div class="navbar">
         <button class="icon-btn" onclick="toggleMenu(true)">☰</button>
-        <div class="logo">ANSCRIPT HUB</div>
+        <div class="logo">ANSHUB</div>
         <div class="nav-btns">
             <div class="search-box" id="sBox">
                 <input type="text" id="sInp" class="search-input" placeholder="Search script..." oninput="handleSearch()">
@@ -212,11 +228,11 @@
 
     <script>
         const API = window.location.origin;
-        const DEF_IMG = "https://cdn.discordapp.net/attachments/1472992341156434219/1472992415303340276/Picsart_26-02-16_14-27-25-185.jpg?ex=69949696&is=69934516&hm=67c31316f28cd9797f85a81657b2a6dbfa4d26325af3d5973c9d4eeb868c3545&";
+        const DEF_IMG = "https://cdn.discordapp.com/attachments/1118105705353084990/1341088734269177967/evade_valentine.jpg";
         
         let db = [], curT = "ALL", curC = "";
 
-        // Hiệu ứng nền Starfield
+        // Hiệu ứng nền Starfield lấp lánh
         function initStars() {
             const canvas = document.getElementById('star-canvas');
             const ctx = canvas.getContext('2d');
@@ -266,7 +282,7 @@
                 renderTabs(data.tabs || []);
                 renderCards(db);
             } catch (e) {
-                document.getElementById('g').innerHTML = "Server connection lost!";
+                document.getElementById('g').innerHTML = "<p style='text-align:center; width:100%'>Server connection lost!</p>";
             }
         }
 
@@ -330,7 +346,7 @@
                 card.onclick = () => {
                     document.getElementById('mT').innerText = s.name;
                     document.getElementById('mI').src = img;
-                    document.getElementById('mD').innerText = s.describe || "High-quality script provided by Anscript Hub.";
+                    document.getElementById('mD').innerText = s.describe || "High-quality script provided by Anshub Hub.";
                     curC = s.script;
                     document.getElementById('m').style.display = 'flex';
                 };
@@ -340,11 +356,14 @@
         }
 
         function closeModal() { document.getElementById('m').style.display = 'none'; }
+        
         function copyCode() {
-            navigator.clipboard.writeText(curC);
-            const btn = document.querySelector('.btn-copy');
-            btn.innerText = "COPIED SUCCESS!";
-            setTimeout(() => btn.innerText = "COPY SCRIPT", 1500);
+            if(!curC) return;
+            navigator.clipboard.writeText(curC).then(() => {
+                const btn = document.querySelector('.btn-copy');
+                btn.innerText = "COPIED SUCCESS!";
+                setTimeout(() => btn.innerText = "COPY SCRIPT", 1500);
+            });
         }
 
         init();
