@@ -35,6 +35,9 @@
     },
     {
       "Name": "Troll"
+    },
+    {
+      "Name": "Admin"
     }
   ],
   "scripts": [
