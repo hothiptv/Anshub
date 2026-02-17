@@ -82,6 +82,14 @@
       "script": "loadstring(game:HttpGet(\"https://api.junkie-development.de/api/v1/luascripts/public/b803c8ca9d0205a7561d9f0467418e00b7743ef568f5471653432762027cf0f0/download\"))()",
       "describe": "Tạo nhanh bởi KH",
       "ratio": "ratio-1-1"
+    },
+    {
+      "name": "Farsaken",
+      "tab": "Forsaken",
+      "img": "https://cdn.discordapp.com/attachments/1472992341156434219/1472992415303340276/Picsart_26-02-16_14-27-25-185.jpg?ex=69949696&is=69934516&hm=67c31316f28cd9797f85a81657b2a6dbfa4d26325af3d5973c9d4eeb868c3545&",
+      "script": "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/ivannetta/ShitScripts/main/forsaken.lua\"))()",
+      "describe": "Tạo nhanh bởi KH",
+      "ratio": "ratio-1-1"
     }
   ]
 }
