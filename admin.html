@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Panel - Pro Mode</title>
+    <title>Admin Panel - Siêu Cấp Đầy Đủ</title>
     <style>
         :root { --accent: #00ff96; --warn: #ffae00; --bg: #000; --sidebar-bg: #0a0a0a; --panel: #161616; }
         body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
@@ -26,37 +26,37 @@
         .file-item.active { background: #1a2e25; color: var(--accent); border-left: 4px solid var(--accent); }
 
         /* Main Editor */
-        .main { flex: 1; padding: 30px; background: #050505; overflow-y: auto; display: none; }
+        .main { flex: 1; padding: 30px; background: #050505; overflow-y: auto; display: none; padding-bottom: 100px; }
         label { color: var(--accent); font-size: 11px; text-transform: uppercase; font-weight: bold; margin-top: 20px; display: block; }
-        input, textarea { width: 100%; padding: 12px; margin-top: 8px; background: #111; border: 1px solid #333; color: #fff; border-radius: 6px; outline: none; box-sizing: border-box; }
-        input:focus, textarea:focus { border-color: var(--accent); }
+        input, textarea, select { width: 100%; padding: 12px; margin-top: 8px; background: #111; border: 1px solid #333; color: #fff; border-radius: 6px; outline: none; box-sizing: border-box; }
+        input:focus, textarea:focus, select:focus { border-color: var(--accent); }
 
-        /* Custom Modal (Cửa sổ tự tạo) */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 10000; }
-        .modal { background: var(--panel); border: 1px solid var(--accent); padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; }
-        .modal h3 { margin-top: 0; color: var(--accent); font-size: 16px; }
-        .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
+        /* Custom Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 10000; }
+        .modal { background: var(--panel); border: 1px solid var(--accent); padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 0 30px rgba(0,255,150,0.1); }
+        .modal h3 { margin: 0 0 20px 0; color: var(--accent); font-size: 18px; text-align: center; }
+        .modal-btns { display: flex; gap: 10px; margin-top: 25px; }
         .modal-btns button { flex: 1; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .btn-confirm { background: var(--accent); color: #000; }
         .btn-cancel { background: #333; color: #fff; }
 
-        /* Toast (Thông báo trượt) */
-        #toast { position: fixed; top: 20px; right: -300px; background: var(--accent); color: #000; padding: 12px 25px; border-radius: 4px; font-weight: bold; transition: 0.5s; z-index: 11000; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        #toast.show { right: 20px; }
+        /* Toast */
+        #toast { position: fixed; bottom: 30px; right: -350px; background: var(--accent); color: #000; padding: 15px 30px; border-radius: 8px; font-weight: bold; transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 11000; box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
+        #toast.show { right: 30px; }
 
         .input-group { position: relative; display: flex; align-items: center; }
-        .btn-paste { position: absolute; right: 8px; background: var(--warn); color: #000; border: none; padding: 5px 10px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; top: 13px; }
+        .btn-paste { position: absolute; right: 8px; background: var(--warn); color: #000; border: none; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; top: 12px; }
 
         .auth { position: fixed; inset: 0; background: #000; z-index: 99999; display: flex; justify-content: center; align-items: center; }
     </style>
 </head>
 <body>
 
-    <div id="toast">✅ Đã Auto Save!</div>
+    <div id="toast">✅ Đã Auto Save dữ liệu!</div>
 
     <div id="modal" class="modal-overlay">
         <div class="modal">
-            <h3 id="modalTitle">Nhập thông tin</h3>
+            <h3 id="modalTitle">THÔNG BÁO</h3>
             <div id="modalFields"></div>
             <div class="modal-btns">
                 <button class="btn-cancel" onclick="closeModal()">HỦY</button>
@@ -68,42 +68,59 @@
     <div id="auth" class="auth">
         <div style="text-align:center">
             <h2 style="color:var(--accent)">SYSTEM ACCESS</h2>
-            <input type="password" id="pass" placeholder="Password..." style="text-align:center">
-            <br><button onclick="login()" style="width:100%; padding:12px; background:var(--accent); border:none; font-weight:bold; cursor:pointer; margin-top:10px">UNLOCK</button>
+            <input type="password" id="pass" placeholder="Nhập Password..." style="text-align:center; width: 280px;">
+            <br><button onclick="login()" style="width:280px; padding:15px; background:var(--accent); border:none; font-weight:bold; cursor:pointer; margin-top:15px; border-radius: 8px;">UNLOCK SYSTEM</button>
         </div>
     </div>
 
     <div class="sidebar">
         <div class="sidebar-header">
-            <h3 style="color:var(--accent); margin:0 0 10px 0">FILE MANAGER</h3>
-            <button onclick="askAddT()" style="width:100%; padding:10px; background:#222; color:var(--accent); border:1px dashed var(--accent); border-radius:5px; cursor:pointer; font-weight:bold">+ NEW CATEGORY</button>
+            <h3 style="color:var(--accent); margin:0 0 10px 0; letter-spacing: 1px;">DATABASE MANAGER</h3>
+            <button onclick="askAddT()" style="width:100%; padding:12px; background:#222; color:var(--accent); border:1px dashed var(--accent); border-radius:6px; cursor:pointer; font-weight:bold">+ THÊM TAB MỚI</button>
         </div>
         <div class="sidebar-content" id="sList"></div>
     </div>
 
     <div class="main" id="editor">
-        <h2 style="color:var(--accent); margin:0; font-size: 18px;">EDITING MODE</h2>
+        <h2 style="color:var(--accent); margin:0; font-size: 20px; border-bottom: 1px solid #222; padding-bottom: 15px;">CHỈNH SỬA SCRIPT</h2>
+        
         <label>Tên Script:</label>
         <input type="text" id="name_i" oninput="triggerAutoSave()">
-        <label>Link Ảnh:</label>
-        <input type="text" id="img_i" oninput="triggerAutoSave()">
-        <label>Nội dung Script (Lua):</label>
-        <textarea id="script_i" rows="15" oninput="triggerAutoSave()"></textarea>
-        <label>Mô tả:</label>
+        
+        <label>Link Ảnh (Để trống dùng mặc định):</label>
+        <div class="input-group">
+            <input type="text" id="img_i" placeholder="Dán link ảnh Picsart/Discord..." oninput="triggerAutoSave()">
+            <button class="btn-paste" onclick="pasteTo('img_i')">DÁN</button>
+        </div>
+
+        <label>Tỉ lệ hiển thị (Ratio):</label>
+        <select id="ratio_i" onchange="triggerAutoSave()">
+            <option value="ratio-1-1">Tỉ lệ 1:1 (Vuông)</option>
+            <option value="ratio-16-9">Tỉ lệ 16:9 (Ngang)</option>
+            <option value="ratio-4-3">Tỉ lệ 4:3 (Cơ bản)</option>
+            <option value="ratio-2-3">Tỉ lệ 2:3 (Dọc)</option>
+        </select>
+        
+        <label>Nội dung Script (Lua Source):</label>
+        <textarea id="script_i" rows="16" oninput="triggerAutoSave()" style="font-family: monospace;"></textarea>
+        
+        <label>Mô tả / Creator:</label>
         <textarea id="desc_i" rows="3" oninput="triggerAutoSave()"></textarea>
     </div>
 
     <script>
         const API = window.location.origin;
-        const DEF = "https://cdn.discordapp.com/attachments/1472992341156434219/1472992415303340276/Picsart_26-02-16_14-27-25-185.jpg";
+        const DEF_IMG = "https://cdn.discordapp.com/attachments/1472992341156434219/1472992415303340276/Picsart_26-02-16_14-27-25-185.jpg?ex=69949696&is=69934516&hm=67c31316f28cd9797f85a81657b2a6dbfa4d26325af3d5973c9d4eeb868c3545&";
         let db = { tabs: [], scripts: [] }, curI = null, saveTimer;
 
-        function login() { if(document.getElementById('pass').value === "0904") { document.getElementById('auth').style.display='none'; load(); } else alert("Sai!"); }
+        function login() { if(document.getElementById('pass').value === "0904") { document.getElementById('auth').style.display='none'; load(); } else alert("Sai mật khẩu!"); }
         
         async function load() {
-            const r = await fetch(`${API}/get-hub`);
-            db = await r.json();
-            render();
+            try {
+                const r = await fetch(`${API}/get-hub`);
+                db = await r.json();
+                render();
+            } catch(e) { console.error("Lỗi tải data"); }
         }
 
         function render() {
@@ -127,7 +144,7 @@
                         ${scripts.map(s => `
                             <div class="file-item ${curI === s.originIdx ? 'active' : ''}" onclick="openE(${s.originIdx})">
                                 <span>📄 ${s.name}</span>
-                                <span onclick="event.stopPropagation(); askDelS(${s.originIdx})" style="color:red">✕</span>
+                                <span onclick="event.stopPropagation(); askDelS(${s.originIdx})" style="color:#ff4d4d; font-weight:bold">✕</span>
                             </div>
                         `).join('')}
                     </div>
@@ -136,16 +153,14 @@
             });
         }
 
-        // --- HỆ THỐNG MODAL TỰ TẠO ---
+        // MODAL SYSTEM
         function showModal(title, fieldsHTML, onOk) {
             const m = document.getElementById('modal');
             document.getElementById('modalTitle').innerText = title;
             document.getElementById('modalFields').innerHTML = fieldsHTML;
             m.style.display = 'flex';
-            // Auto focus vào input đầu tiên
-            const firstInp = document.getElementById('modalFields').querySelector('input');
-            if(firstInp) setTimeout(() => firstInp.focus(), 100);
-            
+            const input = document.getElementById('modalFields').querySelector('input');
+            if(input) setTimeout(() => input.focus(), 150);
             document.getElementById('modalOk').onclick = () => { onOk(); closeModal(); };
         }
         function closeModal() { document.getElementById('modal').style.display = 'none'; }
@@ -154,28 +169,29 @@
             try {
                 const text = await navigator.clipboard.readText();
                 document.getElementById(id).value = text;
-            } catch(e) { showToast("Vui lòng cấp quyền dán!"); }
+                triggerAutoSave(true);
+            } catch(e) { showToast("⚠️ Không có quyền truy cập Clipboard!"); }
         }
 
-        // --- TÍNH NĂNG KH ---
+        // TÍNH NĂNG KH
         function askKH(tabName) {
             const html = `
                 <label>Tên Script:</label>
-                <input type="text" id="kh_name" placeholder="Nhập tên...">
-                <label>Link Script:</label>
+                <input type="text" id="kh_name" placeholder="Ví dụ: Auto Farm...">
+                <label>Link Script (Raw):</label>
                 <div class="input-group">
-                    <input type="text" id="kh_link" placeholder="Dán link raw...">
+                    <input type="text" id="kh_link" placeholder="https://raw.githubusercontent...">
                     <button class="btn-paste" onclick="pasteTo('kh_link')">DÁN</button>
                 </div>
             `;
-            showModal("KHỞI TẠO LOADSTRING", html, () => {
+            showModal("KHỞI TẠO NHANH (KH)", html, () => {
                 const name = document.getElementById('kh_name').value;
                 const link = document.getElementById('kh_link').value;
                 if(!name || !link) return;
                 db.scripts.push({
-                    name: name, tab: tabName, img: DEF,
+                    name: name, tab: tabName, img: DEF_IMG,
                     script: `loadstring(game:HttpGet("${link.trim()}"))()`,
-                    describe: "Quick Load", ratio: "ratio-1-1"
+                    describe: "Tạo nhanh bởi KH", ratio: "ratio-1-1"
                 });
                 render();
                 openE(db.scripts.length - 1);
@@ -183,9 +199,9 @@
             });
         }
 
-        // --- CÁC HÀM QUẢN LÝ ---
+        // QUẢN LÝ TAB & SCRIPT
         function askAddT() {
-            showModal("THÊM TAB MỚI", `<input type="text" id="t_name" placeholder="Tên tab...">`, () => {
+            showModal("TẠO TAB MỚI", `<input type="text" id="t_name" placeholder="Nhập tên tab...">`, () => {
                 const n = document.getElementById('t_name').value;
                 if(n) { db.tabs.push({Name: n}); render(); triggerAutoSave(true); }
             });
@@ -201,34 +217,38 @@
             });
         }
         function askDelT(i) {
-            showModal("CẢNH BÁO", `<p>Xóa Tab này sẽ xóa sạch script bên trong?</p>`, () => {
+            showModal("XÁC NHẬN XÓA", `<p style="text-align:center">Xóa tab <b>${db.tabs[i].Name}</b> và toàn bộ script bên trong?</p>`, () => {
                 const n = db.tabs[i].Name; db.tabs.splice(i,1);
                 db.scripts = db.scripts.filter(s => s.tab !== n);
                 render(); triggerAutoSave(true);
             });
         }
         function askDelS(i) {
-            showModal("XÓA SCRIPT", `<p>Bạn muốn xóa script này?</p>`, () => {
+            showModal("XÓA SCRIPT", `<p style="text-align:center">Xóa script <b>${db.scripts[i].name}</b>?</p>`, () => {
                 db.scripts.splice(i,1); document.getElementById('editor').style.display='none';
                 curI = null; render(); triggerAutoSave(true);
             });
         }
 
-        // --- CHỈNH SỬA & AUTO SAVE ---
+        // EDITOR & AUTO SAVE
         function openE(i) {
             curI = i; const s = db.scripts[i];
             document.getElementById('editor').style.display = 'block';
             document.getElementById('name_i').value = s.name;
-            document.getElementById('img_i').value = s.img === DEF ? "" : s.img;
-            document.getElementById('script_i').value = s.script;
-            document.getElementById('desc_i').value = s.describe;
+            document.getElementById('img_i').value = (s.img === DEF_IMG) ? "" : s.img;
+            document.getElementById('ratio_i').value = s.ratio || "ratio-1-1";
+            document.getElementById('script_i').value = s.script || "";
+            document.getElementById('desc_i').value = s.describe || "";
             render();
+            document.getElementById('editor').scrollTop = 0;
         }
 
         function triggerAutoSave(now = false) {
             if(curI !== null) {
                 db.scripts[curI].name = document.getElementById('name_i').value;
-                db.scripts[curI].img = document.getElementById('img_i').value || DEF;
+                const linkVal = document.getElementById('img_i').value.trim();
+                db.scripts[curI].img = linkVal === "" ? DEF_IMG : linkVal;
+                db.scripts[curI].ratio = document.getElementById('ratio_i').value;
                 db.scripts[curI].script = document.getElementById('script_i').value;
                 db.scripts[curI].describe = document.getElementById('desc_i').value;
             }
@@ -240,13 +260,13 @@
                     body: JSON.stringify({ newData: db })
                 });
                 showToast("✅ Đã Auto Save!");
-            }, now ? 100 : 1500);
+            }, now ? 50 : 1200);
         }
 
         function showToast(msg) {
             const t = document.getElementById('toast');
             t.innerText = msg; t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2000);
+            setTimeout(() => t.classList.remove('show'), 2500);
         }
 
         function toggleTab(i) { document.getElementById(`tab-block-${i}`).classList.toggle('collapsed'); }
