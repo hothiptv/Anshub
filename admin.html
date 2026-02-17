@@ -191,4 +191,66 @@
             });
         }
         function askEditT(i) {
-            showModal("SỬA TÊN TAB", `<input type="text" id="t_edit" value="${db.tabs
+            showModal("SỬA TÊN TAB", `<input type="text" id="t_edit" value="${db.tabs[i].Name}">`, () => {
+                const n = document.getElementById('t_edit').value;
+                if(n) { 
+                    const old = db.tabs[i].Name; db.tabs[i].Name = n;
+                    db.scripts.forEach(s => { if(s.tab === old) s.tab = n; });
+                    render(); triggerAutoSave(true);
+                }
+            });
+        }
+        function askDelT(i) {
+            showModal("CẢNH BÁO", `<p>Xóa Tab này sẽ xóa sạch script bên trong?</p>`, () => {
+                const n = db.tabs[i].Name; db.tabs.splice(i,1);
+                db.scripts = db.scripts.filter(s => s.tab !== n);
+                render(); triggerAutoSave(true);
+            });
+        }
+        function askDelS(i) {
+            showModal("XÓA SCRIPT", `<p>Bạn muốn xóa script này?</p>`, () => {
+                db.scripts.splice(i,1); document.getElementById('editor').style.display='none';
+                curI = null; render(); triggerAutoSave(true);
+            });
+        }
+
+        // --- CHỈNH SỬA & AUTO SAVE ---
+        function openE(i) {
+            curI = i; const s = db.scripts[i];
+            document.getElementById('editor').style.display = 'block';
+            document.getElementById('name_i').value = s.name;
+            document.getElementById('img_i').value = s.img === DEF ? "" : s.img;
+            document.getElementById('script_i').value = s.script;
+            document.getElementById('desc_i').value = s.describe;
+            render();
+        }
+
+        function triggerAutoSave(now = false) {
+            if(curI !== null) {
+                db.scripts[curI].name = document.getElementById('name_i').value;
+                db.scripts[curI].img = document.getElementById('img_i').value || DEF;
+                db.scripts[curI].script = document.getElementById('script_i').value;
+                db.scripts[curI].describe = document.getElementById('desc_i').value;
+            }
+            clearTimeout(saveTimer);
+            saveTimer = setTimeout(async () => {
+                await fetch(`${API}/save-hub`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ newData: db })
+                });
+                showToast("✅ Đã Auto Save!");
+            }, now ? 100 : 1500);
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg; t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        function toggleTab(i) { document.getElementById(`tab-block-${i}`).classList.toggle('collapsed'); }
+        load();
+    </script>
+</body>
+</html>
