@@ -1,5 +1,5 @@
 const API = window.location.origin;
-const DEF = " https://i.ibb.co/szRg104/image.png";
+const DEF = "https://i.ibb.co/szRg104/image.png";
 let db = { tabs: [], scripts: [] }, curI = null;
 
 // 1. Khởi hhmtạo & Đăng nhập
