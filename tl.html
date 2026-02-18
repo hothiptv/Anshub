@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnsHub | Cắt Ảnh Vuông Tự Động</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+    <style>
+        :root {
+            --primary: #00ffff;
+            --bg: #0a0a0a;
+            --card: #1c1c1c;
+            --text: #ffffff;
+            --accent: #00ff00;
+            --danger: #ff4d4d;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background: var(--card);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid #333;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.1);
+            width: 100%;
+            max-width: 700px; /* Tăng chiều rộng để chứa vùng crop */
+            text-align: center;
+            position: relative;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, var(--primary), transparent, var(--accent));
+            border-radius: 22px;
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 24px;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            color: #888;
+            font-size: 13px;
+            margin-left: 10px;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .custom-file-upload {
+            border: 1px dashed var(--primary);
+            display: inline-block;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: 0.3s;
+            background: rgba(0, 255, 255, 0.05);
+            color: var(--primary);
+        }
+        .custom-file-upload:hover {
+            background: rgba(0, 255, 255, 0.15);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+
+        #imageToCrop {
+            max-width: 100%;
+            display: block; /* Quan trọng để Cropper.js hoạt động */
+            margin: 20px auto;
+            border: 1px solid #555;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+
+        .image-preview-area {
+            min-height: 200px;
+            background: #000;
+            border: 1px solid #444;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .buttons-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap; /* Cho phép xuống dòng trên mobile */
+            justify-content: center;
+        }
+
+        .btn {
+            flex: 1; /* Chia đều không gian */
+            min-width: 120px; /* Giới hạn độ nhỏ */
+            padding: 12px;
+            background: linear-gradient(90deg, #0080ff, #00ffff);
+            border: none;
+            border-radius: 10px;
+            color: #000;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn.red {
+            background: linear-gradient(90deg, #ff4d4d, #ff1a1a);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.4);
+        }
+        .btn.red:hover { box-shadow: 0 5px 15px rgba(255, 0, 0, 0.4); }
+
+        .btn:disabled {
+            background: #444;
+            cursor: not-allowed;
+            opacity: 0.6;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .status {
+            margin-top: 20px;
+            font-size: 13px;
+            height: 20px;
+            color: var(--accent);
+        }
+        .status.error { color: var(--danger); }
+
+        .back-link {
+            display: block;
+            margin-top: 25px;
+            color: #555;
+            text-decoration: none;
+            font-size: 12px;
+        }
+        .back-link:hover { color: var(--primary); }
+
+        /* Cropper.js overrides */
+        .cropper-view-box, .cropper-face {
+            border-radius: 0 !important; /* Đảm bảo khung crop là hình vuông */
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1><span style="color: var(--accent);">AnsHub</span> Image Cropper</h1>
+    
+    <div class="input-group">
+        <label for="imageUpload">Chọn ảnh từ máy của bạn</label>
+        <input type="file" id="imageUpload" accept="image/*">
+        <label for="imageUpload" class="custom-file-upload">
+            <i class="fas fa-upload"></i> Tải ảnh lên
+        </label>
+    </div>
+
+    <div class="image-preview-area">
+        <img id="imageToCrop" src="" alt="Ảnh để cắt" style="display: none;">
+    </div>
+
+    <div class="buttons-group">
+        <button class="btn" id="cropButton" onclick="cropAndDownload()" disabled>Cắt & Tải về (.png)</button>
+        <button class="btn red" id="resetButton" onclick="resetCropper()" disabled>Reset</button>
+    </div>
+
+    <div id="statusMsg" class="status"></div>
+    
+    <a href="/admin" class="back-link">← Quay lại trang Admin</a>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+<script>
+    let cropper;
+    const imageUpload = document.getElementById('imageUpload');
+    const imageToCrop = document.getElementById('imageToCrop');
+    const cropButton = document.getElementById('cropButton');
+    const resetButton = document.getElementById('resetButton');
+    const statusMsg = document.getElementById('statusMsg');
+
+    imageUpload.addEventListener('change', function(e) {
+        if (e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                imageToCrop.src = event.target.result;
+                imageToCrop.style.display = 'block';
+
+                if (cropper) {
+                    cropper.destroy(); // Hủy bỏ instance cũ nếu có
+                }
+
+                // Khởi tạo Cropper.js
+                cropper = new Cropper(imageToCrop, {
+                    aspectRatio: 1, // Tỷ lệ 1:1 (hình vuông)
+                    viewMode: 1, // Hạn chế vùng crop trong giới hạn ảnh
+                    autoCropArea: 0.8, // Tự động chọn 80% vùng crop
+                    responsive: true,
+                    scalable: true,
+                    zoomable: true,
+                    background: false, // Không hiển thị nền checkerboard
+                });
+                cropButton.disabled = false;
+                resetButton.disabled = false;
+                statusMsg.innerText = "Kéo để chọn vùng cắt, sau đó bấm Cắt & Tải về.";
+                statusMsg.className = "status";
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        }
+    });
+
+    function cropAndDownload() {
+        if (cropper) {
+            // Lấy dữ liệu ảnh đã crop dưới dạng Data URL (PNG)
+            const croppedCanvas = cropper.getCroppedCanvas({
+                width: 500, // Độ phân giải ảnh sau khi cắt (có thể điều chỉnh)
+                height: 500,
+            });
+
+            croppedCanvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'anshub_image_square.png'; // Tên file tải về
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url); // Giải phóng bộ nhớ
+
+                statusMsg.innerHTML = "<span style='color: var(--accent);'>✅ Ảnh đã được cắt và tải về!</span>";
+                statusMsg.className = "status";
+            }, 'image/png'); // Định dạng tải về là PNG
+        } else {
+            statusMsg.innerHTML = "<span class='status error'>❌ Chưa có ảnh để cắt!</span>";
+        }
+    }
+
+    function resetCropper() {
+        if (cropper) {
+            cropper.destroy(); // Hủy cropper
+            imageToCrop.style.display = 'none'; // Ẩn ảnh
+            imageToCrop.src = '';
+            imageUpload.value = ''; // Xóa input file
+            cropButton.disabled = true;
+            resetButton.disabled = true;
+            statusMsg.innerText = "Đã reset, hãy tải ảnh mới.";
+            statusMsg.className = "status";
+        }
+    }
+</script>
+</body>
+</html>
