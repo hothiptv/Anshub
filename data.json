@@ -69,7 +69,7 @@
     {
       "name": "Executor",
       "tab": "ANSCRIPT",
-      "img": "https://cdn.discordapp.com/attachments/1472992341156434219/1473160655891857571/Screenshot_2026-02-17-10-34-16-005_com.roblox.client.vnggames.jpg?ex=69953346&is=6993e1c6&hm=284ca89d8c1baf099d20298036bf9e3a43fd969b82ed157a8b0f6a79237ac86a&",
+      "img": "https://i.ibb.co/XrprrFtH/image.png",
       "script": "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/hothiptv/Anscript/Script/Ansexe\"))()",
       "describe": "Script generated via Quick Load",
       "ratio": "ratio-1-1"
