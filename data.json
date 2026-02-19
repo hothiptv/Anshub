@@ -357,7 +357,7 @@
     {
       "name": "Esp v2.5",
       "tab": "ANSCRIPT",
-      "img": "https://i.ibb.co/szRg104/image.png",
+      "img": "https://i.ibb.co/8nTKmpY4/image.png",
       "script": "_G.Config = {\n    TextSize = 10,       \n    BarHeight = 10,         \n    BarWidth = 100,         \n    ShakeIntensity = 10,     \n    Notify = \"ANS ESP V2.5 CHỈNH SỬA\",\n    ChatDuration = 10        \n}\nloadstring(game:HttpGet(\"https://ansbm-production.up.railway.app/raw/Ansespv2.5/0904\"))()\n",
       "describe": "Creator: An Hub",
       "ratio": "ratio-1-1"
