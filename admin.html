@@ -2,156 +2,173 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Panel - Pro Sidebar Mode</title>
+    <title>AnsHub - Ultra Admin Panel</title>
     <style>
-        :root { --accent: #00ff96; --warn: #ffae00; --bg: #000; --sidebar-bg: #0a0a0a; --panel: #161616; }
+        :root { 
+            --accent: #00ff96; 
+            --warn: #ffae00; 
+            --bg: #050505; 
+            --sidebar-bg: #0a0a0a; 
+            --panel: #111; 
+            --input-bg: #161616;
+            --glow: 0 0 15px rgba(0, 255, 150, 0.3);
+        }
+
+        /* Hiệu ứng chuyển động toàn trang */
+        * { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        
         body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        
-        /* Sidebar - Tối ưu cuộn */
-        .sidebar { width: 340px; background: var(--sidebar-bg); border-right: 1px solid #222; display: flex; flex-direction: column; height: 100vh; }
-        .sidebar-header { padding: 20px; border-bottom: 1px solid #222; flex-shrink: 0; }
-        .sidebar-content { flex: 1; overflow-y: auto; padding: 10px; scrollbar-width: thin; scrollbar-color: #333 transparent; }
-        .sidebar-content::-webkit-scrollbar { width: 5px; }
-        .sidebar-content::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
-        
-        /* Tab Block */
-        .tab-block { margin-bottom: 10px; background: #111; border-radius: 8px; border: 1px solid #222; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; }
-        
-        /* TRẠNG THÁI ẨN (CÁI QUE) */
+
+        /* Sidebar - Nâng cấp Glassmorphism */
+        .sidebar { width: 340px; background: var(--sidebar-bg); border-right: 1px solid #222; display: flex; flex-direction: column; height: 100vh; position: relative; }
+        .sidebar-header { padding: 25px; border-bottom: 1px solid #222; }
+        .sidebar-content { flex: 1; overflow-y: auto; padding: 10px; scrollbar-width: none; }
+        .sidebar-content::-webkit-scrollbar { display: none; }
+
+        /* Tab Block - Hiệu ứng Que xịn hơn */
+        .tab-block { margin-bottom: 12px; background: #111; border-radius: 12px; border: 1px solid #222; overflow: hidden; }
         .tab-block.is-hidden { 
-            height: 6px; padding: 0; background: var(--accent); border: none; overflow: visible; opacity: 0.4; margin: 20px 10px; cursor: pointer;
+            height: 4px; padding: 0; background: var(--accent); border: none; opacity: 0.3; margin: 25px 15px; cursor: pointer; position: relative;
         }
-        .tab-block.is-hidden:hover { opacity: 1; height: 8px; box-shadow: 0 0 15px var(--accent); }
-        .tab-block.is-hidden .tab-header, .tab-block.is-hidden .file-list { display: none; }
-        
-        /* Nút hiện khi ở trạng thái que */
-        .btn-unhide { 
-            display: none; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-            background: #fff; color: #000; border: none; font-size: 9px; font-weight: 900; 
-            padding: 3px 10px; border-radius: 20px; cursor: pointer; white-space: nowrap; z-index: 10;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        .tab-block.is-hidden:hover { opacity: 1; box-shadow: 0 0 20px var(--accent); transform: scaleX(1.05); }
+        .tab-block.is-hidden * { display: none !important; }
+        .tab-block.is-hidden::after { 
+            content: 'UNHIDE'; position: absolute; top: -20px; left: 50%; transform: translateX(-50%); 
+            font-size: 8px; color: var(--accent); letter-spacing: 2px; font-weight: bold;
         }
-        .tab-block.is-hidden .btn-unhide { display: block; }
 
-        /* Header & Actions */
-        .tab-header { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #181818; cursor: pointer; border-radius: 8px 8px 0 0; }
-        .tab-title { color: var(--accent); font-weight: bold; font-size: 13px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
-        .tab-actions { display: flex; gap: 4px; }
-        .tab-actions button { background: #222; border: 1px solid #333; cursor: pointer; font-size: 11px; color: #aaa; padding: 5px 6px; border-radius: 4px; transition: 0.2s; }
-        .tab-actions button:hover { background: #333; color: #fff; }
+        /* Header & Action */
+        .tab-header { display: flex; align-items: center; justify-content: space-between; padding: 15px; background: #181818; cursor: pointer; }
+        .tab-header:hover { background: #222; }
+        .tab-title { color: var(--accent); font-weight: bold; font-size: 13px; text-transform: uppercase; }
         
-        .btn-kh { color: var(--warn) !important; font-weight: bold; border: 1px solid var(--warn) !important; }
-        .btn-hide-tab { color: #555 !important; }
-
         /* File List */
-        .file-list { max-height: 2000px; overflow: hidden; transition: max-height 0.4s ease; background: #0c0c0c; }
-        .tab-block.collapsed .file-list { max-height: 0; }
-        .file-item { display: flex; justify-content: space-between; padding: 12px 15px; font-size: 13px; color: #ccc; border-bottom: 1px solid #1a1a1a; cursor: pointer; transition: 0.2s; }
-        .file-item:hover { background: #1a1a1a; padding-left: 20px; color: var(--accent); }
-        .file-item.active { background: #1a2e25; color: var(--accent); border-left: 4px solid var(--accent); }
+        .file-item { 
+            display: flex; justify-content: space-between; padding: 12px 20px; font-size: 13px; color: #888; 
+            border-bottom: 1px solid #1a1a1a; cursor: pointer; position: relative;
+        }
+        .file-item:hover { background: #1a1a1a; color: #fff; padding-left: 25px; }
+        .file-item.active { background: #1a2e25; color: var(--accent); border-left: 4px solid var(--accent); box-shadow: inset 10px 0 20px rgba(0,255,150,0.05); }
 
-        /* Editor */
-        .main { flex: 1; padding: 30px; background: #050505; overflow-y: auto; display: none; padding-bottom: 100px; }
-        label { color: var(--accent); font-size: 11px; text-transform: uppercase; font-weight: bold; margin-top: 25px; display: block; letter-spacing: 1px; }
-        input, textarea, select { width: 100%; padding: 12px; margin-top: 8px; background: #111; border: 1px solid #333; color: #fff; border-radius: 6px; outline: none; box-sizing: border-box; transition: 0.3s; }
-        input:focus, textarea:focus { border-color: var(--accent); background: #161616; }
+        /* Editor - Phân vùng cực đẹp */
+        .main { flex: 1; padding: 40px; background: radial-gradient(circle at top right, #0a0a0a, #050505); overflow-y: auto; display: none; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        label { color: var(--accent); font-size: 10px; text-transform: uppercase; font-weight: 900; margin-top: 30px; display: block; letter-spacing: 2px; opacity: 0.7; }
         
-        /* Modal & Toast */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 10000; backdrop-filter: blur(5px); }
-        .modal { background: var(--panel); border: 1px solid var(--accent); padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 0 30px rgba(0, 255, 150, 0.2); }
-        #toast { position: fixed; bottom: 30px; right: -350px; background: var(--accent); color: #000; padding: 15px 30px; border-radius: 8px; font-weight: bold; transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 11000; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-        #toast.show { right: 30px; }
+        input, textarea, select { 
+            width: 100%; padding: 15px; margin-top: 10px; background: var(--input-bg); border: 1px solid #222; 
+            color: #fff; border-radius: 8px; outline: none; box-sizing: border-box; font-size: 14px;
+        }
+        input:focus, textarea:focus { border-color: var(--accent); box-shadow: var(--glow); background: #1a1a1a; }
 
-        .input-group { position: relative; display: flex; align-items: center; }
-        .btn-paste { position: absolute; right: 8px; background: var(--warn); color: #000; border: none; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; top: 12px; }
+        /* Input Group - Nút dán xịn */
+        .input-group { position: relative; }
+        .btn-paste { 
+            position: absolute; right: 10px; top: 18px; background: var(--accent); color: #000; 
+            border: none; padding: 6px 15px; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer;
+        }
+        .btn-paste:hover { transform: scale(1.1); box-shadow: 0 0 15px var(--accent); }
+
+        /* Toast - Thông báo kiểu Dynamic Island */
+        #toast { 
+            position: fixed; top: -100px; left: 50%; transform: translateX(-50%); 
+            background: rgba(0, 255, 150, 0.9); color: #000; padding: 12px 30px; 
+            border-radius: 30px; font-weight: bold; transition: 0.5s; z-index: 10000; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+        }
+        #toast.show { top: 30px; }
+
+        /* Modal - Nâng cấp */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; justify-content: center; align-items: center; z-index: 10000; }
+        .modal { background: #111; border: 1px solid #333; padding: 30px; border-radius: 20px; width: 350px; text-align: center; border-top: 4px solid var(--accent); }
+        
+        .btn-kh { color: var(--warn) !important; font-weight: bold; border: 1px solid var(--warn) !important; background: rgba(255,174,0,0.1) !important; }
+
+        /* Auth */
         .auth { position: fixed; inset: 0; background: #000; z-index: 99999; display: flex; justify-content: center; align-items: center; }
+        .auth-box { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
     </style>
 </head>
 <body>
 
-    <div id="toast">✅ Đã Auto Save!</div>
+    <div id="toast">✅ SYSTEM UPDATED</div>
 
     <div id="modal" class="modal-overlay">
         <div class="modal">
-            <h3 id="modalTitle" style="color:var(--accent); text-align:center; margin-top:0; font-family: 'Orbitron', sans-serif; letter-spacing: 2px;">THÔNG BÁO</h3>
+            <h3 id="modalTitle" style="color:var(--accent);">THÔNG BÁO</h3>
             <div id="modalFields"></div>
-            <div style="display:flex; gap:10px; margin-top:20px">
-                <button onclick="closeModal()" style="flex:1; padding:12px; background:#333; color:#fff; border:none; border-radius:6px; cursor:pointer">HỦY</button>
-                <button id="modalOk" style="flex:1; padding:12px; background:var(--accent); color:#000; border:none; border-radius:6px; font-weight:bold; cursor:pointer">XÁC NHẬN</button>
+            <div style="display:flex; gap:10px; margin-top:25px">
+                <button onclick="closeModal()" style="flex:1; padding:12px; background:#222; color:#fff; border:none; border-radius:8px; cursor:pointer">HỦY</button>
+                <button id="modalOk" style="flex:1; padding:12px; background:var(--accent); color:#000; border:none; border-radius:8px; font-weight:bold; cursor:pointer">XÁC NHẬN</button>
             </div>
         </div>
     </div>
 
     <div id="auth" class="auth">
-        <div style="text-align:center">
-            <h1 style="color:var(--accent); letter-spacing: 5px; font-weight: 900;">ANSCRIPT</h1>
-            <p style="color: #444; margin-top: -10px; font-size: 12px;">ADMINISTRATOR SYSTEM</p>
-            <input type="password" id="pass" placeholder="Password..." style="text-align:center; width: 280px; border: 1px solid #222;">
-            <br><button onclick="login()" style="width:280px; padding:15px; background:var(--accent); border:none; font-weight:bold; cursor:pointer; margin-top:15px; border-radius: 8px;">UNLOCK ACCESS</button>
+        <div class="auth-box" style="text-align:center">
+            <h1 style="color:var(--accent); letter-spacing: 10px; font-weight: 900; margin:0;">ANSHUB</h1>
+            <p style="color: #444; font-size: 10px; margin-bottom: 30px;">SECURED ACCESS ONLY</p>
+            <input type="password" id="pass" placeholder="Enter Code..." style="text-align:center; width: 250px; border: 1px solid #222; background: #000;">
+            <br><button onclick="login()" style="width:250px; padding:15px; background:var(--accent); border:none; font-weight:bold; cursor:pointer; margin-top:20px; border-radius: 40px;">UNLOCK</button>
         </div>
     </div>
 
     <div class="sidebar">
         <div class="sidebar-header">
-            <h3 style="color:var(--accent); margin:0 0 10px 0; font-size: 14px; letter-spacing: 1px;">DATABASE MANAGER</h3>
-            <button onclick="askAddT()" style="width:100%; padding:12px; background:#111; color:var(--accent); border:1px dashed var(--accent); border-radius:6px; cursor:pointer; font-weight:bold; transition: 0.3s;">+ THÊM TAB MỚI</button>
+            <p style="color:#444; font-size: 10px; font-weight: bold; margin:0 0 15px 5px; letter-spacing: 2px;">V3.0 CORE</p>
+            <button onclick="askAddT()" style="width:100%; padding:14px; background:rgba(0,255,150,0.05); color:var(--accent); border:1px solid var(--accent); border-radius:10px; cursor:pointer; font-weight:bold;">+ CREATE NEW TAB</button>
         </div>
         <div class="sidebar-content" id="sList"></div>
     </div>
 
     <div class="main" id="editor">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; padding-bottom: 15px;">
-            <h2 style="color:var(--accent); margin:0; font-size: 20px;">CHỈNH SỬA SCRIPT</h2>
-            <div id="status-indicator" style="font-size: 10px; color: #444;">READY</div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+            <div>
+                <h2 style="color:var(--accent); margin:0; font-size: 24px; letter-spacing: -1px;">Editor Workspace</h2>
+                <div id="status-indicator" style="font-size: 10px; color: #444; margin-top: 5px; font-weight: bold;">ACTIVE SESSION</div>
+            </div>
         </div>
         
-        <label>Tên Script:</label>
+        <label>Script Name</label>
         <input type="text" id="name_i" placeholder="Ví dụ: Blox Fruit Hub" oninput="triggerAutoSave()">
         
-        <label>Link Ảnh (Banner):</label>
+        <label>Image Link (Direct or IBB Page)</label>
         <div class="input-group">
-            <input type="text" id="img_i" placeholder="Dán link ảnh tại đây..." oninput="triggerAutoSave()">
-            <button class="btn-paste" onclick="pasteTo('img_i')">DÁN</button>
+            <input type="text" id="img_i" placeholder="Dán link ibb.co vào đây, nó sẽ tự đổi..." oninput="handleImageInput(this)">
+            <button class="btn-paste" onclick="pasteImageLink()">DÁN</button>
         </div>
 
-        <label>Tỉ lệ hiển thị (Ratio):</label>
+        <label>Screen Ratio</label>
         <select id="ratio_i" onchange="triggerAutoSave()">
-            <option value="ratio-1-1">1:1 (Hình vuông)</option>
-            <option value="ratio-16-9">16:9 (Hình chữ nhật nằm)</option>
-            <option value="ratio-4-3">4:3 (Màn hình cũ)</option>
-            <option value="ratio-2-3">2:3 (Dọc ngắn)</option>
-            <option value="ratio-9-16">9:16 (Dọc điện thoại)</option>
+            <option value="ratio-1-1">1:1 (Square)</option>
+            <option value="ratio-16-9">16:9 (Landscape)</option>
+            <option value="ratio-9-16">9:16 (Portrait)</option>
         </select>
         
-        <label>Nội dung Script (Lua Code):</label>
-        <textarea id="script_i" rows="14" oninput="triggerAutoSave()" style="font-family: 'Consolas', monospace; font-size: 13px; color: #00ff96; border-color: #1a2e25;"></textarea>
+        <label>Lua Script Code</label>
+        <textarea id="script_i" rows="12" oninput="triggerAutoSave()" style="font-family: 'Consolas', monospace; color: #00ff96; background: #080808;"></textarea>
         
-        <label>Mô tả / Tác giả:</label>
-        <textarea id="desc_i" rows="3" placeholder="Nhập mô tả ngắn gọn..." oninput="triggerAutoSave()"></textarea>
+        <label>Description</label>
+        <textarea id="desc_i" rows="3" placeholder="Script info..." oninput="triggerAutoSave()"></textarea>
     </div>
 
     <script>
         const API = window.location.origin;
         const DEF_IMG = "https://i.ibb.co/szRg104/image.png";
         let db = { tabs: [], scripts: [] }, curI = null, saveTimer;
-        
-        let collapsedTabs = new Set(); 
-        let hiddenTabs = new Set();    // Mặc định sẽ cho vào đây khi load
+        let hiddenTabs = new Set();
 
-        function login() { if(document.getElementById('pass').value === "0904") { document.getElementById('auth').style.display='none'; load(); } else alert("Sai mật khẩu!"); }
+        function login() { if(document.getElementById('pass').value === "0904") { document.getElementById('auth').style.display='none'; load(); } else alert("Access Denied!"); }
         
         async function load() {
             try {
                 const r = await fetch(`${API}/get-hub`);
                 db = await r.json();
-                
-                // MẶC ĐỊNH: Thu hết tab thành "Que" khi mới vào
-                db.tabs.forEach((_, index) => {
-                    hiddenTabs.add(index);
-                });
-                
+                db.tabs.forEach((_, i) => hiddenTabs.add(i)); // Mặc định thu hết
                 render();
-            } catch(e) { console.error("Lỗi kết nối Server"); }
+            } catch(e) { showToast("❌ CONNECT ERROR"); }
         }
 
         function render() {
@@ -159,30 +176,25 @@
             container.innerHTML = "";
             db.tabs.forEach((t, ti) => {
                 const scripts = db.scripts.map((s, idx) => ({...s, originIdx: idx})).filter(s => s.tab === t.Name);
-                const block = document.createElement('div');
-                
-                const isCollapsed = collapsedTabs.has(ti);
                 const isHidden = hiddenTabs.has(ti);
                 
-                block.className = `tab-block ${isCollapsed ? 'collapsed' : ''} ${isHidden ? 'is-hidden' : ''}`;
+                const block = document.createElement('div');
+                block.className = `tab-block ${isHidden ? 'is-hidden' : ''}`;
+                block.onclick = isHidden ? () => toggleHide(ti) : null;
                 
                 block.innerHTML = `
-                    <button class="btn-unhide" onclick="toggleHide(${ti})">HIỆN: ${t.Name.toUpperCase()}</button>
-                    <div class="tab-header" onclick="toggleTab(${ti})">
+                    <div class="tab-header" onclick="toggleHide(${ti})">
                         <div class="tab-title">📁 ${t.Name}</div>
                         <div class="tab-actions">
-                            <button class="btn-hide-tab" onclick="event.stopPropagation(); toggleHide(${ti})" title="Thu gọn thành que">👁️</button>
-                            <button onclick="event.stopPropagation(); askEditT(${ti})">✏️</button>
-                            <button onclick="event.stopPropagation(); askDelT(${ti})">🗑️</button>
                             <button class="btn-kh" onclick="event.stopPropagation(); askKH('${t.Name}', ${ti})">KH</button>
+                            <button onclick="event.stopPropagation(); askDelT(${ti})">🗑️</button>
                         </div>
                     </div>
                     <div class="file-list">
-                        ${scripts.length === 0 ? '<div style="padding:15px; font-size:11px; color:#444; text-align:center">Trống...</div>' : ''}
                         ${scripts.map(s => `
                             <div class="file-item ${curI === s.originIdx ? 'active' : ''}" onclick="openE(${s.originIdx})">
-                                <span>📄 ${s.name}</span>
-                                <span onclick="event.stopPropagation(); askDelS(${s.originIdx})" style="color:#ff4d4d;">✕</span>
+                                <span>${s.name}</span>
+                                <span onclick="event.stopPropagation(); askDelS(${s.originIdx})" style="opacity:0.3">✕</span>
                             </div>
                         `).join('')}
                     </div>
@@ -191,96 +203,32 @@
             });
         }
 
+        // --- HÀM TỰ ĐỔI LINK ẢNH QUAN TRỌNG ---
+        function handleImageInput(input) {
+            let val = input.value.trim();
+            // Nếu là link trang ibb.co/abc
+            const match = val.match(/ibb\.co\/([a-zA-Z0-9]+)/);
+            if (match && match[1]) {
+                const code = match[1];
+                input.value = `https://i.ibb.co/${code}/image.png`;
+                showToast("⚡ AUTO CONVERTED IBB LINK!");
+            }
+            triggerAutoSave();
+        }
+
+        async function pasteImageLink() {
+            try {
+                const text = await navigator.clipboard.readText();
+                const input = document.getElementById('img_i');
+                input.value = text;
+                handleImageInput(input);
+            } catch(e) { showToast("⚠️ Paste Error"); }
+        }
+
         function toggleHide(i) {
             if (hiddenTabs.has(i)) hiddenTabs.delete(i);
             else hiddenTabs.add(i);
             render();
-        }
-
-        function toggleTab(i) {
-            if (collapsedTabs.has(i)) collapsedTabs.delete(i);
-            else collapsedTabs.add(i);
-            render();
-        }
-
-        // MODAL SYSTEM
-        function showModal(title, fieldsHTML, onOk) {
-            const m = document.getElementById('modal');
-            document.getElementById('modalTitle').innerText = title;
-            document.getElementById('modalFields').innerHTML = fieldsHTML;
-            m.style.display = 'flex';
-            document.getElementById('modalOk').onclick = () => { onOk(); closeModal(); };
-        }
-        function closeModal() { document.getElementById('modal').style.display = 'none'; }
-
-        async function pasteTo(id) {
-            try {
-                const text = await navigator.clipboard.readText();
-                document.getElementById(id).value = text;
-                triggerAutoSave(true);
-            } catch(e) { showToast("⚠️ Không thể dán!"); }
-        }
-
-        function askKH(tabName, tabIdx) {
-            const html = `
-                <label>Tên Script:</label>
-                <input type="text" id="kh_name" placeholder="Tên hiển thị...">
-                <label>Link Raw Script:</label>
-                <div class="input-group">
-                    <input type="text" id="kh_link" placeholder="https://raw.githubusercontent.com/...">
-                </div>
-            `;
-            showModal("KHỞI TẠO NHANH (KH)", html, () => {
-                const name = document.getElementById('kh_name').value;
-                const link = document.getElementById('kh_link').value;
-                if(!name || !link) return;
-                
-                // Tự động bung tab ra khi thêm thành công
-                hiddenTabs.delete(tabIdx);
-                collapsedTabs.delete(tabIdx);
-
-                db.scripts.push({
-                    name: name, tab: tabName, img: DEF_IMG,
-                    script: `loadstring(game:HttpGet("${link.trim()}"))()`,
-                    describe: "Creator: An Hub", ratio: "ratio-1-1"
-                });
-                render();
-                openE(db.scripts.length - 1);
-                triggerAutoSave(true);
-            });
-        }
-
-        function askAddT() {
-            showModal("TẠO TAB MỚI", `<input type="text" id="t_name" placeholder="Tên tab...">`, () => {
-                const n = document.getElementById('t_name').value;
-                if(n) { db.tabs.push({Name: n}); render(); triggerAutoSave(true); }
-            });
-        }
-
-        function askEditT(i) {
-            showModal("SỬA TÊN TAB", `<input type="text" id="t_edit" value="${db.tabs[i].Name}">`, () => {
-                const n = document.getElementById('t_edit').value;
-                if(n) { 
-                    const old = db.tabs[i].Name; db.tabs[i].Name = n;
-                    db.scripts.forEach(s => { if(s.tab === old) s.tab = n; });
-                    render(); triggerAutoSave(true);
-                }
-            });
-        }
-
-        function askDelT(i) {
-            showModal("XÁC NHẬN XÓA", `<p style="text-align:center; color:red">Xóa tab <b>${db.tabs[i].Name}</b> sẽ xóa mọi script bên trong!</p>`, () => {
-                const n = db.tabs[i].Name; db.tabs.splice(i,1);
-                db.scripts = db.scripts.filter(s => s.tab !== n);
-                render(); triggerAutoSave(true);
-            });
-        }
-
-        function askDelS(i) {
-            showModal("XÓA SCRIPT", `<p style="text-align:center">Bạn muốn xóa <b>${db.scripts[i].name}</b>?</p>`, () => {
-                db.scripts.splice(i,1); document.getElementById('editor').style.display='none';
-                curI = null; render(); triggerAutoSave(true);
-            });
         }
 
         function openE(i) {
@@ -291,7 +239,6 @@
             document.getElementById('ratio_i').value = s.ratio || "ratio-1-1";
             document.getElementById('script_i').value = s.script || "";
             document.getElementById('desc_i').value = s.describe || "";
-            document.getElementById('status-indicator').innerText = "EDITING: " + s.name.toUpperCase();
             render();
         }
 
@@ -312,10 +259,61 @@
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({ newData: db })
                     });
-                    showToast("✅ DATABASE UPDATED!");
-                } catch(e) { showToast("❌ SAVE FAILED!"); }
-            }, now ? 50 : 1000);
+                    showToast("✅ DATABASE SECURED");
+                } catch(e) { showToast("❌ SAVE ERROR"); }
+            }, now ? 50 : 1500);
         }
+
+        function askKH(tabName, tabIdx) {
+            const html = `
+                <input type="text" id="kh_name" placeholder="Script Name..." style="margin-bottom:10px">
+                <input type="text" id="kh_link" placeholder="GitHub Raw Link...">
+            `;
+            showModal("KHỞI TẠO NHANH", html, () => {
+                const name = document.getElementById('kh_name').value;
+                const link = document.getElementById('kh_link').value;
+                if(!name || !link) return;
+                hiddenTabs.delete(tabIdx);
+                db.scripts.push({
+                    name: name, tab: tabName, img: DEF_IMG,
+                    script: `loadstring(game:HttpGet("${link.trim()}"))()`,
+                    describe: "Creator: AnsHub", ratio: "ratio-1-1"
+                });
+                render();
+                openE(db.scripts.length - 1);
+                triggerAutoSave(true);
+            });
+        }
+
+        function askAddT() {
+            showModal("NEW TAB", `<input type="text" id="t_name" placeholder="Tab Name...">`, () => {
+                const n = document.getElementById('t_name').value;
+                if(n) { db.tabs.push({Name: n}); render(); triggerAutoSave(true); }
+            });
+        }
+
+        function askDelT(i) {
+            showModal("DELETE TAB", `<p style="color:red">Xóa tab ${db.tabs[i].Name} sẽ mất hết script!</p>`, () => {
+                const n = db.tabs[i].Name; db.tabs.splice(i,1);
+                db.scripts = db.scripts.filter(s => s.tab !== n);
+                render(); triggerAutoSave(true);
+            });
+        }
+
+        function askDelS(i) {
+            showModal("DELETE SCRIPT", `<p>Xóa ${db.scripts[i].name}?</p>`, () => {
+                db.scripts.splice(i,1); document.getElementById('editor').style.display='none';
+                curI = null; render(); triggerAutoSave(true);
+            });
+        }
+
+        function showModal(title, fieldsHTML, onOk) {
+            document.getElementById('modal').style.display = 'flex';
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalFields').innerHTML = fieldsHTML;
+            document.getElementById('modalOk').onclick = () => { onOk(); closeModal(); };
+        }
+        function closeModal() { document.getElementById('modal').style.display = 'none'; }
 
         function showToast(msg) {
             const t = document.getElementById('toast');
