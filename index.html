@@ -1,355 +1,373 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+    <meta name="google-site-verification" content="defDWo-KyZMALZIvVi909d2J2vSmwal9PGbPGi7S0k4" />
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AnsHub v3 | Premium Script Experience</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Montserrat:wght@300;500;800&display=swap" rel="stylesheet">
+    <title>Anscript Hub | TỔNG HỢP SCRIPT</title>
+    <meta name="description" content="Anscript Hub (Anshub) - Trang web tổng hợp Script chất lượng cao do AnsHub phát triển. Giao diện mượt mà, cập nhật liên tục.">
+    <meta name="keywords" content="Anscript Hub, Anshub, Roblox Script, Script Hub, Script Hack, roblox script, hack roblox">
+    
+    <meta property="og:title" content="Anscript Hub | TỔNG HỢP SCRIPT">
+    <meta property="og:description" content="Nơi tổng hợp các Script Roblox AnsHub.">
+    <meta property="og:image" content="https://i.ibb.co/FkXTHyfw/image.png">
+    <meta property="og:url" content="https://anscript-hub.up.railway.app">
+    <meta property="og:type" content="website">
+    
+    <link rel="icon" href="https://www.roblox.com/favicon.ico" type="image/x-icon">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.0/vanilla-tilt.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
     
     <style>
         :root { 
             --accent: #00ff96; 
-            --accent-glow: rgba(0, 255, 150, 0.4);
-            --bg: #000000; 
-            --panel: #0a0a0a;
-            --spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --accent-rgb: 0, 255, 150;
+            --bg: #030303; 
+            --card-bg: rgba(20, 20, 20, 0.6);
+            --glow: 0 0 20px rgba(0, 255, 150, 0.4); 
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
         body { 
-            background: var(--bg); color: #fff; font-family: 'Montserrat', sans-serif; 
-            margin: 0; overflow: hidden; height: 100vh;
+            background: var(--bg); 
+            color: #fff; 
+            font-family: 'Montserrat', sans-serif; 
+            margin: 0; 
+            overflow-x: hidden;
+            min-height: 100vh;
         }
 
-        #star-canvas { position: fixed; inset: 0; z-index: -1; opacity: 0.6; }
-
-        /* --- HOME SCREEN --- */
-        #home-screen {
-            position: fixed; inset: 0; z-index: 5000; background: var(--bg);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: 0.8s var(--spring);
-        }
-        #home-screen.hide { transform: translateY(-110%); opacity: 0; }
-
-        .avatar {
-            width: 120px; height: 120px; border-radius: 50%;
-            border: 3px solid var(--accent); box-shadow: 0 0 30px var(--accent-glow);
-            margin-bottom: 20px; object-fit: cover;
-        }
-        .intro-banner {
-            width: 80%; max-width: 400px; border-radius: 15px; margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        .intro-text { text-align: center; margin-bottom: 40px; }
-        .intro-text h1 { font-family: 'Orbitron'; font-size: 24px; color: var(--accent); margin: 0; }
-        .intro-text p { color: #888; font-size: 12px; font-weight: bold; }
-
-        .btn-start {
-            background: var(--accent); color: #000; border: none; padding: 18px 60px;
-            border-radius: 50px; font-family: 'Orbitron'; font-weight: 900;
-            cursor: pointer; box-shadow: 0 0 20px var(--accent-glow); transition: 0.3s;
-        }
-        .btn-start:hover { transform: scale(1.1); filter: brightness(1.2); }
-
-        /* --- MAIN DASHBOARD --- */
-        .app-container { 
-            height: 100vh; display: flex; flex-direction: column; 
-            transform: scale(0.9); opacity: 0; transition: 0.8s var(--spring);
-        }
-        .app-container.show { transform: scale(1); opacity: 1; }
-
-        .navbar {
-            padding: 20px; display: flex; justify-content: space-between; align-items: center;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
-        }
-        .logo { font-family: 'Orbitron'; font-weight: 900; color: var(--accent); font-size: 20px; }
-
-        /* Search Animation */
-        .search-trigger { font-size: 24px; cursor: pointer; color: var(--accent); }
-        #search-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 6000;
-            display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px);
-        }
-        .search-modal { width: 80%; display: flex; flex-direction: column; align-items: center; }
-        .search-input-box {
-            width: 60px; height: 60px; background: var(--accent); border-radius: 50%;
-            display: flex; align-items: center; transition: 0.6s var(--spring);
-            overflow: hidden; padding: 0 20px;
-        }
-        .search-input-box.expand { width: 100%; border-radius: 15px; height: 60px; }
-        .search-input-box input {
-            width: 100%; background: none; border: none; font-weight: 900;
-            font-size: 18px; color: #000; display: none;
+        /* Hiệu ứng nền lấp lánh */
+        #star-canvas {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at center, #0a1a12 0%, #030303 100%);
         }
 
-        /* --- CONTENT SCROLLING --- */
-        .main-scroll { flex: 1; overflow-y: auto; padding-bottom: 50px; }
-        .tab-row { margin-bottom: 30px; animation: slideRight 0.8s var(--spring) backwards; }
-        @keyframes slideRight { from { transform: translateX(50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-        .tab-header {
-            padding: 0 25px; display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 15px;
+        /* Navbar */
+        .navbar { 
+            display: flex; align-items: center; justify-content: space-between; 
+            padding: 15px 5%; 
+            background: rgba(0,0,0,0.8); 
+            backdrop-filter: blur(15px); 
+            border-bottom: 1px solid rgba(var(--accent-rgb), 0.2); 
+            position: sticky; top: 0; z-index: 1000;
         }
-        .tab-name { font-family: 'Orbitron'; font-size: 14px; color: var(--accent); }
-        .tab-count { background: #222; padding: 4px 10px; border-radius: 10px; font-size: 10px; font-weight: 900; }
-
-        .horizontal-list {
-            display: flex; gap: 15px; overflow-x: auto; padding: 0 25px 10px 25px;
-            scrollbar-width: none;
-        }
-        .horizontal-list::-webkit-scrollbar { display: none; }
-
-        /* Card Script */
-        .card {
-            flex: 0 0 160px; aspect-ratio: 1/1; background: #111; border-radius: 20px;
-            overflow: hidden; position: relative; border: 1px solid #222;
-            transition: 0.4s;
-        }
-        .card:active { transform: scale(0.9); }
-        .card img { width: 100%; height: 100%; object-fit: cover; }
-        .card-name {
-            position: absolute; bottom: 0; width: 100%; padding: 10px;
-            background: linear-gradient(to top, #000, transparent);
-            font-size: 11px; font-weight: 900; text-align: center; color: var(--accent);
+        .logo { 
+            font-family: 'Orbitron'; 
+            color: var(--accent); 
+            font-size: 1.5rem; 
+            text-shadow: var(--glow); 
+            letter-spacing: 3px;
+            font-weight: 700;
         }
 
-        /* --- INFO PAGE (SLIDE FROM RIGHT) --- */
-        #info-page {
-            position: fixed; inset: 0; background: #000; z-index: 8000;
-            transform: translateX(100%); transition: 0.5s cubic-bezier(0.85, 0, 0.15, 1);
-            padding: 40px 25px; display: flex; flex-direction: column; align-items: center;
+        /* Sidebar - Có thể kéo */
+        .sidebar { 
+            position: fixed; top: 0; left: -100%; width: 300px; height: 100%; 
+            background: rgba(5, 5, 5, 0.95); 
+            z-index: 2000; padding: 30px 20px; 
+            transition: 0.6s cubic-bezier(0.85, 0, 0.15, 1); 
+            border-right: 1px solid var(--accent);
+            display: flex; flex-direction: column;
         }
-        #info-page.active { transform: translateX(0); }
+        .sidebar.active { left: 0; }
+        
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            margin-top: 20px;
+            padding-right: 5px;
+        }
+        .sidebar-content::-webkit-scrollbar { width: 4px; }
+        .sidebar-content::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
 
-        .info-img { width: 100%; border-radius: 25px; margin-bottom: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-        .info-title { font-family: 'Orbitron'; font-size: 24px; color: var(--accent); text-align: center; }
-        .info-desc { color: #888; font-size: 13px; text-align: center; margin: 20px 0; line-height: 1.6; }
-        .script-box {
-            width: 100%; background: #0a0a0a; border: 1px solid #222; padding: 15px;
-            border-radius: 15px; font-family: monospace; color: var(--accent);
-            font-size: 11px; word-break: break-all; max-height: 150px; overflow-y: auto;
+        .tab-item { 
+            padding: 15px; margin-bottom: 12px; border-radius: 12px; 
+            border: 1px solid rgba(255,255,255,0.05); 
+            cursor: pointer; text-align: left; color: #aaa; 
+            font-weight: 600; transition: 0.4s;
+            background: rgba(255,255,255,0.02);
+            text-transform: uppercase; font-size: 0.8rem;
+        }
+        .tab-item:hover { color: #fff; border-color: var(--accent); background: rgba(var(--accent-rgb), 0.05); }
+        .tab-item.active { 
+            background: var(--accent); color: #000; 
+            box-shadow: var(--glow); transform: translateX(10px);
         }
 
-        .btn-group { width: 100%; margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
-        .btn-action {
-            width: 100%; padding: 18px; border-radius: 15px; border: none;
-            font-weight: 900; font-family: 'Orbitron'; cursor: pointer; transition: 0.3s;
+        /* Grid & Cards */
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
+            gap: 25px; padding: 30px 5%; 
         }
-        .btn-copy { background: var(--accent); color: #000; box-shadow: 0 0 20px var(--accent-glow); }
-        .btn-close { background: #222; color: #fff; }
+        
+        .card { 
+            background: var(--card-bg); 
+            border-radius: 20px; overflow: hidden; 
+            border: 1px solid rgba(255,255,255,0.1); 
+            cursor: pointer; position: relative; 
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            backdrop-filter: blur(10px);
+            animation: cardSpawn 0.6s backwards;
+        }
+        
+        .card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 30px rgba(var(--accent-rgb), 0.2);
+            transform: translateY(-10px) scale(1.02);
+        }
 
-        /* Search Results Row */
-        #search-results { display: none; margin-bottom: 40px; }
+        @keyframes cardSpawn {
+            0% { opacity: 0; transform: translateY(30px) scale(0.9); filter: blur(10px); }
+            100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
 
+        .card.exit { opacity: 0; transform: scale(0.8); filter: blur(10px); transition: 0.4s; }
+
+        .card-img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+        .card:hover .card-img { transform: scale(1.1); }
+
+        .card-info {
+            position: absolute; bottom: 0; width: 100%; padding: 15px 10px;
+            background: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.8) 50%, transparent 100%);
+            text-align: center;
+        }
+        .card-name { 
+            color: var(--accent); font-family: 'Orbitron'; 
+            font-size: 0.75rem; font-weight: 700; letter-spacing: 1px;
+        }
+
+        /* Search Box */
+        .search-box { 
+            display: flex; align-items: center; 
+            background: rgba(255,255,255,0.05); 
+            border-radius: 30px; padding: 5px 15px; 
+            border: 1px solid rgba(255,255,255,0.1); transition: 0.4s; 
+        }
+        .search-box.active { border-color: var(--accent); background: rgba(0,0,0,0.5); box-shadow: var(--glow); }
+        .search-input { 
+            width: 0; opacity: 0; border: none; outline: none; background: none; 
+            color: #fff; transition: 0.4s; font-family: 'Montserrat'; font-weight: 500;
+        }
+        .search-box.active .search-input { width: 150px; opacity: 1; margin-left: 10px; }
+
+        /* Modal */
+        .modal { 
+            display: none; position: fixed; inset: 0; 
+            background: rgba(0,0,0,0.95); z-index: 3000; 
+            justify-content: center; align-items: center; padding: 20px; 
+            backdrop-filter: blur(10px);
+        }
+        .modal-content { 
+            background: #0d0d0d; border: 1px solid var(--accent); 
+            padding: 30px; border-radius: 25px; width: 100%; max-width: 420px; 
+            box-shadow: 0 0 50px rgba(var(--accent-rgb), 0.15);
+            text-align: center; animation: modalIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes modalIn { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .btn-copy { 
+            background: var(--accent); color: #000; padding: 15px; 
+            border: none; border-radius: 12px; width: 100%; 
+            font-weight: 800; font-family: 'Orbitron'; cursor: pointer; 
+            margin-top: 20px; transition: 0.3s; box-shadow: var(--glow);
+        }
+        .btn-copy:hover { transform: scale(1.02); filter: brightness(1.1); }
+
+        .icon-btn { background: none; border: none; color: var(--accent); font-size: 1.5rem; cursor: pointer; transition: 0.3s; }
+        .icon-btn:hover { transform: scale(1.2); text-shadow: var(--glow); }
+
+        /* Tỉ lệ ảnh Card */
+        .ratio-1-1 { aspect-ratio: 1/1; }
+        .ratio-16-9 { aspect-ratio: 16/9; }
+        .ratio-4-3 { aspect-ratio: 4/3; }
+        .ratio-2-3 { aspect-ratio: 2/3; }
+        .ratio-9-16 { aspect-ratio: 9/16; }
     </style>
 </head>
 <body>
 
     <canvas id="star-canvas"></canvas>
 
-    <div id="home-screen">
-        <img src="https://i.ibb.co/60cyM2Dk/image.png" class="avatar">
-        <img src="https://i.ibb.co/FkXTHyfw/image.png" class="intro-banner">
-        <div class="intro-text">
-            <h1>ANSCRIPT VN</h1>
-            <p>Admin: Hothiptv • Best Roblox Scripts</p>
-        </div>
-        <button class="btn-start" onclick="startApp()">BẮT ĐẦU</button>
-    </div>
-
-    <div class="app-container" id="app">
-        <div class="navbar">
-            <div class="logo">ANSHUB</div>
-            <div class="search-trigger" onclick="openSearch()">🔍</div>
-        </div>
-
-        <div class="main-scroll" id="content">
-            <div id="search-results" class="tab-row">
-                <div class="tab-header">
-                    <div class="tab-name">KẾT QUẢ TÌM KIẾM</div>
-                    <div class="tab-count" id="res-count">0</div>
-                </div>
-                <div class="horizontal-list" id="res-list"></div>
+    <div class="navbar">
+        <button class="icon-btn" onclick="toggleMenu(true)">☰</button>
+        <div class="logo">ANSHUB</div>
+        <div class="nav-btns">
+            <div class="search-box" id="sBox">
+                <input type="text" id="sInp" class="search-input" placeholder="Search script..." oninput="handleSearch()">
+                <button class="icon-btn" onclick="toggleSearch()" style="font-size: 1.2rem;">🔍</button>
             </div>
-
-            <div id="tab-rows-container"></div>
         </div>
     </div>
 
-    <div id="search-overlay" onclick="closeSearch(event)">
-        <div class="search-modal">
-            <div class="search-input-box" id="sBox">
-                <input type="text" id="sInp" placeholder="TÌM SCRIPT..." oninput="handleSearch()">
-            </div>
-            <p style="margin-top: 20px; font-size: 10px; color: #555; font-weight: 900;">NHẤN BÊN NGOÀI ĐỂ ĐÓNG</p>
+    <div id="side" class="sidebar">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+            <h2 style="color:var(--accent); font-family:'Orbitron'; margin:0; font-size: 1.2rem;">CATEGORIES</h2>
+            <button class="icon-btn" onclick="toggleMenu(false)" style="color:#ff4d4d; font-size:2rem">×</button>
         </div>
+        <div class="sidebar-content" id="tList"></div>
     </div>
 
-    <div id="info-page">
-        <img id="info-i" class="info-img">
-        <h2 id="info-t" class="info-title"></h2>
-        <p id="info-d" class="info-desc"></p>
-        <div class="script-box" id="info-s"></div>
-        
-        <div class="btn-group">
-            <button class="btn-action btn-copy" onclick="copyScript()">COPY SCRIPT</button>
-            <button class="btn-action btn-close" onclick="closeInfo()">ĐÓNG</button>
+    <div class="grid" id="g"></div>
+
+    <div id="m" class="modal">
+        <div class="modal-content">
+            <img id="mI" style="width:100%; border-radius:15px; margin-bottom:20px; border:1px solid rgba(255,255,255,0.1)">
+            <h2 id="mT" style="color:var(--accent); margin:0; font-family:'Orbitron'; font-size:1.3rem"></h2>
+            <div style="height:2px; background:var(--accent); width:50px; margin:15px auto; opacity:0.5"></div>
+            <p id="mD" style="color:#aaa; font-size:0.9rem; margin-bottom:20px; line-height:1.6"></p>
+            <button class="btn-copy" onclick="copyCode()">COPY SCRIPT</button>
+            <button onclick="closeModal()" style="background:none; border:none; color:#555; width:100%; margin-top:20px; cursor:pointer; font-weight:600; font-size:0.8rem">CLOSE WINDOW</button>
         </div>
     </div>
 
     <script>
         const API = window.location.origin;
-        let db = { tabs: [], scripts: [] };
-        let curScriptCode = "";
+        const DEF_IMG = "https://i.ibb.co/szRg104/image.png";
+        
+        let db = [], curT = "ALL", curC = "";
 
-        // Bắt đầu vào app
-        function startApp() {
-            document.getElementById('home-screen').classList.add('hide');
-            document.getElementById('app').classList.add('show');
-            loadData();
+        // Hiệu ứng nền Starfield lấp lánh
+        function initStars() {
+            const canvas = document.getElementById('star-canvas');
+            const ctx = canvas.getContext('2d');
+            let stars = [];
+            
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            for(let i=0; i<150; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 1.5,
+                    speed: Math.random() * 0.5,
+                    opacity: Math.random()
+                });
+            }
+
+            function animate() {
+                ctx.clearRect(0,0,canvas.width, canvas.height);
+                stars.forEach(s => {
+                    ctx.fillStyle = `rgba(0, 255, 150, ${s.opacity})`;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.size, 0, Math.PI*2);
+                    ctx.fill();
+                    s.y -= s.speed;
+                    if(s.y < 0) s.y = canvas.height;
+                    s.opacity += (Math.random() - 0.5) * 0.05;
+                    if(s.opacity > 1) s.opacity = 1;
+                    if(s.opacity < 0.1) s.opacity = 0.1;
+                });
+                requestAnimationFrame(animate);
+            }
+            animate();
         }
 
-        async function loadData() {
+        async function init() {
+            initStars();
             try {
                 const r = await fetch(`${API}/get-hub`);
-                db = await r.json();
-                renderDashboard();
-            } catch(e) { console.error("Lỗi tải data"); }
-        }
-
-        function renderDashboard() {
-            const container = document.getElementById('tab-rows-container');
-            container.innerHTML = "";
-
-            // Luôn để Tab do Admin làm (AnsHub) lên đầu nếu có
-            const sortedTabs = [...db.tabs];
-            
-            sortedTabs.forEach((tab, idx) => {
-                const tabScripts = db.scripts.filter(s => s.tab === tab.Name);
-                if(tabScripts.length === 0) return;
-
-                const row = document.createElement('div');
-                row.className = "tab-row";
-                row.style.animationDelay = `${idx * 0.1}s`;
-                
-                row.innerHTML = `
-                    <div class="tab-header">
-                        <div class="tab-name">${tab.Name.toUpperCase()}</div>
-                        <div class="tab-count">${tabScripts.length}</div>
-                    </div>
-                    <div class="horizontal-list">
-                        ${tabScripts.map(s => `
-                            <div class="card" onclick="openInfo('${s.name}')">
-                                <img src="${s.img}" onerror="this.src='https://i.ibb.co/szRg104/image.png'">
-                                <div class="card-name">${s.name}</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-                container.appendChild(row);
-            });
-        }
-
-        // --- SEARCH SYSTEM ---
-        function openSearch() {
-            const overlay = document.getElementById('search-overlay');
-            const sBox = document.getElementById('sBox');
-            overlay.style.display = 'flex';
-            setTimeout(() => {
-                sBox.classList.add('expand');
-                setTimeout(() => {
-                    document.getElementById('sInp').style.display = 'block';
-                    document.getElementById('sInp').focus();
-                }, 300);
-            }, 10);
-        }
-
-        function closeSearch(e) {
-            if(e.target.id === 'search-overlay') {
-                const sBox = document.getElementById('sBox');
-                document.getElementById('sInp').style.display = 'none';
-                sBox.classList.remove('expand');
-                setTimeout(() => {
-                    document.getElementById('search-overlay').style.display = 'none';
-                    if(!document.getElementById('sInp').value) {
-                        document.getElementById('search-results').style.display = 'none';
-                    }
-                }, 400);
+                const data = await r.json();
+                db = data.scripts || [];
+                renderTabs(data.tabs || []);
+                renderCards(db);
+            } catch (e) {
+                document.getElementById('g').innerHTML = "<p style='text-align:center; width:100%'>Server connection lost!</p>";
             }
         }
 
-        function handleSearch() {
-            const val = document.getElementById('sInp').value.toLowerCase();
-            const resArea = document.getElementById('search-results');
-            const resList = document.getElementById('res-list');
-            const resCount = document.getElementById('res-count');
+        function toggleMenu(open) { document.getElementById('side').classList.toggle('active', open); }
+        
+        function toggleSearch() {
+            const box = document.getElementById('sBox');
+            box.classList.toggle('active');
+            if(box.classList.contains('active')) document.getElementById('sInp').focus();
+        }
 
-            if(val.length < 1) {
-                resArea.style.display = 'none';
+        function renderTabs(ts) {
+            const list = document.getElementById('tList');
+            list.innerHTML = `<div class="tab-item active" onclick="switchTab('ALL', this)">ALL SCRIPTS</div>`;
+            ts.forEach(t => {
+                list.innerHTML += `<div class="tab-item" onclick="switchTab('${t.Name}', this)">${t.Name}</div>`;
+            });
+        }
+
+        async function switchTab(tabName, el) {
+            if(curT === tabName) { toggleMenu(false); return; }
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(c => c.classList.add('exit'));
+            toggleMenu(false);
+            await new Promise(r => setTimeout(r, 400));
+            curT = tabName;
+            document.querySelectorAll('.tab-item').forEach(item => item.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('sInp').value = "";
+            filter();
+        }
+
+        function filter() {
+            const keyword = document.getElementById('sInp').value.toLowerCase();
+            const filtered = db.filter(s => {
+                const matchTab = (curT === "ALL" || s.tab === curT);
+                const matchKey = s.name.toLowerCase().includes(keyword);
+                return matchTab && matchKey;
+            });
+            renderCards(filtered);
+        }
+
+        function handleSearch() { filter(); }
+
+        function renderCards(scripts) {
+            const g = document.getElementById('g');
+            g.innerHTML = "";
+            if(scripts.length === 0) {
+                g.innerHTML = "<p style='grid-column:1/-1; text-align:center; color:#444; margin-top:100px; font-weight:700'>NO SCRIPTS FOUND</p>";
                 return;
             }
-
-            const filtered = db.scripts.filter(s => s.name.toLowerCase().includes(val));
-            resCount.innerText = filtered.length;
-            resArea.style.display = 'block';
-            
-            resList.innerHTML = filtered.map(s => `
-                <div class="card" onclick="openInfo('${s.name}')">
-                    <img src="${s.img}">
-                    <div class="card-name">${s.name}</div>
-                </div>
-            `).join('');
-        }
-
-        // --- INFO PAGE SYSTEM ---
-        function openInfo(name) {
-            const s = db.scripts.find(x => x.name === name);
-            if(!s) return;
-
-            // Đổi URL ảo (không load lại trang)
-            window.history.pushState({}, '', `/speed/${name.replace(/\s+/g, '-').toLowerCase()}`);
-
-            document.getElementById('info-i').src = s.img;
-            document.getElementById('info-t').innerText = s.name;
-            document.getElementById('info-d').innerText = s.describe || "Không Có Mô Tả";
-            document.getElementById('info-s').innerText = s.script;
-            curScriptCode = s.script;
-
-            document.getElementById('info-page').classList.add('active');
-        }
-
-        function closeInfo() {
-            window.history.pushState({}, '', '/');
-            document.getElementById('info-page').classList.remove('active');
-        }
-
-        function copyScript() {
-            navigator.clipboard.writeText(curScriptCode);
-            const btn = document.querySelector('.btn-copy');
-            btn.innerText = "COPIED!";
-            setTimeout(() => btn.innerText = "COPY SCRIPT", 1500);
-        }
-
-        // Star background
-        const canvas = document.getElementById('star-canvas');
-        const ctx = canvas.getContext('2d');
-        let stars = [];
-        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        window.onresize = resize; resize();
-        for(let i=0; i<100; i++) stars.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, s:Math.random()*2});
-        function anim() {
-            ctx.clearRect(0,0,canvas.width,canvas.height);
-            ctx.fillStyle = "#00ff96";
-            stars.forEach(s => {
-                ctx.globalAlpha = Math.random();
-                ctx.beginPath(); ctx.arc(s.x, s.y, s.s, 0, Math.PI*2); ctx.fill();
+            scripts.forEach((s, i) => {
+                const img = (s.img && s.img.trim() !== "") ? s.img : DEF_IMG;
+                const card = document.createElement('div');
+                card.className = `card ${s.ratio || 'ratio-1-1'}`;
+                card.style.animationDelay = `${i * 0.05}s`;
+                card.innerHTML = `
+                    <img src="${img}" class="card-img" onerror="this.src='${DEF_IMG}'">
+                    <div class="card-info"><div class="card-name">${s.name}</div></div>
+                `;
+                card.onclick = () => {
+                    document.getElementById('mT').innerText = s.name;
+                    document.getElementById('mI').src = img;
+                    document.getElementById('mD').innerText = s.describe || "High-quality script provided by Anshub Hub.";
+                    curC = s.script;
+                    document.getElementById('m').style.display = 'flex';
+                };
+                g.appendChild(card);
             });
-            requestAnimationFrame(anim);
+            if(window.VanillaTilt) VanillaTilt.init(document.querySelectorAll(".card"), { max: 10, speed: 800, glare: true, "max-glare": 0.3 });
         }
-        anim();
+
+        function closeModal() { document.getElementById('m').style.display = 'none'; }
+        
+        function copyCode() {
+            if(!curC) return;
+            navigator.clipboard.writeText(curC).then(() => {
+                const btn = document.querySelector('.btn-copy');
+                btn.innerText = "COPIED SUCCESS!";
+                setTimeout(() => btn.innerText = "COPY SCRIPT", 1500);
+            });
+        }
+
+        init();
     </script>
 </body>
 </html>
