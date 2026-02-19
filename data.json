@@ -85,7 +85,7 @@
     {
       "name": "Speed",
       "tab": "ANSCRIPT",
-      "img": "https://cdn.discordapp.com/attachments/1472992341156434219/1473161236123488318/Screenshot_2026-02-17-10-36-32-787_com.roblox.client.vnggames.jpg?ex=699533d0&is=6993e250&hm=67d6522fe89ee18bf6d70b47bd0af5871daf2fef16a99f8b846dfab6fb819e48&",
+      "img": "https://ibb.co/8nTKmpY4",
       "script": "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/hothiptv/Anscript/Script/TpwalkAns\"))()",
       "describe": "Ấn giữ nút để setup",
       "ratio": "ratio-1-1"
