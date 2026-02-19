@@ -85,7 +85,7 @@
     {
       "name": "Speed",
       "tab": "ANSCRIPT",
-      "img": "https://ibb.co/8nTKmpY4",
+      "img": "https://i.ibb.co/8nTKmpY4/image.png",
       "script": "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/hothiptv/Anscript/Script/TpwalkAns\"))()",
       "describe": "Ấn giữ nút để setup",
       "ratio": "ratio-1-1"
