@@ -2,173 +2,214 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>AnsHub - Ultra Admin Panel</title>
+    <title>AnsHub | Pro Administrator System</title>
     <style>
         :root { 
             --accent: #00ff96; 
+            --accent-glow: rgba(0, 255, 150, 0.3);
             --warn: #ffae00; 
             --bg: #050505; 
             --sidebar-bg: #0a0a0a; 
-            --panel: #111; 
-            --input-bg: #161616;
-            --glow: 0 0 15px rgba(0, 255, 150, 0.3);
+            --panel: #121212; 
+            --card-bg: #161616;
+            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        /* Hiệu ứng chuyển động toàn trang */
-        * { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        
-        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
-        /* Sidebar - Nâng cấp Glassmorphism */
-        .sidebar { width: 340px; background: var(--sidebar-bg); border-right: 1px solid #222; display: flex; flex-direction: column; height: 100vh; position: relative; }
-        .sidebar-header { padding: 25px; border-bottom: 1px solid #222; }
-        .sidebar-content { flex: 1; overflow-y: auto; padding: 10px; scrollbar-width: none; }
+        /* --- SIDEBAR --- */
+        .sidebar { width: 340px; background: var(--sidebar-bg); border-right: 1px solid #222; display: flex; flex-direction: column; height: 100vh; box-shadow: 10px 0 30px rgba(0,0,0,0.5); z-index: 10; }
+        .sidebar-header { padding: 25px 20px; border-bottom: 1px solid #222; flex-shrink: 0; background: linear-gradient(to bottom, #111, transparent); }
+        .sidebar-content { flex: 1; overflow-y: auto; padding: 15px; scrollbar-width: none; }
         .sidebar-content::-webkit-scrollbar { display: none; }
 
-        /* Tab Block - Hiệu ứng Que xịn hơn */
-        .tab-block { margin-bottom: 12px; background: #111; border-radius: 12px; border: 1px solid #222; overflow: hidden; }
-        .tab-block.is-hidden { 
-            height: 4px; padding: 0; background: var(--accent); border: none; opacity: 0.3; margin: 25px 15px; cursor: pointer; position: relative;
-        }
-        .tab-block.is-hidden:hover { opacity: 1; box-shadow: 0 0 20px var(--accent); transform: scaleX(1.05); }
-        .tab-block.is-hidden * { display: none !important; }
-        .tab-block.is-hidden::after { 
-            content: 'UNHIDE'; position: absolute; top: -20px; left: 50%; transform: translateX(-50%); 
-            font-size: 8px; color: var(--accent); letter-spacing: 2px; font-weight: bold;
-        }
+        /* --- TAB BLOCK --- */
+        .tab-block { margin-bottom: 12px; background: var(--card-bg); border-radius: 12px; border: 1px solid #222; transition: var(--transition); overflow: hidden; }
+        .tab-block:hover { border-color: #444; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
 
-        /* Header & Action */
-        .tab-header { display: flex; align-items: center; justify-content: space-between; padding: 15px; background: #181818; cursor: pointer; }
+        /* TRẠNG THÁI QUE (HIDDEN) */
+        .tab-block.is-hidden { 
+            height: 4px; padding: 0; background: var(--accent); border: none; opacity: 0.3; margin: 25px 10px; cursor: pointer; position: relative; overflow: visible;
+        }
+        .tab-block.is-hidden:hover { opacity: 1; box-shadow: 0 0 20px var(--accent); }
+        .btn-unhide { 
+            display: none; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+            background: #fff; color: #000; border: none; font-size: 10px; font-weight: 900; 
+            padding: 5px 15px; border-radius: 20px; cursor: pointer; white-space: nowrap; z-index: 20;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.8); transition: 0.2s;
+        }
+        .tab-block.is-hidden .btn-unhide { display: block; }
+        .btn-unhide:hover { transform: translate(-50%, -50%) scale(1.1); }
+
+        /* TAB HEADER */
+        .tab-header { display: flex; align-items: center; justify-content: space-between; padding: 14px; background: #1a1a1a; cursor: pointer; transition: 0.3s; }
         .tab-header:hover { background: #222; }
-        .tab-title { color: var(--accent); font-weight: bold; font-size: 13px; text-transform: uppercase; }
+        .tab-title { color: var(--accent); font-weight: 800; font-size: 13px; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
         
-        /* File List */
+        .tab-actions { display: flex; gap: 6px; }
+        .tab-actions button { 
+            background: #252525; border: 1px solid #333; cursor: pointer; font-size: 11px; color: #888; 
+            width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: 0.3s; 
+        }
+        .tab-actions button:hover { background: var(--accent); color: #000; border-color: var(--accent); transform: translateY(-2px); }
+        .btn-kh { color: var(--warn) !important; border: 1px solid rgba(255,174,0,0.3) !important; width: auto !important; padding: 0 10px !important; font-weight: bold; }
+        .btn-kh:hover { background: var(--warn) !important; color: #000 !important; box-shadow: 0 0 15px var(--warn); }
+
+        /* FILE LIST ANIMATION */
+        .file-list { 
+            display: grid; grid-template-rows: 1fr; transition: grid-template-rows 0.4s ease-out, padding 0.4s;
+            background: #0f0f0f; 
+        }
+        .tab-block.collapsed .file-list { grid-template-rows: 0fr; }
+        .file-list-inner { overflow: hidden; }
+
         .file-item { 
-            display: flex; justify-content: space-between; padding: 12px 20px; font-size: 13px; color: #888; 
-            border-bottom: 1px solid #1a1a1a; cursor: pointer; position: relative;
+            display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; 
+            font-size: 13px; color: #aaa; border-bottom: 1px solid #1a1a1a; cursor: pointer; transition: 0.3s; 
         }
         .file-item:hover { background: #1a1a1a; color: #fff; padding-left: 25px; }
-        .file-item.active { background: #1a2e25; color: var(--accent); border-left: 4px solid var(--accent); box-shadow: inset 10px 0 20px rgba(0,255,150,0.05); }
+        .file-item.active { background: linear-gradient(90deg, #1a2e25, transparent); color: var(--accent); border-left: 4px solid var(--accent); font-weight: bold; }
 
-        /* Editor - Phân vùng cực đẹp */
-        .main { flex: 1; padding: 40px; background: radial-gradient(circle at top right, #0a0a0a, #050505); overflow-y: auto; display: none; animation: fadeIn 0.5s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        label { color: var(--accent); font-size: 10px; text-transform: uppercase; font-weight: 900; margin-top: 30px; display: block; letter-spacing: 2px; opacity: 0.7; }
+        /* --- MAIN EDITOR --- */
+        .main { flex: 1; padding: 40px; background: radial-gradient(circle at top left, #0a0a0a, #050505); overflow-y: auto; display: none; }
+        .editor-container { max-width: 900px; margin: 0 auto; animation: slideUp 0.5s ease; }
         
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        label { color: #555; font-size: 11px; text-transform: uppercase; font-weight: 800; margin-top: 30px; display: block; letter-spacing: 1.5px; transition: 0.3s; }
+        input:focus + label, textarea:focus + label { color: var(--accent); }
+
         input, textarea, select { 
-            width: 100%; padding: 15px; margin-top: 10px; background: var(--input-bg); border: 1px solid #222; 
-            color: #fff; border-radius: 8px; outline: none; box-sizing: border-box; font-size: 14px;
+            width: 100%; padding: 15px; margin-top: 10px; background: rgba(20,20,20,0.8); 
+            border: 1px solid #222; color: #fff; border-radius: 10px; outline: none; 
+            box-sizing: border-box; transition: 0.3s; font-size: 14px;
         }
-        input:focus, textarea:focus { border-color: var(--accent); box-shadow: var(--glow); background: #1a1a1a; }
-
-        /* Input Group - Nút dán xịn */
-        .input-group { position: relative; }
-        .btn-paste { 
-            position: absolute; right: 10px; top: 18px; background: var(--accent); color: #000; 
-            border: none; padding: 6px 15px; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer;
-        }
-        .btn-paste:hover { transform: scale(1.1); box-shadow: 0 0 15px var(--accent); }
-
-        /* Toast - Thông báo kiểu Dynamic Island */
-        #toast { 
-            position: fixed; top: -100px; left: 50%; transform: translateX(-50%); 
-            background: rgba(0, 255, 150, 0.9); color: #000; padding: 12px 30px; 
-            border-radius: 30px; font-weight: bold; transition: 0.5s; z-index: 10000; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px);
-        }
-        #toast.show { top: 30px; }
-
-        /* Modal - Nâng cấp */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; justify-content: center; align-items: center; z-index: 10000; }
-        .modal { background: #111; border: 1px solid #333; padding: 30px; border-radius: 20px; width: 350px; text-align: center; border-top: 4px solid var(--accent); }
+        input:focus, textarea:focus { border-color: var(--accent); background: #000; box-shadow: 0 0 15px rgba(0, 255, 150, 0.1); }
         
-        .btn-kh { color: var(--warn) !important; font-weight: bold; border: 1px solid var(--warn) !important; background: rgba(255,174,0,0.1) !important; }
+        textarea#script_i { font-family: 'Consolas', monospace; color: var(--accent); line-height: 1.6; border-left: 4px solid #1a2e25; }
 
-        /* Auth */
+        /* --- UTILS --- */
+        .btn-add-tab { 
+            width: 100%; padding: 15px; background: transparent; color: var(--accent); 
+            border: 1px dashed var(--accent); border-radius: 10px; cursor: pointer; 
+            font-weight: 900; letter-spacing: 1px; transition: 0.3s;
+        }
+        .btn-add-tab:hover { background: var(--accent-glow); transform: scale(0.98); }
+
+        #toast { 
+            position: fixed; bottom: 30px; right: -400px; background: var(--accent); color: #000; 
+            padding: 18px 35px; border-radius: 12px; font-weight: 900; transition: 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55); 
+            z-index: 11000; box-shadow: 0 10px 40px rgba(0, 255, 150, 0.3); text-transform: uppercase; letter-spacing: 1px;
+        }
+        #toast.show { right: 30px; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 10000; backdrop-filter: blur(10px); animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .modal { background: #111; border: 1px solid #222; padding: 30px; border-radius: 20px; width: 90%; max-width: 420px; text-align: center; }
+        
         .auth { position: fixed; inset: 0; background: #000; z-index: 99999; display: flex; justify-content: center; align-items: center; }
-        .auth-box { animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
+        .auth-card { background: #0a0a0a; padding: 50px; border-radius: 30px; border: 1px solid #111; box-shadow: 0 20px 50px rgba(0,0,0,1); }
+
     </style>
 </head>
 <body>
 
-    <div id="toast">✅ SYSTEM UPDATED</div>
+    <div id="toast">Database Updated</div>
 
     <div id="modal" class="modal-overlay">
         <div class="modal">
-            <h3 id="modalTitle" style="color:var(--accent);">THÔNG BÁO</h3>
+            <h3 id="modalTitle" style="color:var(--accent); margin-bottom: 20px;">MODAL TITLE</h3>
             <div id="modalFields"></div>
-            <div style="display:flex; gap:10px; margin-top:25px">
-                <button onclick="closeModal()" style="flex:1; padding:12px; background:#222; color:#fff; border:none; border-radius:8px; cursor:pointer">HỦY</button>
-                <button id="modalOk" style="flex:1; padding:12px; background:var(--accent); color:#000; border:none; border-radius:8px; font-weight:bold; cursor:pointer">XÁC NHẬN</button>
+            <div style="display:flex; gap:12px; margin-top:30px">
+                <button onclick="closeModal()" style="flex:1; padding:15px; background:#222; color:#fff; border:none; border-radius:10px; cursor:pointer; font-weight:bold">HỦY</button>
+                <button id="modalOk" style="flex:1; padding:15px; background:var(--accent); color:#000; border:none; border-radius:10px; font-weight:900; cursor:pointer">XÁC NHẬN</button>
             </div>
         </div>
     </div>
 
     <div id="auth" class="auth">
-        <div class="auth-box" style="text-align:center">
-            <h1 style="color:var(--accent); letter-spacing: 10px; font-weight: 900; margin:0;">ANSHUB</h1>
-            <p style="color: #444; font-size: 10px; margin-bottom: 30px;">SECURED ACCESS ONLY</p>
-            <input type="password" id="pass" placeholder="Enter Code..." style="text-align:center; width: 250px; border: 1px solid #222; background: #000;">
-            <br><button onclick="login()" style="width:250px; padding:15px; background:var(--accent); border:none; font-weight:bold; cursor:pointer; margin-top:20px; border-radius: 40px;">UNLOCK</button>
+        <div class="auth-card">
+            <h1 style="color:var(--accent); letter-spacing: 10px; margin:0; font-size: 30px;">ANSHUB</h1>
+            <p style="color: #444; margin-bottom: 30px; font-weight: bold; font-size: 12px;">SYSTEM ADMINISTRATOR</p>
+            <input type="password" id="pass" placeholder="PASSWORD" style="text-align:center; border: 1px solid #222; background: #000;">
+            <button onclick="login()" style="width:100%; padding:18px; background:var(--accent); border:none; font-weight:900; cursor:pointer; margin-top:20px; border-radius: 12px; box-shadow: 0 0 20px var(--accent-glow);">UNLOCK SYSTEM</button>
         </div>
     </div>
 
     <div class="sidebar">
         <div class="sidebar-header">
-            <p style="color:#444; font-size: 10px; font-weight: bold; margin:0 0 15px 5px; letter-spacing: 2px;">V3.0 CORE</p>
-            <button onclick="askAddT()" style="width:100%; padding:14px; background:rgba(0,255,150,0.05); color:var(--accent); border:1px solid var(--accent); border-radius:10px; cursor:pointer; font-weight:bold;">+ CREATE NEW TAB</button>
+            <div style="margin-bottom: 20px;">
+                <span style="color: #444; font-size: 10px; font-weight: 900; letter-spacing: 2px;">SECURE ACCESS</span>
+                <div style="color: var(--accent); font-weight: 900; font-size: 18px;">ANSHUB HUB</div>
+            </div>
+            <button class="btn-add-tab" onclick="askAddT()">+ NEW TAB CATEGORY</button>
         </div>
         <div class="sidebar-content" id="sList"></div>
     </div>
 
     <div class="main" id="editor">
-        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-            <div>
-                <h2 style="color:var(--accent); margin:0; font-size: 24px; letter-spacing: -1px;">Editor Workspace</h2>
-                <div id="status-indicator" style="font-size: 10px; color: #444; margin-top: 5px; font-weight: bold;">ACTIVE SESSION</div>
+        <div class="editor-container">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; border-bottom: 2px solid #111; padding-bottom: 20px;">
+                <div>
+                    <span id="status-indicator" style="color: var(--accent); font-size: 10px; font-weight: 900; letter-spacing: 2px;">STABLE CONNECTION</span>
+                    <h2 id="edit-title" style="margin: 5px 0 0 0; font-size: 28px; font-weight: 900;">EDITOR</h2>
+                </div>
             </div>
-        </div>
-        
-        <label>Script Name</label>
-        <input type="text" id="name_i" placeholder="Ví dụ: Blox Fruit Hub" oninput="triggerAutoSave()">
-        
-        <label>Image Link (Direct or IBB Page)</label>
-        <div class="input-group">
-            <input type="text" id="img_i" placeholder="Dán link ibb.co vào đây, nó sẽ tự đổi..." oninput="handleImageInput(this)">
-            <button class="btn-paste" onclick="pasteImageLink()">DÁN</button>
-        </div>
+            
+            <label>Script Name</label>
+            <input type="text" id="name_i" oninput="triggerAutoSave()">
+            
+            <label>Banner Image (Auto-Convert IBB)</label>
+            <input type="text" id="img_i" placeholder="Paste ibb.co link here..." oninput="handleImgInput(this)">
 
-        <label>Screen Ratio</label>
-        <select id="ratio_i" onchange="triggerAutoSave()">
-            <option value="ratio-1-1">1:1 (Square)</option>
-            <option value="ratio-16-9">16:9 (Landscape)</option>
-            <option value="ratio-9-16">9:16 (Portrait)</option>
-        </select>
-        
-        <label>Lua Script Code</label>
-        <textarea id="script_i" rows="12" oninput="triggerAutoSave()" style="font-family: 'Consolas', monospace; color: #00ff96; background: #080808;"></textarea>
-        
-        <label>Description</label>
-        <textarea id="desc_i" rows="3" placeholder="Script info..." oninput="triggerAutoSave()"></textarea>
+            <label>Display Ratio</label>
+            <select id="ratio_i" onchange="triggerAutoSave()">
+                <option value="ratio-1-1">1:1 Square</option>
+                <option value="ratio-16-9">16:9 Landscape</option>
+                <option value="ratio-2-3">2:3 Vertical</option>
+                <option value="ratio-9-16">9:16 Mobile</option>
+            </select>
+            
+            <label>Lua Script Content</label>
+            <textarea id="script_i" rows="12" oninput="triggerAutoSave()"></textarea>
+            
+            <label>Description & Author</label>
+            <textarea id="desc_i" rows="3" oninput="triggerAutoSave()"></textarea>
+        </div>
     </div>
 
     <script>
         const API = window.location.origin;
         const DEF_IMG = "https://i.ibb.co/szRg104/image.png";
         let db = { tabs: [], scripts: [] }, curI = null, saveTimer;
+        
+        let collapsedTabs = new Set(); 
         let hiddenTabs = new Set();
 
-        function login() { if(document.getElementById('pass').value === "0904") { document.getElementById('auth').style.display='none'; load(); } else alert("Access Denied!"); }
+        function login() { if(document.getElementById('pass').value === "0904") { document.getElementById('auth').style.display='none'; load(); } else alert("Sai mật khẩu!"); }
         
+        // --- HÀM TỰ ĐỔI LINK IBB THÔNG MINH ---
+        function handleImgInput(el) {
+            let val = el.value.trim();
+            // Regex tìm mã ID của ibb.co/mã
+            const match = val.match(/ibb\.co\/([a-zA-Z0-9]+)/);
+            if (match && match[1] && !val.includes('i.ibb.co')) {
+                const code = match[1];
+                val = `https://i.ibb.co/${code}/image.png`;
+                el.value = val;
+                el.style.borderColor = "var(--accent)";
+            }
+            triggerAutoSave();
+        }
+
         async function load() {
             try {
                 const r = await fetch(`${API}/get-hub`);
                 db = await r.json();
-                db.tabs.forEach((_, i) => hiddenTabs.add(i)); // Mặc định thu hết
+                db.tabs.forEach((_, index) => hiddenTabs.add(index));
                 render();
-            } catch(e) { showToast("❌ CONNECT ERROR"); }
+            } catch(e) { console.error("Lỗi kết nối Server"); }
         }
 
         function render() {
@@ -176,64 +217,98 @@
             container.innerHTML = "";
             db.tabs.forEach((t, ti) => {
                 const scripts = db.scripts.map((s, idx) => ({...s, originIdx: idx})).filter(s => s.tab === t.Name);
+                const block = document.createElement('div');
+                
+                const isCollapsed = collapsedTabs.has(ti);
                 const isHidden = hiddenTabs.has(ti);
                 
-                const block = document.createElement('div');
-                block.className = `tab-block ${isHidden ? 'is-hidden' : ''}`;
-                block.onclick = isHidden ? () => toggleHide(ti) : null;
+                block.className = `tab-block ${isCollapsed ? 'collapsed' : ''} ${isHidden ? 'is-hidden' : ''}`;
                 
                 block.innerHTML = `
-                    <div class="tab-header" onclick="toggleHide(${ti})">
-                        <div class="tab-title">📁 ${t.Name}</div>
+                    <button class="btn-unhide" onclick="toggleHide(${ti})">SHOW: ${t.Name.toUpperCase()}</button>
+                    <div class="tab-header" onclick="toggleTab(${ti})">
+                        <div class="tab-title"><span>📂</span> ${t.Name}</div>
                         <div class="tab-actions">
+                            <button onclick="event.stopPropagation(); toggleHide(${ti})">👁️</button>
                             <button class="btn-kh" onclick="event.stopPropagation(); askKH('${t.Name}', ${ti})">KH</button>
                             <button onclick="event.stopPropagation(); askDelT(${ti})">🗑️</button>
                         </div>
                     </div>
                     <div class="file-list">
-                        ${scripts.map(s => `
-                            <div class="file-item ${curI === s.originIdx ? 'active' : ''}" onclick="openE(${s.originIdx})">
-                                <span>${s.name}</span>
-                                <span onclick="event.stopPropagation(); askDelS(${s.originIdx})" style="opacity:0.3">✕</span>
-                            </div>
-                        `).join('')}
+                        <div class="file-list-inner">
+                            ${scripts.length === 0 ? '<div style="padding:15px; font-size:11px; color:#444; text-align:center">Category is Empty</div>' : ''}
+                            ${scripts.map(s => `
+                                <div class="file-item ${curI === s.originIdx ? 'active' : ''}" onclick="openE(${s.originIdx})">
+                                    <span>${s.name}</span>
+                                    <span onclick="event.stopPropagation(); askDelS(${s.originIdx})" style="color:#ff4d4d; font-size:10px;">DELETE</span>
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
                 `;
                 container.appendChild(block);
             });
         }
 
-        // --- HÀM TỰ ĐỔI LINK ẢNH QUAN TRỌNG ---
-        function handleImageInput(input) {
-            let val = input.value.trim();
-            // Nếu là link trang ibb.co/abc
-            const match = val.match(/ibb\.co\/([a-zA-Z0-9]+)/);
-            if (match && match[1]) {
-                const code = match[1];
-                input.value = `https://i.ibb.co/${code}/image.png`;
-                showToast("⚡ AUTO CONVERTED IBB LINK!");
-            }
-            triggerAutoSave();
+        function toggleHide(i) { hiddenTabs.has(i) ? hiddenTabs.delete(i) : hiddenTabs.add(i); render(); }
+        function toggleTab(i) { collapsedTabs.has(i) ? collapsedTabs.delete(i) : collapsedTabs.add(i); render(); }
+
+        function showModal(title, fieldsHTML, onOk) {
+            const m = document.getElementById('modal');
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalFields').innerHTML = fieldsHTML;
+            m.style.display = 'flex';
+            document.getElementById('modalOk').onclick = () => { onOk(); closeModal(); };
+        }
+        function closeModal() { document.getElementById('modal').style.display = 'none'; }
+
+        function askKH(tabName, tabIdx) {
+            const html = `
+                <label>Script Display Name</label>
+                <input type="text" id="kh_name" placeholder="...">
+                <label>GitHub Raw Link</label>
+                <input type="text" id="kh_link" placeholder="https://raw...">
+            `;
+            showModal("QUICK INITIALIZE (KH)", html, () => {
+                const name = document.getElementById('kh_name').value;
+                const link = document.getElementById('kh_link').value;
+                if(!name || !link) return;
+                hiddenTabs.delete(tabIdx); collapsedTabs.delete(tabIdx);
+                db.scripts.push({
+                    name: name, tab: tabName, img: DEF_IMG,
+                    script: `loadstring(game:HttpGet("${link.trim()}"))()`,
+                    describe: "Creator: Anshub Team", ratio: "ratio-1-1"
+                });
+                render(); openE(db.scripts.length - 1); triggerAutoSave(true);
+            });
         }
 
-        async function pasteImageLink() {
-            try {
-                const text = await navigator.clipboard.readText();
-                const input = document.getElementById('img_i');
-                input.value = text;
-                handleImageInput(input);
-            } catch(e) { showToast("⚠️ Paste Error"); }
+        function askAddT() {
+            showModal("CREATE NEW CATEGORY", `<input type="text" id="t_name" placeholder="Category name...">`, () => {
+                const n = document.getElementById('t_name').value;
+                if(n) { db.tabs.push({Name: n}); render(); triggerAutoSave(true); }
+            });
         }
 
-        function toggleHide(i) {
-            if (hiddenTabs.has(i)) hiddenTabs.delete(i);
-            else hiddenTabs.add(i);
-            render();
+        function askDelT(i) {
+            showModal("DANGER ZONE", `<p style="color:#ff4d4d">Delete <b>${db.tabs[i].Name}</b> and all scripts inside?</p>`, () => {
+                const n = db.tabs[i].Name; db.tabs.splice(i,1);
+                db.scripts = db.scripts.filter(s => s.tab !== n);
+                render(); triggerAutoSave(true);
+            });
+        }
+
+        function askDelS(i) {
+            showModal("REMOVE SCRIPT", `<p>Remove <b>${db.scripts[i].name}</b>?</p>`, () => {
+                db.scripts.splice(i,1); document.getElementById('editor').style.display='none';
+                curI = null; render(); triggerAutoSave(true);
+            });
         }
 
         function openE(i) {
             curI = i; const s = db.scripts[i];
             document.getElementById('editor').style.display = 'block';
+            document.getElementById('edit-title').innerText = s.name.toUpperCase();
             document.getElementById('name_i').value = s.name;
             document.getElementById('img_i').value = (s.img === DEF_IMG) ? "" : s.img;
             document.getElementById('ratio_i').value = s.ratio || "ratio-1-1";
@@ -245,8 +320,7 @@
         function triggerAutoSave(now = false) {
             if(curI !== null) {
                 db.scripts[curI].name = document.getElementById('name_i').value;
-                const linkVal = document.getElementById('img_i').value.trim();
-                db.scripts[curI].img = linkVal === "" ? DEF_IMG : linkVal;
+                db.scripts[curI].img = document.getElementById('img_i').value.trim() || DEF_IMG;
                 db.scripts[curI].ratio = document.getElementById('ratio_i').value;
                 db.scripts[curI].script = document.getElementById('script_i').value;
                 db.scripts[curI].describe = document.getElementById('desc_i').value;
@@ -259,66 +333,15 @@
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({ newData: db })
                     });
-                    showToast("✅ DATABASE SECURED");
-                } catch(e) { showToast("❌ SAVE ERROR"); }
-            }, now ? 50 : 1500);
+                    showToast("Database Updated");
+                } catch(e) { showToast("Save Failed"); }
+            }, now ? 50 : 1000);
         }
-
-        function askKH(tabName, tabIdx) {
-            const html = `
-                <input type="text" id="kh_name" placeholder="Script Name..." style="margin-bottom:10px">
-                <input type="text" id="kh_link" placeholder="GitHub Raw Link...">
-            `;
-            showModal("KHỞI TẠO NHANH", html, () => {
-                const name = document.getElementById('kh_name').value;
-                const link = document.getElementById('kh_link').value;
-                if(!name || !link) return;
-                hiddenTabs.delete(tabIdx);
-                db.scripts.push({
-                    name: name, tab: tabName, img: DEF_IMG,
-                    script: `loadstring(game:HttpGet("${link.trim()}"))()`,
-                    describe: "Creator: AnsHub", ratio: "ratio-1-1"
-                });
-                render();
-                openE(db.scripts.length - 1);
-                triggerAutoSave(true);
-            });
-        }
-
-        function askAddT() {
-            showModal("NEW TAB", `<input type="text" id="t_name" placeholder="Tab Name...">`, () => {
-                const n = document.getElementById('t_name').value;
-                if(n) { db.tabs.push({Name: n}); render(); triggerAutoSave(true); }
-            });
-        }
-
-        function askDelT(i) {
-            showModal("DELETE TAB", `<p style="color:red">Xóa tab ${db.tabs[i].Name} sẽ mất hết script!</p>`, () => {
-                const n = db.tabs[i].Name; db.tabs.splice(i,1);
-                db.scripts = db.scripts.filter(s => s.tab !== n);
-                render(); triggerAutoSave(true);
-            });
-        }
-
-        function askDelS(i) {
-            showModal("DELETE SCRIPT", `<p>Xóa ${db.scripts[i].name}?</p>`, () => {
-                db.scripts.splice(i,1); document.getElementById('editor').style.display='none';
-                curI = null; render(); triggerAutoSave(true);
-            });
-        }
-
-        function showModal(title, fieldsHTML, onOk) {
-            document.getElementById('modal').style.display = 'flex';
-            document.getElementById('modalTitle').innerText = title;
-            document.getElementById('modalFields').innerHTML = fieldsHTML;
-            document.getElementById('modalOk').onclick = () => { onOk(); closeModal(); };
-        }
-        function closeModal() { document.getElementById('modal').style.display = 'none'; }
 
         function showToast(msg) {
             const t = document.getElementById('toast');
             t.innerText = msg; t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2000);
+            setTimeout(() => t.classList.remove('show'), 3000);
         }
     </script>
 </body>
