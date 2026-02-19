@@ -69,7 +69,7 @@
     {
       "name": "Executor",
       "tab": "ANSCRIPT",
-      "img": "https://i.ibb.co/N2m3QCVx/image.png",
+      "img": "https://i.ibb.co/tTBqhr9R/image.png",
       "script": "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/hothiptv/Anscript/Script/Ansexe\"))()",
       "describe": "Script generated via Quick Load",
       "ratio": "ratio-1-1"
