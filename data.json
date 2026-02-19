@@ -61,7 +61,7 @@
     {
       "name": "Keyboard",
       "tab": "ANSCRIPT",
-      "img": "https://i.ibb.co/CpjmrBVg/image.png",
+      "img": "https://i.ibb.co/PzD9K5Pj/image.png",
       "script": "loadstring(game:HttpGet(\"https://raw.githubusercontent.com/hothiptv/Anscript/Script/AnsKB\"))()",
       "describe": "Script generated via Quick Load",
       "ratio": "ratio-1-1"
