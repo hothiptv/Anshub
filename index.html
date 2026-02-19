@@ -3,375 +3,353 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Anscript Hub V3 | THE NEXT GEN</title>
+    <title>AnsHub v3 | Premium Script Experience</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Montserrat:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Montserrat:wght@300;500;800&display=swap" rel="stylesheet">
     
     <style>
         :root { 
             --accent: #00ff96; 
-            --accent-rgb: 0, 255, 150;
-            --bg: #050505; 
-            --glass: rgba(255, 255, 255, 0.03);
-            --glow: 0 0 25px rgba(0, 255, 150, 0.4);
-            --anim-speed: 0.6s;
+            --accent-glow: rgba(0, 255, 150, 0.4);
+            --bg: #000000; 
+            --panel: #0a0a0a;
+            --spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         
         body { 
             background: var(--bg); color: #fff; font-family: 'Montserrat', sans-serif; 
-            margin: 0; overflow-x: hidden; min-height: 100vh;
+            margin: 0; overflow: hidden; height: 100vh;
         }
 
-        #star-canvas { position: fixed; inset: 0; z-index: -1; background: radial-gradient(circle at center, #0a1a12 0%, #030303 100%); }
+        #star-canvas { position: fixed; inset: 0; z-index: -1; opacity: 0.6; }
 
-        /* --- UI WRAPPER & SEARCH ANIMATION --- */
-        #app-wrapper { transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.6s; }
-        body.searching #app-wrapper { transform: scale(0.9) translateY(-20px); filter: blur(5px); pointer-events: none; }
+        /* --- HOME SCREEN --- */
+        #home-screen {
+            position: fixed; inset: 0; z-index: 5000; background: var(--bg);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: 0.8s var(--spring);
+        }
+        #home-screen.hide { transform: translateY(-110%); opacity: 0; }
 
-        /* --- NAVBAR --- */
-        .navbar { 
-            display: flex; align-items: center; justify-content: space-between; 
-            padding: 15px 25px; background: rgba(0,0,0,0.8); backdrop-filter: blur(20px); 
-            border-bottom: 1px solid rgba(var(--accent-rgb), 0.1); position: sticky; top: 0; z-index: 1000;
+        .avatar {
+            width: 120px; height: 120px; border-radius: 50%;
+            border: 3px solid var(--accent); box-shadow: 0 0 30px var(--accent-glow);
+            margin-bottom: 20px; object-fit: cover;
         }
-        .logo { font-family: 'Orbitron'; color: var(--accent); font-size: 1.2rem; font-weight: 900; letter-spacing: 4px; text-shadow: var(--glow); }
+        .intro-banner {
+            width: 80%; max-width: 400px; border-radius: 15px; margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .intro-text { text-align: center; margin-bottom: 40px; }
+        .intro-text h1 { font-family: 'Orbitron'; font-size: 24px; color: var(--accent); margin: 0; }
+        .intro-text p { color: #888; font-size: 12px; font-weight: bold; }
 
-        /* --- SIDEBAR --- */
-        .sidebar { 
-            position: fixed; top: 0; left: -100%; width: 300px; height: 100%; 
-            background: rgba(5,5,5,0.98); z-index: 2000; padding: 40px 25px; 
-            transition: 0.7s cubic-bezier(0.85, 0, 0.15, 1); border-right: 1px solid var(--accent);
-        }
-        .sidebar.active { left: 0; box-shadow: 20px 0 100px rgba(0,0,0,0.8); }
-        .tab-item { 
-            padding: 18px; margin-bottom: 15px; border-radius: 15px; background: var(--glass);
-            cursor: pointer; transition: 0.4s; display: flex; justify-content: space-between; align-items: center;
-            text-transform: uppercase; font-size: 0.75rem; font-weight: 800; border: 1px solid transparent;
-            opacity: 0; transform: translateX(-20px);
-        }
-        .sidebar.active .tab-item { opacity: 1; transform: translateX(0); }
-        .tab-item:hover { border-color: var(--accent); background: rgba(var(--accent-rgb), 0.05); }
-        .tab-item.active { background: var(--accent); color: #000; box-shadow: var(--glow); }
-        .tab-count { font-size: 10px; background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 20px; }
-
-        /* --- HOME TAB --- */
-        .home-section { padding: 40px 25px; text-align: center; animation: fadeIn 1s; }
-        .profile-img { 
-            width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--accent);
-            box-shadow: var(--glow); margin-bottom: 20px; object-fit: cover;
-        }
-        .intro-card { 
-            background: var(--glass); padding: 25px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.05);
-            margin: 20px 0; position: relative; overflow: hidden;
-        }
-        .intro-banner { width: 100%; border-radius: 15px; margin-bottom: 20px; border: 1px solid #222; }
-        .admin-info { font-size: 14px; line-height: 2; color: #ccc; }
-        .admin-info b { color: var(--accent); font-family: 'Orbitron'; }
-        
-        .btn-start { 
-            background: var(--accent); color: #000; padding: 18px 40px; border: none; border-radius: 50px;
-            font-family: 'Orbitron'; font-weight: 900; cursor: pointer; margin-top: 30px; 
-            box-shadow: var(--glow); transition: 0.3s;
+        .btn-start {
+            background: var(--accent); color: #000; border: none; padding: 18px 60px;
+            border-radius: 50px; font-family: 'Orbitron'; font-weight: 900;
+            cursor: pointer; box-shadow: 0 0 20px var(--accent-glow); transition: 0.3s;
         }
         .btn-start:hover { transform: scale(1.1); filter: brightness(1.2); }
 
-        /* --- ALL TAB (HORIZONTAL SCROLL) --- */
-        .section-container { margin-bottom: 40px; }
-        .section-header { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 0 25px; margin-bottom: 15px; 
+        /* --- MAIN DASHBOARD --- */
+        .app-container { 
+            height: 100vh; display: flex; flex-direction: column; 
+            transform: scale(0.9); opacity: 0; transition: 0.8s var(--spring);
         }
-        .section-title { font-family: 'Orbitron'; font-size: 0.9rem; color: var(--accent); letter-spacing: 2px; }
-        .horizontal-scroll { 
-            display: flex; overflow-x: auto; gap: 20px; padding: 10px 25px 20px; 
-            scrollbar-width: none; -webkit-overflow-scrolling: touch;
-        }
-        .horizontal-scroll::-webkit-scrollbar { display: none; }
+        .app-container.show { transform: scale(1); opacity: 1; }
 
-        /* --- CARDS --- */
-        .card { 
-            flex: 0 0 160px; aspect-ratio: 1/1; background: var(--card-bg); border-radius: 22px; 
-            overflow: hidden; border: 1px solid rgba(255,255,255,0.05); position: relative;
-            transition: 0.4s cubic-bezier(0.23, 1, 0.32, 1); backdrop-filter: blur(10px);
+        .navbar {
+            padding: 20px; display: flex; justify-content: space-between; align-items: center;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
         }
-        .card:hover { transform: scale(1.05); border-color: var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .card-img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
-        .card-info { 
-            position: absolute; inset: 0; background: linear-gradient(to top, #000, transparent);
-            display: flex; align-items: flex-end; justify-content: center; padding: 15px;
-        }
-        .card-name { font-size: 10px; font-family: 'Orbitron'; font-weight: 700; color: var(--accent); text-align: center; }
+        .logo { font-family: 'Orbitron'; font-weight: 900; color: var(--accent); font-size: 20px; }
 
-        /* --- SEARCH OVERLAY --- */
+        /* Search Animation */
+        .search-trigger { font-size: 24px; cursor: pointer; color: var(--accent); }
         #search-overlay {
-            position: fixed; inset: 0; z-index: 5000; display: none;
-            justify-content: center; align-items: center; flex-direction: column;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 6000;
+            display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px);
         }
-        .search-circle {
+        .search-modal { width: 80%; display: flex; flex-direction: column; align-items: center; }
+        .search-input-box {
             width: 60px; height: 60px; background: var(--accent); border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            transition: 0.6s cubic-bezier(0.85, 0, 0.15, 1);
+            display: flex; align-items: center; transition: 0.6s var(--spring);
+            overflow: hidden; padding: 0 20px;
         }
-        body.searching #search-overlay { display: flex; }
-        .search-expanded { 
-            width: 85% !important; height: 55px !important; border-radius: 30px !important; 
-            padding: 0 20px; background: #fff !important; 
+        .search-input-box.expand { width: 100%; border-radius: 15px; height: 60px; }
+        .search-input-box input {
+            width: 100%; background: none; border: none; font-weight: 900;
+            font-size: 18px; color: #000; display: none;
         }
-        #search-input { 
-            width: 100%; background: none; border: none; font-size: 18px; 
-            font-family: 'Montserrat'; font-weight: 700; display: none; 
-        }
-        #search-results-container {
-            position: fixed; bottom: 40px; width: 100%; opacity: 0; transform: translateY(50px);
-            transition: 0.5s;
-        }
-        body.searching #search-results-container { opacity: 1; transform: translateY(0); }
 
-        /* --- MODAL --- */
-        .modal { 
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); 
-            z-index: 6000; justify-content: center; align-items: center; padding: 25px; backdrop-filter: blur(15px);
-        }
-        .modal-content { 
-            background: #0d0d0d; border: 1px solid var(--accent); padding: 35px; 
-            border-radius: 30px; width: 100%; max-width: 400px; text-align: center;
-            animation: modalIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        @keyframes modalIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        /* --- CONTENT SCROLLING --- */
+        .main-scroll { flex: 1; overflow-y: auto; padding-bottom: 50px; }
+        .tab-row { margin-bottom: 30px; animation: slideRight 0.8s var(--spring) backwards; }
+        @keyframes slideRight { from { transform: translateX(50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
-        .icon-btn { background: none; border: none; color: var(--accent); font-size: 1.5rem; cursor: pointer; }
+        .tab-header {
+            padding: 0 25px; display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 15px;
+        }
+        .tab-name { font-family: 'Orbitron'; font-size: 14px; color: var(--accent); }
+        .tab-count { background: #222; padding: 4px 10px; border-radius: 10px; font-size: 10px; font-weight: 900; }
 
-        /* Ratios */
-        .ratio-1-1 { flex-basis: 160px; aspect-ratio: 1/1; }
-        .ratio-16-9 { flex-basis: 240px; aspect-ratio: 16/9; }
+        .horizontal-list {
+            display: flex; gap: 15px; overflow-x: auto; padding: 0 25px 10px 25px;
+            scrollbar-width: none;
+        }
+        .horizontal-list::-webkit-scrollbar { display: none; }
+
+        /* Card Script */
+        .card {
+            flex: 0 0 160px; aspect-ratio: 1/1; background: #111; border-radius: 20px;
+            overflow: hidden; position: relative; border: 1px solid #222;
+            transition: 0.4s;
+        }
+        .card:active { transform: scale(0.9); }
+        .card img { width: 100%; height: 100%; object-fit: cover; }
+        .card-name {
+            position: absolute; bottom: 0; width: 100%; padding: 10px;
+            background: linear-gradient(to top, #000, transparent);
+            font-size: 11px; font-weight: 900; text-align: center; color: var(--accent);
+        }
+
+        /* --- INFO PAGE (SLIDE FROM RIGHT) --- */
+        #info-page {
+            position: fixed; inset: 0; background: #000; z-index: 8000;
+            transform: translateX(100%); transition: 0.5s cubic-bezier(0.85, 0, 0.15, 1);
+            padding: 40px 25px; display: flex; flex-direction: column; align-items: center;
+        }
+        #info-page.active { transform: translateX(0); }
+
+        .info-img { width: 100%; border-radius: 25px; margin-bottom: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .info-title { font-family: 'Orbitron'; font-size: 24px; color: var(--accent); text-align: center; }
+        .info-desc { color: #888; font-size: 13px; text-align: center; margin: 20px 0; line-height: 1.6; }
+        .script-box {
+            width: 100%; background: #0a0a0a; border: 1px solid #222; padding: 15px;
+            border-radius: 15px; font-family: monospace; color: var(--accent);
+            font-size: 11px; word-break: break-all; max-height: 150px; overflow-y: auto;
+        }
+
+        .btn-group { width: 100%; margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
+        .btn-action {
+            width: 100%; padding: 18px; border-radius: 15px; border: none;
+            font-weight: 900; font-family: 'Orbitron'; cursor: pointer; transition: 0.3s;
+        }
+        .btn-copy { background: var(--accent); color: #000; box-shadow: 0 0 20px var(--accent-glow); }
+        .btn-close { background: #222; color: #fff; }
+
+        /* Search Results Row */
+        #search-results { display: none; margin-bottom: 40px; }
+
     </style>
 </head>
 <body>
 
-<canvas id="star-canvas"></canvas>
+    <canvas id="star-canvas"></canvas>
 
-<div id="search-overlay">
-    <div class="search-circle" id="sCircle">
-        <input type="text" id="search-input" placeholder="Bạn tìm gì thế?..." oninput="handleRealSearch()">
-        <span id="sIcon" style="color:#000; font-size: 24px;">🔍</span>
-    </div>
-    <div id="search-results-container">
-        <div class="section-header">
-            <span class="section-title">RESULTS (<span id="sCount">0</span>)</span>
-            <button class="icon-btn" onclick="closeSearch()" style="color:#ff4d4d">×</button>
+    <div id="home-screen">
+        <img src="https://i.ibb.co/60cyM2Dk/image.png" class="avatar">
+        <img src="https://i.ibb.co/FkXTHyfw/image.png" class="intro-banner">
+        <div class="intro-text">
+            <h1>ANSCRIPT VN</h1>
+            <p>Admin: Hothiptv • Best Roblox Scripts</p>
         </div>
-        <div class="horizontal-scroll" id="sRes"></div>
-    </div>
-</div>
-
-<div id="app-wrapper">
-    <div class="navbar">
-        <button class="icon-btn" onclick="toggleMenu(true)">☰</button>
-        <div class="logo">ANSHUB</div>
-        <button class="icon-btn" onclick="openSearch()">🔍</button>
+        <button class="btn-start" onclick="startApp()">BẮT ĐẦU</button>
     </div>
 
-    <div id="content-home" class="tab-content home-section">
-        <img src="https://i.ibb.co/60cyM2Dk/image.png" class="profile-img">
-        <h2 style="font-family:'Orbitron'; letter-spacing: 2px;">WELCOME BACK</h2>
-        <div class="intro-card">
-            <img src="https://i.ibb.co/FkXTHyfw/image.png" class="intro-banner">
-            <div class="admin-info">
-                Nhóm: <b>Anscript VN</b><br>
-                Admin: <b>Hothiptv</b><br>
-                Status: <b>Active & Updates</b><br>
-                Anscript Hub (Anshub) - Tổng hợp Script chất lượng cao.
+    <div class="app-container" id="app">
+        <div class="navbar">
+            <div class="logo">ANSHUB</div>
+            <div class="search-trigger" onclick="openSearch()">🔍</div>
+        </div>
+
+        <div class="main-scroll" id="content">
+            <div id="search-results" class="tab-row">
+                <div class="tab-header">
+                    <div class="tab-name">KẾT QUẢ TÌM KIẾM</div>
+                    <div class="tab-count" id="res-count">0</div>
+                </div>
+                <div class="horizontal-list" id="res-list"></div>
             </div>
+
+            <div id="tab-rows-container"></div>
         </div>
-        <button class="btn-start" onclick="goToAll()">BẮT ĐẦU NGAY</button>
     </div>
 
-    <div id="content-all" class="tab-content" style="display:none; padding-top: 20px;">
-        <div id="all-rows-container"></div>
-    </div>
-</div>
-
-<div id="side" class="sidebar">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px">
-        <h2 style="color:var(--accent); font-family:'Orbitron'; font-size: 1rem;">MENU</h2>
-        <button class="icon-btn" onclick="toggleMenu(false)" style="color:#ff4d4d">×</button>
-    </div>
-    <div class="sidebar-content">
-        <div class="tab-item active" id="tab-home-btn" onclick="switchTab('HOME')">HOME</div>
-        <div class="tab-item" id="tab-all-btn" onclick="switchTab('ALL')">
-            ALL SCRIPTS <span class="tab-count" id="count-all">0</span>
+    <div id="search-overlay" onclick="closeSearch(event)">
+        <div class="search-modal">
+            <div class="search-input-box" id="sBox">
+                <input type="text" id="sInp" placeholder="TÌM SCRIPT..." oninput="handleSearch()">
+            </div>
+            <p style="margin-top: 20px; font-size: 10px; color: #555; font-weight: 900;">NHẤN BÊN NGOÀI ĐỂ ĐÓNG</p>
         </div>
-        <div id="dynamic-tabs"></div>
     </div>
-</div>
 
-<div id="m" class="modal">
-    <div class="modal-content">
-        <img id="mI" style="width:100%; border-radius:20px; margin-bottom:20px;">
-        <h2 id="mT" style="color:var(--accent); font-family:'Orbitron';"></h2>
-        <p id="mD" style="color:#aaa; font-size:13px; line-height:1.6"></p>
-        <button class="btn-start" style="width:100%" onclick="copyCode()">COPY SCRIPT</button>
-        <button onclick="closeModal()" style="background:none; border:none; color:#444; margin-top:20px; cursor:pointer">ĐÓNG</button>
-    </div>
-</div>
-
-<script>
-    const API = window.location.origin;
-    const DEF_IMG = "https://i.ibb.co/szRg104/image.png";
-    let db = [], tabs = [], curC = "";
-
-    async function init() {
-        initStars();
-        try {
-            const r = await fetch(`${API}/get-hub`);
-            const data = await r.json();
-            db = data.scripts || [];
-            tabs = data.tabs || [];
-            
-            // Render Menu Sidebar
-            const dyn = document.getElementById('dynamic-tabs');
-            document.getElementById('count-all').innerText = db.length;
-            
-            // Ưu tiên đưa Anscript lên đầu
-            tabs.sort((a,b) => a.Name === "Anscript" ? -1 : 1);
-
-            tabs.forEach((t, i) => {
-                const count = db.filter(s => s.tab === t.Name).length;
-                const item = document.createElement('div');
-                item.className = 'tab-item';
-                item.style.transitionDelay = `${i*0.1}s`;
-                item.innerHTML = `${t.Name} <span class="tab-count">${count}</span>`;
-                item.onclick = () => { switchTab('ALL'); setTimeout(() => {
-                    document.getElementById(`row-${t.Name}`).scrollIntoView({behavior:'smooth'});
-                }, 500); };
-                dyn.appendChild(item);
-            });
-
-            renderAllSections();
-        } catch(e) { console.log(e) }
-    }
-
-    function renderAllSections() {
-        const container = document.getElementById('all-rows-container');
-        container.innerHTML = "";
-
-        tabs.forEach(t => {
-            const scripts = db.filter(s => s.tab === t.Name);
-            if(scripts.length === 0) return;
-
-            const section = document.createElement('div');
-            section.className = 'section-container';
-            section.id = `row-${t.Name}`;
-            section.innerHTML = `
-                <div class="section-header">
-                    <span class="section-title">${t.Name.toUpperCase()}</span>
-                    <span style="font-size:10px; color:#444">${scripts.length} SCRIPTS</span>
-                </div>
-                <div class="horizontal-scroll">
-                    ${scripts.map(s => `
-                        <div class="card ${s.ratio || 'ratio-1-1'}" onclick="openModal('${s.name}', '${s.img}', '${s.describe}', '${s.script}')">
-                            <img src="${s.img || DEF_IMG}" class="card-img">
-                            <div class="card-info"><div class="card-name">${s.name}</div></div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-            container.appendChild(section);
-        });
-    }
-
-    function switchTab(type) {
-        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-        document.querySelectorAll('.tab-item').forEach(b => b.classList.remove('active'));
+    <div id="info-page">
+        <img id="info-i" class="info-img">
+        <h2 id="info-t" class="info-title"></h2>
+        <p id="info-d" class="info-desc"></p>
+        <div class="script-box" id="info-s"></div>
         
-        if(type === 'HOME') {
-            document.getElementById('content-home').style.display = 'block';
-            document.getElementById('tab-home-btn').classList.add('active');
-        } else {
-            document.getElementById('content-all').style.display = 'block';
-            document.getElementById('tab-all-btn').classList.add('active');
+        <div class="btn-group">
+            <button class="btn-action btn-copy" onclick="copyScript()">COPY SCRIPT</button>
+            <button class="btn-action btn-close" onclick="closeInfo()">ĐÓNG</button>
+        </div>
+    </div>
+
+    <script>
+        const API = window.location.origin;
+        let db = { tabs: [], scripts: [] };
+        let curScriptCode = "";
+
+        // Bắt đầu vào app
+        function startApp() {
+            document.getElementById('home-screen').classList.add('hide');
+            document.getElementById('app').classList.add('show');
+            loadData();
         }
-        toggleMenu(false);
-    }
 
-    function goToAll() { switchTab('ALL'); }
+        async function loadData() {
+            try {
+                const r = await fetch(`${API}/get-hub`);
+                db = await r.json();
+                renderDashboard();
+            } catch(e) { console.error("Lỗi tải data"); }
+        }
 
-    function openSearch() {
-        document.body.classList.add('searching');
-        const circle = document.getElementById('sCircle');
-        const input = document.getElementById('search-input');
-        const icon = document.getElementById('sIcon');
-        
-        setTimeout(() => {
-            circle.classList.add('search-expanded');
-            icon.style.display = 'none';
-            input.style.display = 'block';
-            input.focus();
-        }, 100);
-    }
+        function renderDashboard() {
+            const container = document.getElementById('tab-rows-container');
+            container.innerHTML = "";
 
-    function closeSearch() {
-        document.body.classList.remove('searching');
-        const circle = document.getElementById('sCircle');
-        circle.classList.remove('search-expanded');
-        document.getElementById('search-input').style.display = 'none';
-        document.getElementById('sIcon').style.display = 'block';
-        document.getElementById('sRes').innerHTML = "";
-    }
+            // Luôn để Tab do Admin làm (AnsHub) lên đầu nếu có
+            const sortedTabs = [...db.tabs];
+            
+            sortedTabs.forEach((tab, idx) => {
+                const tabScripts = db.scripts.filter(s => s.tab === tab.Name);
+                if(tabScripts.length === 0) return;
 
-    function handleRealSearch() {
-        const key = document.getElementById('search-input').value.toLowerCase();
-        const filtered = db.filter(s => s.name.toLowerCase().includes(key));
-        document.getElementById('sCount').innerText = filtered.length;
-        
-        const res = document.getElementById('sRes');
-        res.innerHTML = filtered.map(s => `
-            <div class="card ratio-1-1" onclick="openModal('${s.name}', '${s.img}', '${s.describe}', '${s.script}')">
-                <img src="${s.img || DEF_IMG}" class="card-img">
-                <div class="card-info"><div class="card-name">${s.name}</div></div>
-            </div>
-        `).join('');
-    }
+                const row = document.createElement('div');
+                row.className = "tab-row";
+                row.style.animationDelay = `${idx * 0.1}s`;
+                
+                row.innerHTML = `
+                    <div class="tab-header">
+                        <div class="tab-name">${tab.Name.toUpperCase()}</div>
+                        <div class="tab-count">${tabScripts.length}</div>
+                    </div>
+                    <div class="horizontal-list">
+                        ${tabScripts.map(s => `
+                            <div class="card" onclick="openInfo('${s.name}')">
+                                <img src="${s.img}" onerror="this.src='https://i.ibb.co/szRg104/image.png'">
+                                <div class="card-name">${s.name}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
 
-    function openModal(n, i, d, s) {
-        document.getElementById('mT').innerText = n;
-        document.getElementById('mI').src = i || DEF_IMG;
-        document.getElementById('mD').innerText = d || "High quality script by AnsHub.";
-        curC = s;
-        document.getElementById('m').style.display = 'flex';
-    }
+        // --- SEARCH SYSTEM ---
+        function openSearch() {
+            const overlay = document.getElementById('search-overlay');
+            const sBox = document.getElementById('sBox');
+            overlay.style.display = 'flex';
+            setTimeout(() => {
+                sBox.classList.add('expand');
+                setTimeout(() => {
+                    document.getElementById('sInp').style.display = 'block';
+                    document.getElementById('sInp').focus();
+                }, 300);
+            }, 10);
+        }
 
-    function closeModal() { document.getElementById('m').style.display = 'none'; }
-    
-    function copyCode() {
-        navigator.clipboard.writeText(curC).then(() => alert("COPIED!"));
-    }
+        function closeSearch(e) {
+            if(e.target.id === 'search-overlay') {
+                const sBox = document.getElementById('sBox');
+                document.getElementById('sInp').style.display = 'none';
+                sBox.classList.remove('expand');
+                setTimeout(() => {
+                    document.getElementById('search-overlay').style.display = 'none';
+                    if(!document.getElementById('sInp').value) {
+                        document.getElementById('search-results').style.display = 'none';
+                    }
+                }, 400);
+            }
+        }
 
-    function toggleMenu(o) { document.getElementById('side').classList.toggle('active', o); }
+        function handleSearch() {
+            const val = document.getElementById('sInp').value.toLowerCase();
+            const resArea = document.getElementById('search-results');
+            const resList = document.getElementById('res-list');
+            const resCount = document.getElementById('res-count');
 
-    function initStars() {
+            if(val.length < 1) {
+                resArea.style.display = 'none';
+                return;
+            }
+
+            const filtered = db.scripts.filter(s => s.name.toLowerCase().includes(val));
+            resCount.innerText = filtered.length;
+            resArea.style.display = 'block';
+            
+            resList.innerHTML = filtered.map(s => `
+                <div class="card" onclick="openInfo('${s.name}')">
+                    <img src="${s.img}">
+                    <div class="card-name">${s.name}</div>
+                </div>
+            `).join('');
+        }
+
+        // --- INFO PAGE SYSTEM ---
+        function openInfo(name) {
+            const s = db.scripts.find(x => x.name === name);
+            if(!s) return;
+
+            // Đổi URL ảo (không load lại trang)
+            window.history.pushState({}, '', `/speed/${name.replace(/\s+/g, '-').toLowerCase()}`);
+
+            document.getElementById('info-i').src = s.img;
+            document.getElementById('info-t').innerText = s.name;
+            document.getElementById('info-d').innerText = s.describe || "Không Có Mô Tả";
+            document.getElementById('info-s').innerText = s.script;
+            curScriptCode = s.script;
+
+            document.getElementById('info-page').classList.add('active');
+        }
+
+        function closeInfo() {
+            window.history.pushState({}, '', '/');
+            document.getElementById('info-page').classList.remove('active');
+        }
+
+        function copyScript() {
+            navigator.clipboard.writeText(curScriptCode);
+            const btn = document.querySelector('.btn-copy');
+            btn.innerText = "COPIED!";
+            setTimeout(() => btn.innerText = "COPY SCRIPT", 1500);
+        }
+
+        // Star background
         const canvas = document.getElementById('star-canvas');
         const ctx = canvas.getContext('2d');
         let stars = [];
-        const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
-        window.addEventListener('resize', resize); resize();
-        for(let i=0; i<100; i++) stars.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, s:Math.random()*2, o:Math.random()});
-        const anim = () => {
-            ctx.clearRect(0,0,canvas.width, canvas.height);
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.onresize = resize; resize();
+        for(let i=0; i<100; i++) stars.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, s:Math.random()*2});
+        function anim() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            ctx.fillStyle = "#00ff96";
             stars.forEach(s => {
-                ctx.fillStyle = `rgba(0, 255, 150, ${s.o})`;
+                ctx.globalAlpha = Math.random();
                 ctx.beginPath(); ctx.arc(s.x, s.y, s.s, 0, Math.PI*2); ctx.fill();
-                s.y -= 0.2; if(s.y<0) s.y=canvas.height;
             });
             requestAnimationFrame(anim);
-        }; anim();
-    }
-
-    init();
-</script>
+        }
+        anim();
+    </script>
 </body>
 </html>
