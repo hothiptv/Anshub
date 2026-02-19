@@ -54,7 +54,7 @@
       "name": "Console",
       "tab": "ANSCRIPT",
       "img": "https://i.ibb.co/tTBqhr9R/image.png",
-      "script": "loadstring(game:HttpGet(\"https://ansbm-production.up.railway.app/raw/Console/\"))()",
+      "script": "loadstring(game:HttpGet(\"https://ansbm-production.up.railway.app/raw/Console/0904\"))()",
       "ratio": "ratio-1-1",
       "describe": ""
     },
