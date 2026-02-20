@@ -361,6 +361,14 @@
       "script": "_G.Config = {\n    TextSize = 10,       \n    BarHeight = 10,         \n    BarWidth = 100,         \n    ShakeIntensity = 10,     \n    Notify = \"ANS ESP V2.5 CHỈNH SỬA\",\n    ChatDuration = 10        \n}\nloadstring(game:HttpGet(\"https://ansbm-production.up.railway.app/raw/Ansespv2.5/0904\"))()\n",
       "describe": "Creator: An Hub",
       "ratio": "ratio-1-1"
+    },
+    {
+      "name": "ThanhDuy Hub",
+      "tab": "The Strongest Battleground",
+      "img": "https://i.ibb.co/szRg104/image.png",
+      "script": "loadstring(game:HttpGet(\"loadstring(game:HttpGet(\"https://raw.githubusercontent.com/ngoclinh02042011-stack/019763926682064103649692952048262949275394620201003847duydepzailhoaito/refs/heads/main/ThanhDuy%20sigma%201x1x1x1x1x1x1x1.lua\"))()\"))()",
+      "describe": "Creator: Anshub Team",
+      "ratio": "ratio-1-1"
     }
   ]
 }
