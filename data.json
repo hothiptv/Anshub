@@ -369,6 +369,14 @@
       "script": "loadstring(game:HttpGet(\"loadstring(game:HttpGet(\"https://raw.githubusercontent.com/ngoclinh02042011-stack/019763926682064103649692952048262949275394620201003847duydepzailhoaito/refs/heads/main/ThanhDuy%20sigma%201x1x1x1x1x1x1x1.lua\"))()\"))()",
       "describe": "Creator: Anshub Team",
       "ratio": "ratio-1-1"
+    },
+    {
+      "name": "TthanhHub",
+      "tab": "The Strongest Battleground",
+      "img": "https://i.ibb.co/szRg104/image.png",
+      "script": "loadstring(game:HttpGet(\"https://rawscripts.net/raw/The-Strongest-Battlegrounds-Tthanhhub-TSB-Script-111137\"))()",
+      "describe": "Creator: Anshub Team",
+      "ratio": "ratio-1-1"
     }
   ]
 }
